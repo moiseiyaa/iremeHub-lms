@@ -54,3 +54,4 @@ config/credentials.js
 
 # Local MongoDB data
 data/ 
+.vercel
