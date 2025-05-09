@@ -45,16 +45,16 @@ if (!fs.existsSync(envPath)) {
   // If one fails, user can switch to another one by editing .env file
   const envContent = `# MongoDB Connection String Options
 # Option 1: MongoDB Atlas connection (primary)
-MONGODB_URI=your_mongodb_connection_string_here
+MONGODB_URI=mongodb+srv://iremehub:02.06.02@cluster0.ewfskt9.mongodb.net/lms?retryWrites=true&w=majority&appName=Cluster0
 
 # Option 2: Free tier MongoDB Atlas connection (backup)
-# MONGODB_URI=mongodb+srv://username:password@cluster0.mongodb.net/lms?retryWrites=true&w=majority
+# MONGODB_URI=mongodb+srv://testuser:testpassword@cluster0.mongodb.net/lms?retryWrites=true&w=majority
 
 # Option 3: Local MongoDB (requires local MongoDB installation)
 # MONGODB_URI=mongodb://localhost:27017/lms
 
 # JWT
-JWT_SECRET=your_jwt_secret_here
+JWT_SECRET=iremehub_secure_jwt_secret_key_2023
 JWT_EXPIRE=30m
 
 # Server
@@ -65,12 +65,12 @@ NODE_ENV=development
 MAX_FILE_UPLOAD=10000000 # 10MB
 
 # Cloudinary
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+CLOUDINARY_CLOUD_NAME=dn2iycbmb
+CLOUDINARY_API_KEY=767943984712669
+CLOUDINARY_API_SECRET=3vnAijPWg025Q8DjUo94Ml64qfc
 
 # Stripe
-STRIPE_SECRET_KEY=your_stripe_key
+STRIPE_SECRET_KEY=sk_test_51NRlXiCkHnQXnHCXPGlsfrOA7KG4DYT6u6yY4Q9bN1AqpXGc4CGXkIEMbZXqplK8PvA9ZxQj3tWZRK9Hx
 
 # Frontend URL for CORS
 FRONTEND_URL=http://localhost:3000`;
