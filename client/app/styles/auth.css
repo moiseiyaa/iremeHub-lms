@@ -1,0 +1,82 @@
+/* Auth Modal Animations */
+@keyframes popout {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Overlay animation */
+.auth-overlay {
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+/* Overlay fade out for closing */
+.auth-overlay.closing {
+  animation: fadeOut 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Add bounce out animation for closing */
+@keyframes bounceout {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(0.95);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  80% {
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Modal transition */
+.auth-modal {
+  animation: popout 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transform-origin: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.auth-modal.closing {
+  animation: bounceout 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+}
+
+/* Input focus effect */
+.auth-input:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px rgba(0, 145, 255, 0.3);
+}
+
+/* Button hover effect */
+.auth-button {
+  transition: all 0.2s ease-in-out;
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+} 
