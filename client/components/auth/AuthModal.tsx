@@ -134,6 +134,15 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
         body: JSON.stringify(payload),
       });
 
+      // Check content type to handle non-JSON responses
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        // Handle non-JSON response
+        const textResponse = await res.text();
+        console.error('Non-JSON auth response:', textResponse.substring(0, 100));
+        throw new Error('Server returned an invalid response. Please try again later.');
+      }
+
       const data = await res.json();
       console.log(`${mode} response:`, data);
 

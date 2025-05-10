@@ -108,7 +108,29 @@ const apiRequest = async <T>(
       },
     });
 
-    const data = await response.json();
+    // Check content type to ensure we're dealing with JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      // Handle non-JSON responses
+      const textResponse = await response.text();
+      console.error('Non-JSON response received:', textResponse.substring(0, 100) + '...');
+      
+      // If authentication error, handle accordingly
+      if (response.status === 401 && requiresAuth) {
+        handleAuthError(endpoint);
+      }
+      
+      throw new Error(`Server returned non-JSON response: ${textResponse.substring(0, 50)}...`);
+    }
+
+    // Now safely parse JSON
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('JSON parse error:', jsonError);
+      throw new Error('Failed to parse JSON response from server');
+    }
 
     if (!response.ok) {
       // Handle authentication errors
