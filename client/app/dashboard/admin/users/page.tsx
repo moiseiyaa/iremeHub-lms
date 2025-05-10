@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -24,7 +24,8 @@ interface UserData {
   createdAt: string;
 }
 
-export default function AdminUsersPage() {
+// Client component that uses useSearchParams
+function UsersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const roleFilter = searchParams ? searchParams.get('role') : null;
@@ -301,5 +302,25 @@ export default function AdminUsersPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading fallback for Suspense
+function LoadingFallback() {
+  return (
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading users...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <UsersContent />
+    </Suspense>
   );
 }
