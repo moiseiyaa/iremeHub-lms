@@ -131,7 +131,7 @@ export default function Contact() {
               Contact Us
             </h1>
             <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Have questions or feedback? We'd love to hear from you. Get in touch with our team and we'll respond as soon as we can.
+              Have questions or feedback? We&apos;d love to hear from you. Get in touch with our team and we&apos;ll respond as soon as we can.
             </p>
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function Contact() {
                 {status.success && (
                   <div className="mb-6 bg-green-50 text-green-800 p-4 rounded-md flex items-start">
                     <CheckCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                    <p>Thank you for your message! We'll get back to you as soon as possible.</p>
+                    <p>Thank you for your message! We&apos;ll get back to you as soon as possible.</p>
                   </div>
                 )}
                 
@@ -211,7 +211,7 @@ export default function Contact() {
                 {status.error && (
                   <div className="mb-6 bg-red-50 text-red-800 p-4 rounded-md flex items-start">
                     <ExclamationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                    <p>{`There was an issue sending your message: "${status.error}". Please try again.`}</p>
+                    <p>{status.error}</p>
                   </div>
                 )}
                 

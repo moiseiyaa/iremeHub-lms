@@ -3,14 +3,10 @@
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import { apiGet, apiPost } from '../../../api/apiClient';
 import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon, CheckIcon, Bars3Icon } from '@heroicons/react/24/outline';
-import { CheckCircleIcon, LockClosedIcon, PlayIcon } from '@heroicons/react/24/solid';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
-
-// Default images
-const DEFAULT_AVATAR_IMAGE = 'https://placehold.co/100x100/e2e8f0/1e293b?text=User';
 
 interface Lesson {
   _id: string;
@@ -409,13 +405,6 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
     } finally {
       setCompletingLesson(false);
     }
-  };
-
-  // Handle quiz answer selection
-  const handleQuizAnswerSelect = (questionIndex: number, answerIndex: number) => {
-    const newAnswers = [...quizAnswers];
-    newAnswers[questionIndex] = answerIndex;
-    setQuizAnswers(newAnswers);
   };
 
   // Handle quiz submission
