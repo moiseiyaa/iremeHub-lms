@@ -11,5 +11,10 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ]
+  ],
+  "functions": {
+    "server/models/**/*.js": {
+      "includeFiles": "server/models/**"
+    }
+  }
 } 

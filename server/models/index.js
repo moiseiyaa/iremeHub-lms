@@ -9,6 +9,7 @@ const safeRequire = (modelPath) => {
     return model;
   } catch (err) {
     console.error(`❌ Error loading model ${modelPath}:`, err.message);
+    console.error(`Full error stack for ${modelPath}:`, err);
     // Return a minimal model proxy that won't crash the app but will log errors
     return new Proxy({}, {
       get: function(target, prop) {
@@ -28,14 +29,14 @@ const safeRequire = (modelPath) => {
 };
 
 // Load all models
-const User = safeRequire('./User');
-const Course = safeRequire('./Course');
-const Lesson = safeRequire('./Lesson');
-const Section = safeRequire('./Section');
-const Progress = safeRequire('./Progress');
-const Payment = safeRequire('./Payment');
-const Certificate = safeRequire('./Certificate');
-const Announcement = safeRequire('./Announcement');
+const User = safeRequire('./User.js');
+const Course = safeRequire('./Course.js');
+const Lesson = safeRequire('./Lesson.js');
+const Section = safeRequire('./Section.js');
+const Progress = safeRequire('./Progress.js');
+const Payment = safeRequire('./Payment.js');
+const Certificate = safeRequire('./Certificate.js');
+const Announcement = safeRequire('./Announcement.js');
 
 console.log('All models loaded');
 
