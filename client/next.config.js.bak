@@ -3,14 +3,6 @@
 const nextConfig = {
   /* config options here */
   reactStrictMode: true,
-  // Disable TypeScript checking during build
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    // Warning instead of error
-    ignoreDuringBuilds: true,
-  },
   // Suppress hydration warnings caused by browser extensions
   onDemandEntries: {
     // Keep pages in memory for a longer time
