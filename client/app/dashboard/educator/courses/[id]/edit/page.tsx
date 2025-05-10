@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   ArrowLeftIcon, 
   PhotoIcon,
@@ -142,7 +143,7 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
     
     // Clear error when field is edited
     if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+      setErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
     }
   };
 
@@ -545,9 +546,11 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
                 
                 {thumbnailPreview && (
                   <div className="relative w-full sm:w-1/3">
-                    <img 
+                    <Image 
                       src={thumbnailPreview} 
                       alt="Thumbnail preview" 
+                      width={128}
+                      height={128}
                       className="rounded-md object-cover h-32 w-full" 
                     />
                     <button

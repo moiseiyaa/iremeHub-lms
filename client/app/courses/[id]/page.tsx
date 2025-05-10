@@ -258,7 +258,7 @@ export default function CoursePage({ params }: CoursePageProps) {
               if (typeof userResponseUnknown === 'object' && userResponseUnknown !== null) {
                 const userResponse = userResponseUnknown as ApiResponse<{ role: string }>;
                 if (userResponse.success && userResponse.data) {
-                  setUserRole(userResponse.data.role);
+                    setUserRole(userResponse.data.role);
                 }
               }
 

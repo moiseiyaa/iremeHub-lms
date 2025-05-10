@@ -25,11 +25,6 @@ interface Student {
   joinedAt: string;
 }
 
-interface Course {
-  _id: string;
-  title: string;
-}
-
 // Utility function to generate CSS classes for progress bars
 const getProgressWidth = (percentage: number): string => {
   // Handle bounds
