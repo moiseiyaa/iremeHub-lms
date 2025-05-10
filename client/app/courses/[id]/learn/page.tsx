@@ -584,7 +584,7 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
   const getProgressWidthClass = (percentage: number) => {
     // Round to nearest 5%
     const roundedPercentage = Math.round(percentage / 5) * 5;
-    return `w-[${roundedPercentage}%]`;
+    return `progress-width-${roundedPercentage}`;
   };
 
   return (
@@ -605,7 +605,6 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
             <div className="relative h-2 bg-gray-200 rounded-full w-32 sm:w-48">
               <div 
                 className={`absolute h-2 bg-indigo-500 rounded-full ${getProgressWidthClass(progress?.progressPercentage || 0)}`}
-                style={{ width: `${progress?.progressPercentage || 0}%` }}
               ></div>
             </div>
           </div>

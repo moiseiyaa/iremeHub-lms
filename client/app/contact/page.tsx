@@ -6,9 +6,6 @@ import {
   BuildingOffice2Icon,
   PhoneIcon,
   EnvelopeIcon,
-  ClockIcon,
-  MapPinIcon,
-  ChatBubbleLeftRightIcon,
   CheckCircleIcon,
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
@@ -184,12 +181,10 @@ export default function Contact() {
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63799.44215042493!2d30.023693079101556!3d-1.9483617999999954!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca5dfb2c48695%3A0x5f90a601c558564c!2sKicukiro%2C%20Kigali%2C%20Rwanda!5e0!3m2!1sen!2sus!4v1652369851272!5m2!1sen!2sus" 
                     width="100%" 
                     height="100%" 
-                    style={{ border: 0 }} 
-                    allowFullScreen={true} 
-                    loading="lazy" 
+                    className="absolute inset-0 border-0"
+                    allowFullScreen={true}
                     referrerPolicy="no-referrer-when-downgrade"
                     title="iremeHub Office Location"
-                    className="absolute inset-0"
                   ></iframe>
                 </div>
               </div>
@@ -314,7 +309,7 @@ export default function Contact() {
             <div className="bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
               <h3 className="text-lg font-semibold mb-2">How do I reset my password?</h3>
               <p className="text-gray-600">
-                You can reset your password by clicking the "Forgot Password" link on the login page. Follow the instructions sent to your email to create a new password.
+                You can reset your password by clicking the &quot;Forgot Password&quot; link on the login page. Follow the instructions sent to your email to create a new password.
               </p>
             </div>
             

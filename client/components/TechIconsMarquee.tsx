@@ -161,8 +161,7 @@ function TechLogo({ tech }: { tech: { name: string; logo: string } }) {
           src={tech.logo}
           alt={`${tech.name} logo`}
           fill
-          style={{ objectFit: "contain" }}
-          className="drop-shadow-sm"
+          className="object-contain drop-shadow-sm"
           loading="eager"
           priority
         />

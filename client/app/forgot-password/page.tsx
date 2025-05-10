@@ -34,8 +34,8 @@ export default function ForgotPassword() {
       }
 
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+    } catch (err: Error | unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -48,7 +48,7 @@ export default function ForgotPassword() {
           <div className="text-center mb-10">
             <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">Reset your password</h2>
             <p className="mt-2 text-sm text-gray-600">
-              Enter your email address and we'll send you a link to reset your password
+              Enter your email address and we&apos;ll send you a link to reset your password
             </p>
           </div>
 
@@ -120,7 +120,7 @@ export default function ForgotPassword() {
         <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
           <div className="max-w-md">
             <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-md">Forgot Your Password?</h2>
-            <p className="text-white text-lg drop-shadow-md">Don't worry! It happens to the best of us. We'll help you get back into your account.</p>
+            <p className="text-white text-lg drop-shadow-md">Don&apos;t worry! It happens to the best of us. We&apos;ll help you get back into your account.</p>
           </div>
         </div>
       </div>

@@ -25,6 +25,35 @@ interface Student {
   joinedAt: string;
 }
 
+interface Course {
+  _id: string;
+  title: string;
+}
+
+// Utility function to generate CSS classes for progress bars
+const getProgressWidth = (percentage: number): string => {
+  // Handle bounds
+  if (percentage <= 0) return 'w-0';
+  if (percentage >= 100) return 'w-full';
+  
+  // Map percentages to Tailwind width classes
+  if (percentage <= 5) return 'w-[5%]';
+  if (percentage <= 10) return 'w-[10%]';
+  if (percentage <= 20) return 'w-[20%]';
+  if (percentage <= 25) return 'w-1/4';
+  if (percentage <= 30) return 'w-[30%]';
+  if (percentage <= 33) return 'w-1/3';
+  if (percentage <= 40) return 'w-[40%]';
+  if (percentage <= 50) return 'w-1/2';
+  if (percentage <= 60) return 'w-[60%]';
+  if (percentage <= 66) return 'w-2/3';
+  if (percentage <= 70) return 'w-[70%]';
+  if (percentage <= 75) return 'w-3/4';
+  if (percentage <= 80) return 'w-[80%]';
+  if (percentage <= 90) return 'w-[90%]';
+  return 'w-[95%]';
+};
+
 export default function StudentsManagement() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -332,8 +361,7 @@ export default function StudentsManagement() {
                           <div className="flex items-center">
                             <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2 max-w-[100px]">
                               <div 
-                                className={`h-2.5 rounded-full ${getProgressColor(student.progress)}`} 
-                                style={{ width: `${student.progress}%` }}
+                                className={`h-2.5 rounded-full ${getProgressColor(student.progress)} ${getProgressWidth(student.progress)}`} 
                               ></div>
                             </div>
                             <span className="text-sm text-gray-500">
