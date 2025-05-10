@@ -38,48 +38,6 @@ const errorHandler = require('./middleware/errorHandler');
 // Initialize Express
 const app = express();
 
-// Create .env file if it doesn't exist - ONLY in non-production environments
-if (process.env.NODE_ENV !== 'production') {
-  const envPath = path.join(__dirname, '.env');
-  if (!fs.existsSync(envPath)) {
-    const envContent = `# MongoDB Connection String Options
-MONGODB_URI=mongodb+srv://iremehub:02.06.02@cluster0.ewfskt9.mongodb.net/lms?retryWrites=true&w=majority&appName=Cluster0
-
-# Option 2: Free tier MongoDB Atlas connection (backup)
-# MONGODB_URI=mongodb+srv://testuser:testpassword@cluster0.mongodb.net/lms?retryWrites=true&w=majority
-
-# Option 3: Local MongoDB (requires local MongoDB installation)
-# MONGODB_URI=mongodb://localhost:27017/lms
-
-# JWT
-JWT_SECRET=iremehub_secure_jwt_secret_key_2023
-JWT_EXPIRE=30m
-
-# Server
-PORT=5000
-# NODE_ENV=development // Should be set by environment
-
-# File Upload
-MAX_FILE_UPLOAD=10000000 # 10MB
-
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=dn2iycbmb
-CLOUDINARY_API_KEY=767943984712669
-CLOUDINARY_API_SECRET=3vnAijPWg025Q8DjUo94Ml64qfc
-
-# Stripe
-STRIPE_SECRET_KEY=sk_test_51NRlXiCkHnQXnHCXPGlsfrOA7KG4DYT6u6yY4Q9bN1AqpXGc4CGXkIEMbZXqplK8PvA9ZxQj3tWZRK9Hx
-
-# Frontend URL for CORS
-FRONTEND_URL=http://localhost:3000`;
-
-    fs.writeFileSync(envPath, envContent);
-    console.log('.env file created with multiple MongoDB connection options (non-production)');
-    // Reload environment variables after creating .env
-    require('dotenv').config({ override: true }); // Ensure new .env values are loaded
-  }
-}
-
 // Parse Stripe webhook
 app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }));
 
