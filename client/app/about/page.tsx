@@ -321,7 +321,7 @@ export default function About() {
           >
             <h2 className="text-2xl md:text-3xl font-bold mb-6">Join Our Learning Community</h2>
             <p className="text-lg mb-8">
-              Embark on your learning journey with us and unlock your full potential. Gain the skills you need to succeed in today's rapidly evolving world.
+              Embark on your learning journey with us and unlock your full potential. Gain the skills you need to succeed in today&apos;s rapidly evolving world.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link 

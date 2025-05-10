@@ -193,49 +193,6 @@ export default function Contact() {
                   ></iframe>
                 </div>
               </div>
-              
-              <div className="mt-8 space-y-6">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <MapPinIcon className="h-6 w-6 text-gray-500 mr-3" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Address</h3>
-                    <p className="text-gray-600">Kicukiro, Kigali, Rwanda</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <ClockIcon className="h-6 w-6 text-gray-500 mr-3" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Business Hours</h3>
-                    <p className="text-gray-600">Monday to Friday: 9am - 5pm CAT<br />
-                    Saturday &amp; Sunday: Closed</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <PhoneIcon className="h-6 w-6 text-gray-500 mr-3" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Phone</h3>
-                    <p className="text-gray-600">+250788689346</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <ChatBubbleLeftRightIcon className="h-6 w-6 text-gray-500 mr-3" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Customer Support</h3>
-                    <p className="text-gray-600">We aim to respond to all inquiries within 24 hours during business days.</p>
-                  </div>
-                </div>
-              </div>
             </div>
             
             {/* Contact Form */}
@@ -254,7 +211,7 @@ export default function Contact() {
                 {status.error && (
                   <div className="mb-6 bg-red-50 text-red-800 p-4 rounded-md flex items-start">
                     <ExclamationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                    <p>{status.error}</p>
+                    <p>{`There was an issue sending your message: "${status.error}". Please try again.`}</p>
                   </div>
                 )}
                 
