@@ -141,10 +141,13 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
-    // Clear error when field is edited
-    if (errors[name]) {
-      setErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
-    }
+    // Clear error when field is edited using functional update pattern
+    setErrors(prevErrors => {
+      if (prevErrors[name]) {
+        return { ...prevErrors, [name]: '' };
+      }
+      return prevErrors;
+    });
   };
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,10 +162,13 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
       };
       reader.readAsDataURL(file);
       
-      // Clear error
-      if (errors.thumbnail) {
-        setErrors({ ...errors, thumbnail: '' });
-      }
+      // Clear error using functional update
+      setErrors(prevErrors => {
+        if (prevErrors.thumbnail) {
+          return { ...prevErrors, thumbnail: '' };
+        }
+        return prevErrors;
+      });
     }
   };
 
@@ -311,10 +317,10 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
       }
     } catch (err) {
       console.error('Error updating course:', err);
-      setErrors({
-        ...errors,
+      setErrors(prevErrors => ({
+        ...prevErrors,
         form: err instanceof Error ? err.message : 'An error occurred while updating the course'
-      });
+      }));
     } finally {
       setLoading(false);
     }

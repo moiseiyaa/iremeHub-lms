@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent, FormEvent } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   ArrowLeftIcon,
   PaperAirplaneIcon,
@@ -300,10 +301,12 @@ export default function CreateBlogPage() {
                   <div className="space-y-1 text-center">
                     {previewUrl ? (
                       <div>
-                        <img 
+                        <Image 
                           src={previewUrl} 
                           alt="Featured image preview" 
-                          className="mx-auto h-64 w-auto object-cover rounded-md" 
+                          className="mx-auto h-64 w-auto object-cover rounded-md"
+                          width={800}
+                          height={600}
                         />
                         <button
                           type="button"

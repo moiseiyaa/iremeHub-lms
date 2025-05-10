@@ -45,7 +45,14 @@ interface Certificate {
   };
 }
 
-export default function CertificateDetailPage({ params }: { params: { id: string } }) {
+interface CertificateVerifyResponse {
+  success: boolean;
+  isValid: boolean;
+  message: string;
+  error?: string;
+}
+
+export default function CertificateDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,9 +67,10 @@ export default function CertificateDetailPage({ params }: { params: { id: string
       try {
         setLoading(true);
         
-        const response = await apiGet(`/certificates/${params.id}`, true);
+        const resolvedParams = await params;
+        const response = await apiGet<Certificate>(`/certificates/${resolvedParams.id}`, true);
         
-        if (response.success) {
+        if (response.success && response.data) {
           setCertificate(response.data);
         } else {
           setError(response.error || 'Failed to load certificate');
@@ -76,19 +84,20 @@ export default function CertificateDetailPage({ params }: { params: { id: string
     };
     
     fetchCertificate();
-  }, [params.id]);
+  }, [params]);
   
   const verifyCertificate = async () => {
     try {
       setVerificationStatus({ isVerifying: true });
       
-      const response = await apiGet(`/certificates/${params.id}/verify`);
+      const resolvedParams = await params;
+      const response = await apiGet<CertificateVerifyResponse>(`/certificates/${resolvedParams.id}/verify`);
       
-      if (response.success) {
+      if (response.success && response.data) {
         setVerificationStatus({
           isVerifying: false,
-          isValid: response.isValid,
-          message: response.message
+          isValid: response.data.isValid,
+          message: response.data.message
         });
       } else {
         setVerificationStatus({
