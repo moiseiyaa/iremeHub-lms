@@ -90,14 +90,11 @@ interface Progress {
   nextLesson: Lesson | null;
 }
 
-interface UserResponse {
-  role: string;
-}
-
-interface CourseWithProgress {
-  course: Course;
-  isEnrolled: boolean;
-  progress?: Progress;
+// Define a generic API response structure
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
 }
 
 interface CoursePageProps {
@@ -107,9 +104,9 @@ interface CoursePageProps {
 }
 
 // Add utility function to retry API calls
-const fetchWithRetry = async (apiCall: () => Promise<any>, maxRetries = 3) => {
+const fetchWithRetry = async (apiCall: () => Promise<unknown>, maxRetries = 3): Promise<unknown> => {
   let retries = 0;
-  let lastError: any;
+  let lastError: unknown;
   
   while (retries < maxRetries) {
     try {
@@ -209,35 +206,36 @@ export default function CoursePage({ params }: CoursePageProps) {
         console.log('Loading public course data first');
         
         // Fetch course data with retries
-        const publicCourseResponse = await fetchWithRetry(
-          () => apiGet(`/courses/${courseId}`, false),
+        const publicCourseResponseUnknown = await fetchWithRetry(
+          () => apiGet<Course>(`/courses/${courseId}`, false),
           3 // 3 retries max
         );
         
         // Set course data from public endpoint
-        if (typeof publicCourseResponse === 'object') {
-          // Handle both TS and JS client formats
-          if (publicCourseResponse.success !== undefined) {
+        if (typeof publicCourseResponseUnknown === 'object' && publicCourseResponseUnknown !== null) {
+          const publicCourseResponse = publicCourseResponseUnknown as ApiResponse<Course> | Course;
+          if ('success' in publicCourseResponse && 'data' in publicCourseResponse) {
             if (publicCourseResponse.success && publicCourseResponse.data) {
-              setCourse(publicCourseResponse.data);
+              setCourse(publicCourseResponse.data as Course);
             }
           } else {
-            setCourse(publicCourseResponse);
+            setCourse(publicCourseResponse as Course);
           }
 
           // Also load public lesson data with retry
-          const publicLessonsResponse = await fetchWithRetry(
-            () => apiGet(`/courses/${courseId}/lessons`, false),
+          const publicLessonsResponseUnknown = await fetchWithRetry(
+            () => apiGet<Lesson[]>(`/courses/${courseId}/lessons`, false),
             2 // 2 retries max
           );
           
-          if (typeof publicLessonsResponse === 'object') {
-            if (publicLessonsResponse.success !== undefined) {
+          if (typeof publicLessonsResponseUnknown === 'object' && publicLessonsResponseUnknown !== null) {
+            const publicLessonsResponse = publicLessonsResponseUnknown as ApiResponse<Lesson[]> | Lesson[];
+            if ('success' in publicLessonsResponse && 'data' in publicLessonsResponse) {
               if (publicLessonsResponse.success && publicLessonsResponse.data) {
-                setLessons(publicLessonsResponse.data);
+                setLessons(publicLessonsResponse.data as Lesson[]);
               }
             } else if (Array.isArray(publicLessonsResponse)) {
-              setLessons(publicLessonsResponse);
+              setLessons(publicLessonsResponse as Lesson[]);
             }
           }
           
@@ -251,62 +249,32 @@ export default function CoursePage({ params }: CoursePageProps) {
           if (isAuth) {
             console.log('Attempting to load authenticated data');
             try {
-              // Try to get user role - but don't throw if it fails
-              try {
-                const userResponse = await fetchWithRetry(
-                  () => apiGet('/auth/me', true),
-                  1 // Just 1 retry for user data
-                );
-                if (typeof userResponse === 'object') {
-                  if (userResponse.success !== undefined && userResponse.success && userResponse.data) {
-                    setUserRole(userResponse.data.role);
-                  } else if (userResponse.role) {
-                    setUserRole(userResponse.role);
-                  }
+              // Fetch user role and progress with retries
+              const userResponseUnknown = await fetchWithRetry(
+                () => apiGet<{ role: string }>(`/auth/me`, true), 
+                2
+              );
+
+              if (typeof userResponseUnknown === 'object' && userResponseUnknown !== null) {
+                const userResponse = userResponseUnknown as ApiResponse<{ role: string }>;
+                if (userResponse.success && userResponse.data) {
+                  setUserRole(userResponse.data.role);
                 }
-              } catch (userError) {
-                console.error('Failed to get user role, continuing anyway:', userError);
+              }
+
+              const progressResponseUnknown = await fetchWithRetry(
+                () => apiGet<Progress>(`/courses/${courseId}/progress`, true),
+                2
+              );
+
+              if (typeof progressResponseUnknown === 'object' && progressResponseUnknown !== null) {
+                const progressResponse = progressResponseUnknown as ApiResponse<Progress>;
+                if (progressResponse.success && progressResponse.data) {
+                  setProgress(progressResponse.data);
+                  setIsEnrolled(true); // User has progress, so they are enrolled
+                }
               }
               
-              // Try to get enrollment status - but don't throw if it fails
-              try {
-                const progressResponse = await fetchWithRetry(
-                  () => apiGet(`/courses/${courseId}/with-progress`, true),
-                  2 // 2 retries for progress data
-                );
-                if (typeof progressResponse === 'object') {
-                  if (progressResponse.success !== undefined && progressResponse.success && progressResponse.data) {
-                    setIsEnrolled(progressResponse.data.isEnrolled);
-                    if (progressResponse.data.progress) {
-                      setProgress(progressResponse.data.progress);
-                    }
-                  } else if (progressResponse.isEnrolled !== undefined) {
-                    setIsEnrolled(progressResponse.isEnrolled);
-                    if (progressResponse.progress) {
-                      setProgress(progressResponse.progress);
-                    }
-                  }
-                }
-              } catch (progressError) {
-                console.error('Failed to get enrollment status, continuing anyway:', progressError);
-              }
-              
-              // Try to get full lesson data - but don't throw if it fails
-              try {
-                const fullLessonsResponse = await fetchWithRetry(
-                  () => apiGet(`/courses/${courseId}/lessons`, true),
-                  2 // 2 retries for lesson data
-                );
-                if (typeof fullLessonsResponse === 'object') {
-                  if (fullLessonsResponse.success !== undefined && fullLessonsResponse.success && fullLessonsResponse.data) {
-                    setLessons(fullLessonsResponse.data);
-                  } else if (Array.isArray(fullLessonsResponse)) {
-                    setLessons(fullLessonsResponse);
-                  }
-                }
-              } catch (lessonError) {
-                console.error('Failed to get full lesson data, continuing with preview lessons:', lessonError);
-              }
             } catch (authError) {
               // Authentication errors should not prevent viewing the course
               console.error('Authentication failed but course can still be viewed:', authError);
