@@ -253,7 +253,7 @@ export default function CoursePage({ params }: CoursePageProps) {
               const userResponseUnknown = await fetchWithRetry(
                 () => apiGet<{ role: string }>(`/auth/me`, true), 
                 2
-              );
+                );
 
               if (typeof userResponseUnknown === 'object' && userResponseUnknown !== null) {
                 const userResponse = userResponseUnknown as ApiResponse<{ role: string }>;
@@ -265,7 +265,7 @@ export default function CoursePage({ params }: CoursePageProps) {
               const progressResponseUnknown = await fetchWithRetry(
                 () => apiGet<Progress>(`/courses/${courseId}/progress`, true),
                 2
-              );
+                );
 
               if (typeof progressResponseUnknown === 'object' && progressResponseUnknown !== null) {
                 const progressResponse = progressResponseUnknown as ApiResponse<Progress>;

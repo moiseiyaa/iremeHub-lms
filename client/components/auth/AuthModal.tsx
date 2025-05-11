@@ -293,17 +293,17 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
                 />
               ) : (
                 // Registration password field with new-password autocomplete
-                <input
+              <input
                   id="new-password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
+                name="password"
+                type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-10 sm:text-sm border border-gray-300 rounded-md py-2.5 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent auth-input"
-                  placeholder="Password"
-                />
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="block w-full pl-10 pr-10 sm:text-sm border border-gray-300 rounded-md py-2.5 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent auth-input"
+                placeholder="Password"
+              />
               )}
               <button
                 type="button"
