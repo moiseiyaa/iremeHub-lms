@@ -118,6 +118,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
       return;
     }
 
+    // Create an AbortController to handle timeouts
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
     try {
       const endpoint = mode === 'login' ? '/api/v1/auth/login' : '/api/v1/auth/register';
       const payload = mode === 'login' 
@@ -132,7 +136,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+
+      // Clear the timeout since the request completed
+      clearTimeout(timeoutId);
 
       // Check content type to handle non-JSON responses
       const contentType = res.headers.get('content-type');
@@ -163,6 +171,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
       console.log('Redirecting to dashboard');
       router.push('/dashboard');
     } catch (err: unknown) {
+      // Clear the timeout if there was an error
+      clearTimeout(timeoutId);
+      
+      // Handle AbortController timeout error
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        console.error('Request timed out');
+        setError('Request timed out. Please check your internet connection and try again.');
+        return;
+      }
+      
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
       console.error(`${mode} error:`, errorMessage);
       setError(errorMessage);

@@ -48,7 +48,7 @@ const nextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Add API routes proxy configuration
+  // Add API routes proxy configuration with increased timeout
   async rewrites() {
     return [
       {
@@ -73,6 +73,10 @@ const nextConfig = {
       use: ['@svgr/webpack']
     });
     return config;
+  },
+  // Increase API timeout limits
+  experimental: {
+    proxyTimeout: 60000, // 60 seconds timeout instead of default 30
   },
 };
 
