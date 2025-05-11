@@ -53,7 +53,8 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:5000/api/:path*',
+        // Use environment variable for API base URL, fallback to localhost for local dev
+        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/api/:path*`,
       },
       // Fallback for missing images to prevent 404 errors
       {
