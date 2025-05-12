@@ -1,19 +1,10 @@
 {
   "version": 2,
+  "name": "iremehub-server",
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "config/**",
-          "db/**",
-          "middleware/**",
-          "models/**",
-          "routes/**",
-          "public/**" 
-        ]
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -21,5 +12,15 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "regions": ["iad1"],
+  "functions": {
+    "server.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 } 
