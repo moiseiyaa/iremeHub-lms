@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { 
   UserIcon, 
   PencilSquareIcon,
@@ -11,7 +10,10 @@ import {
   UserPlusIcon,
   FunnelIcon,
   ArrowPathIcon,
+  ChevronLeftIcon, 
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
+import { apiGet } from '../../../../api/apiClient';
 
 interface UserData {
   _id: string;
@@ -24,16 +26,16 @@ interface UserData {
   createdAt: string;
 }
 
-// Client component that uses useSearchParams
-function UsersContent() {
+export default function AdminUsersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const roleFilter = searchParams ? searchParams.get('role') : null;
+  const roleFilter = searchParams.get('role');
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [users, setUsers] = useState<UserData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [activeFilter, setActiveFilter] = useState<string | null>(roleFilter);
 
   useEffect(() => {
@@ -92,6 +94,7 @@ function UsersContent() {
           : mockUsers;
           
         setUsers(filteredUsers);
+        setTotalPages(1); // Mock value, would come from API
       } catch (err) {
         console.error('Error fetching users:', err);
         setError('Failed to load users');
@@ -126,6 +129,12 @@ function UsersContent() {
         return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-green-100 text-green-800';
+    }
+  };
+  
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
     }
   };
   
@@ -245,12 +254,10 @@ function UsersContent() {
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         {user.profileImage ? (
-                          <Image
+                          <img
                             className="h-10 w-10 rounded-full object-cover"
                             src={user.profileImage.url}
                             alt={user.name}
-                            width={40}
-                            height={40}
                           />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -277,8 +284,6 @@ function UsersContent() {
                       <Link 
                         href={`/dashboard/admin/users/${user._id}/edit`}
                         className="text-blue-600 hover:text-blue-900"
-                        aria-label={`Edit user ${user.name}`}
-                        title={`Edit user ${user.name}`}
                       >
                         <PencilSquareIcon className="h-5 w-5" />
                       </Link>
@@ -288,8 +293,6 @@ function UsersContent() {
                           // You'd implement confirmation and deletion logic here
                           alert(`Delete user ${user.name} - This would be a confirmation modal`);
                         }}
-                        aria-label={`Delete user ${user.name}`}
-                        title={`Delete user ${user.name}`}
                       >
                         <TrashIcon className="h-5 w-5" />
                       </button>
@@ -299,28 +302,87 @@ function UsersContent() {
               ))}
             </tbody>
           </table>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                  aria-label="Previous page"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                  aria-label="Next page"
+                >
+                  Next
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Showing <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> to{' '}
+                    <span className="font-medium">
+                      {Math.min(currentPage * 10, users.length)}
+                    </span>{' '}
+                    of <span className="font-medium">{users.length}</span> results
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                        currentPage === 1
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                      aria-label="Previous page"
+                    >
+                      <span className="sr-only">Previous</span>
+                      <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    
+                    {/* Page numbers would go here */}
+                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                        currentPage === totalPages
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                      aria-label="Next page"
+                    >
+                      <span className="sr-only">Next</span>
+                      <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-}
-
-// Loading fallback for Suspense
-function LoadingFallback() {
-  return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading users...</p>
-      </div>
-    </div>
-  );
-}
-
-export default function AdminUsersPage() {
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <UsersContent />
-    </Suspense>
-  );
-}
+} 

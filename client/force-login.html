@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Development Force Login</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 40px;
+        }
+        h1 {
+            color: #0091ff;
+            text-align: center;
+        }
+        .btn {
+            background-color: #0091ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .note {
+            background-color: #fff9e0;
+            border-left: 4px solid #ffcc00;
+            padding: 10px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Development Force Login</h1>
+        
+        <div class="note">
+            <strong>Note:</strong> This page allows you to bypass the normal login process for development purposes. 
+            It directly creates a JWT token and stores it in localStorage.
+        </div>
+        
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="test@example.com">
+            
+            <label for="role">Role:</label>
+            <select id="role">
+                <option value="admin">Admin</option>
+                <option value="educator">Educator</option>
+                <option value="student">Student</option>
+            </select>
+            
+            <button class="btn" onclick="forceLogin()">Force Login</button>
+        </div>
+        
+        <div id="result" style="margin-top: 20px; display: none;"></div>
+    </div>
+
+    <script>
+        function forceLogin() {
+            const email = document.getElementById('email').value;
+            const role = document.getElementById('role').value;
+            
+            // Create a simple base64 encoded JWT (for development only!)
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({
+                id: '60d0fe4f5311236168a109ca',
+                email: email,
+                role: role,
+                exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 // 7 days
+            }));
+            const signature = 'dev_signature_not_secure';
+            
+            const token = `${header}.${payload}.${signature}`;
+            
+            // Store in localStorage
+            localStorage.setItem('token', token);
+            
+            // Show success message
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div style="background-color: #e8f5e9; padding: 10px; border-radius: 4px; border-left: 4px solid #4caf50;">
+                    <p><strong>Success!</strong> You are now logged in as ${email} with role ${role}.</p>
+                    <p>Token stored in localStorage. <a href="/" style="color: #0091ff;">Go to Dashboard</a></p>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html> 

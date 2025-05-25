@@ -136,7 +136,7 @@ export default function Home() {
       {/* Hero Section */}
       <div className="relative min-h-[90vh] xs:min-h-[80vh] pt-16 pb-12 md:pt-20 md:pb-16 flex items-center">
         {/* Background Wave Pattern */}
-        <div className="absolute inset-0 overflow-hidden z-[-1]">
+        <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-full w-full">
             <svg className="absolute top-0 left-0 w-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 800" preserveAspectRatio="none">
               <path fill="#ffffff" fillOpacity="0.5" d="M0,0 C400,150 800,30 1440,160 L1440,0 L0,0 Z" />
@@ -180,57 +180,32 @@ export default function Home() {
               
               {/* Social Media Icons */}
               <div className="flex items-center space-x-4 mt-8">
-                {/* X (formerly Twitter) Icon */}
-                <a href="#" // Replace with your X profile URL
+                <a href="#" 
                   className="text-gray-500 hover:text-primary transition-colors duration-300 hover:scale-110 hover:rotate-3 transform" 
-                  title="Follow us on X"
-                  aria-label="Follow us on X"
+                  title="Follow us on Twitter" 
+                  aria-label="Follow us on Twitter"
                 >
                   <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                  </svg>
-                </a>
-
-                {/* Instagram Icon */}
-                <a href="#" // Replace with your Instagram profile URL
-                  className="text-gray-500 hover:text-primary transition-colors duration-300 hover:scale-110 hover:rotate-3 transform" 
-                  title="Follow us on Instagram"
-                  aria-label="Follow us on Instagram"
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.172.053 1.905.25 2.49.456.638.224.9.518 1.265.882.368.366.66.63.882 1.265.205.585.403 1.318.456 2.49.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.053 1.172-.25 1.905-.456 2.49-.224.638-.518.9-.882 1.265-.366.368-.63.66-1.265.882-.585.205-1.318.403-2.49.456-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.172-.053-1.905-.25-2.49-.456-.638-.224-.9-.518-1.265-.882-.368-.366-.66-.63-.882-1.265-.205-.585-.403-1.318-.456-2.49-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.053-1.172.25-1.905.456-2.49.224.638.518.9.882 1.265.366.368.63.66 1.265.882.585.205 1.318.403 2.49.456C8.416 2.175 8.796 2.163 12 2.163m0-2.163C8.74 0 8.333.014 7.053.072 5.775.132 4.905.333 4.14.63c-.784.297-1.467.705-2.122 1.36S.927 3.355.63 4.14C.333 4.905.131 5.775.072 7.053.014 8.333 0 8.74 0 12s.014 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.297.784.705 1.467 1.36 2.122s1.338.927 2.122 1.36c.765.297 1.636.499 2.913.558C8.333 23.986 8.74 24 12 24s3.667-.014 4.947-.072c1.277-.06 2.148-.261 2.913-.558.784-.297 1.467-.705 2.122-1.36s.927-1.338 1.36-2.122c.297-.765.499-1.636.558-2.913.06-1.277.072-1.67.072-4.947s-.014-3.667-.072-4.947c-.06-1.277-.261-2.148-.558-2.913-.297-.784-.705-1.467-1.36-2.122S21.073.927 20.37.63c-.765-.297-1.636-.499-2.913-.558C15.667.014 15.26 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100-2.88 1.44 1.44 0 000 2.88z"/>
-                  </svg>
-                </a>
-
-                {/* YouTube Icon */}
-                <a href="#" // Replace with your YouTube channel URL
-                  className="text-gray-500 hover:text-primary transition-colors duration-300 hover:scale-110 hover:rotate-3 transform" 
-                  title="Subscribe on YouTube"
-                  aria-label="Subscribe on YouTube"
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
                   </svg>
                 </a>
                 {/* Other social icons... */}
               </div>
             </div>
 
-            <div className="relative hover:scale-105 transition-all duration-500 flex items-center justify-center">
-              {/* Blue icon/image container */}
-              <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] lg:w-[450px] lg:h-[450px]">
-                {/* Pulsing background */}
-                <div className="absolute inset-0 bg-primary rounded-full transform scale-90 animate-pulse"></div>
-                
-                {/* Image container - also circular and ensures image is on top */}
-                <div className="relative z-10 w-full h-full rounded-full overflow-hidden shadow-lg">
-                  <Image 
-                    src="/images/ireme.png" 
-                    alt="Ireme Hub Learners" 
-                    layout="fill" 
-                    objectFit="contain"
-                    className="rounded-full"
-                  />
+            <div className="relative hover:scale-105 transition-all duration-500">
+              {/* Blue icon as shown in second picture */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary rounded-full transform scale-95 animate-pulse"></div>
+                <div className="relative z-10 flex items-center justify-center">
+                  <svg 
+                    viewBox="0 0 600 600" 
+                    className="w-[600px] h-[600px] animate-slowSpin" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="currentColor" className="text-primary" d="M300 120c-99.4 0-180 80.6-180 180 0 68.3 38 127.6 94.1 158.5C137.7 475.3 75 471.1 75 471.1c152.5 88.2 255.6 8.9 329.7-105.2 6.3-11.2 9.4-24.1 9.4-37.5-.1-99.8-80.7-180.4-180.1-180.4z" />
+                    <circle fill="currentColor" className="text-primary" cx="390" cy="180" r="75" />
+                  </svg>
                 </div>
               </div>
             </div>

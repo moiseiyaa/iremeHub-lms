@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   EnvelopeIcon, 
@@ -38,18 +38,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  
-  const handleClose = useCallback(() => {
-    if (!loading) {
-      setIsClosing(true);
-      
-      // Wait for animation to complete before actually closing
-      setTimeout(() => {
-        onClose();
-        setIsClosing(false);
-      }, 300); // Match this with the CSS animation duration
-    }
-  }, [loading, onClose]);
   
   // Log modal status for debugging
   useEffect(() => {
@@ -90,10 +78,22 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
     
     document.addEventListener('keydown', handleEscKey);
     return () => document.removeEventListener('keydown', handleEscKey);
-  }, [isOpen, isClosing, handleClose]);
+  }, [isOpen, isClosing]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  
+  const handleClose = () => {
+    if (!loading) {
+      setIsClosing(true);
+      
+      // Wait for animation to complete before actually closing
+      setTimeout(() => {
+        onClose();
+        setIsClosing(false);
+      }, 300); // Match this with the CSS animation duration
+    }
   };
   
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -118,10 +118,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
       return;
     }
 
-    // Create an AbortController to handle timeouts
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-
     try {
       const endpoint = mode === 'login' ? '/api/v1/auth/login' : '/api/v1/auth/register';
       const payload = mode === 'login' 
@@ -136,20 +132,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-        signal: controller.signal,
       });
-
-      // Clear the timeout since the request completed
-      clearTimeout(timeoutId);
-
-      // Check content type to handle non-JSON responses
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        // Handle non-JSON response
-        const textResponse = await res.text();
-        console.error('Non-JSON auth response:', textResponse.substring(0, 100));
-        throw new Error('Server returned an invalid response. Please try again later.');
-      }
 
       const data = await res.json();
       console.log(`${mode} response:`, data);
@@ -171,16 +154,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
       console.log('Redirecting to dashboard');
       router.push('/dashboard');
     } catch (err: unknown) {
-      // Clear the timeout if there was an error
-      clearTimeout(timeoutId);
-      
-      // Handle AbortController timeout error
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        console.error('Request timed out');
-        setError('Request timed out. Please check your internet connection and try again.');
-        return;
-      }
-      
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
       console.error(`${mode} error:`, errorMessage);
       setError(errorMessage);
@@ -278,33 +251,17 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
-              {mode === 'login' ? (
-                // Login password field with current-password autocomplete
-                <input
-                  id="current-password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-10 sm:text-sm border border-gray-300 rounded-md py-2.5 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent auth-input"
-                  placeholder="Password"
-                />
-              ) : (
-                // Registration password field with new-password autocomplete
               <input
-                  id="new-password"
+                id="password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 required
                 value={formData.password}
                 onChange={handleChange}
                 className="block w-full pl-10 pr-10 sm:text-sm border border-gray-300 rounded-md py-2.5 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent auth-input"
                 placeholder="Password"
               />
-              )}
               <button
                 type="button"
                 tabIndex={-1}
@@ -356,14 +313,14 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center">
                   <input
-                    id="rememberMe"
-                    name="rememberMe"
+                    id="remember-me"
+                    name="remember-me"
                     type="checkbox"
                     checked={rememberMe}
                     onChange={handleRememberMeChange}
                     className="h-4 w-4 text-[#0091ff] focus:ring-[#0091ff] border-gray-300 rounded"
                   />
-                  <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                     Remember me
                   </label>
                 </div>

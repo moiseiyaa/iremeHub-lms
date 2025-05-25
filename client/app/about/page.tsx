@@ -45,10 +45,10 @@ export default function About() {
   // Team members data
   const teamMembers = [
     {
-      name: "Moise Iyakaremye",
-      role: "Founder & Chief executif officer",
-      image: "/images/ceo.jpg",
-      bio: "Intreprenuer and creative Software engineer with 2+ years of experience in educational technology and curriculum development."
+      name: "Dr. Emily Johnson",
+      role: "Founder & Academic Director",
+      image: "https://placehold.co/400x400/gray/white?text=EJ",
+      bio: "Former university professor with 15+ years of experience in educational technology and curriculum development."
     },
     {
       name: "Michael Chen",
@@ -151,8 +151,8 @@ export default function About() {
             >
               <div className="relative h-80 md:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
                 <Image 
-                  src="/images/about.png"
-                  alt="Our Story at iremeHub LMS"
+                  src="https://placehold.co/800x1000/gray/white?text=Our+Story" 
+                  alt="Our Story" 
                   fill
                   className="object-cover"
                 />
@@ -171,7 +171,7 @@ export default function About() {
                   Founded in 2018, iremeHub LMS began with a simple mission: to make quality education accessible to everyone. What started as a small team of passionate educators and technologists has grown into a global learning platform serving thousands of students across the world.
                 </p>
                 <p>
-                  Our journey has been driven by the belief that education is the most powerful tool for personal and professional growth. Through technological innovation and pedagogical excellence, we&apos;ve created a learning environment that adapts to each student&apos;s needs and aspirations.
+                  Our journey has been driven by the belief that education is the most powerful tool for personal and professional growth. Through technological innovation and pedagogical excellence, we've created a learning environment that adapts to each student's needs and aspirations.
                 </p>
                 <p>
                   Today, we offer over 180 courses in various disciplines, from programming and data science to digital marketing and design. Our curriculum is developed in collaboration with industry experts and updated regularly to reflect the latest trends and demands of the job market.
@@ -291,12 +291,12 @@ export default function About() {
                   <p className="text-sm text-[#0091ff] font-medium mb-3">{member.role}</p>
                   <p className="text-gray-600 text-sm">{member.bio}</p>
                   <div className="mt-4 flex space-x-3">
-                    <a href="#" className="text-gray-500 hover:text-gray-700" aria-label="Team member's Twitter profile">
+                    <a href="#" className="text-gray-500 hover:text-gray-700">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M22.162 5.656a8.384 8.384 0 0 1-2.402.658A4.196 4.196 0 0 0 21.6 4c-.82.488-1.719.83-2.656 1.015a4.182 4.182 0 0 0-7.126 3.814 11.874 11.874 0 0 1-8.62-4.37 4.168 4.168 0 0 0-.566 2.103c0 1.45.738 2.731 1.86 3.481a4.168 4.168 0 0 1-1.894-.523v.052a4.185 4.185 0 0 0 3.355 4.101 4.21 4.21 0 0 1-1.89.072A4.185 4.185 0 0 0 7.97 16.65a8.394 8.394 0 0 1-6.191 1.732 11.83 11.83 0 0 0 6.41 1.88c7.693 0 11.9-6.373 11.9-11.9 0-.18-.005-.362-.013-.54a8.496 8.496 0 0 0 2.087-2.165z" />
                       </svg>
                     </a>
-                    <a href="#" className="text-gray-500 hover:text-gray-700" aria-label="Team member's LinkedIn profile">
+                    <a href="#" className="text-gray-500 hover:text-gray-700">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                       </svg>
@@ -321,7 +321,7 @@ export default function About() {
           >
             <h2 className="text-2xl md:text-3xl font-bold mb-6">Join Our Learning Community</h2>
             <p className="text-lg mb-8">
-              Embark on your learning journey with us and unlock your full potential. Gain the skills you need to succeed in today&apos;s rapidly evolving world.
+              Embark on your learning journey with us and unlock your full potential. Gain the skills you need to succeed in today's rapidly evolving world.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link 

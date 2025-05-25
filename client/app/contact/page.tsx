@@ -6,6 +6,9 @@ import {
   BuildingOffice2Icon,
   PhoneIcon,
   EnvelopeIcon,
+  ClockIcon,
+  MapPinIcon,
+  ChatBubbleLeftRightIcon,
   CheckCircleIcon,
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
@@ -128,7 +131,7 @@ export default function Contact() {
               Contact Us
             </h1>
             <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Have questions or feedback? We&apos;d love to hear from you. Get in touch with our team and we&apos;ll respond as soon as we can.
+              Have questions or feedback? We'd love to hear from you. Get in touch with our team and we'll respond as soon as we can.
             </p>
           </div>
         </div>
@@ -181,11 +184,56 @@ export default function Contact() {
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63799.44215042493!2d30.023693079101556!3d-1.9483617999999954!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca5dfb2c48695%3A0x5f90a601c558564c!2sKicukiro%2C%20Kigali%2C%20Rwanda!5e0!3m2!1sen!2sus!4v1652369851272!5m2!1sen!2sus" 
                     width="100%" 
                     height="100%" 
-                    className="absolute inset-0 border-0"
-                    allowFullScreen={true}
+                    style={{ border: 0 }} 
+                    allowFullScreen={true} 
+                    loading="lazy" 
                     referrerPolicy="no-referrer-when-downgrade"
                     title="iremeHub Office Location"
+                    className="absolute inset-0"
                   ></iframe>
+                </div>
+              </div>
+              
+              <div className="mt-8 space-y-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <MapPinIcon className="h-6 w-6 text-gray-500 mr-3" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Address</h3>
+                    <p className="text-gray-600">Kicukiro, Kigali, Rwanda</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <ClockIcon className="h-6 w-6 text-gray-500 mr-3" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Business Hours</h3>
+                    <p className="text-gray-600">Monday to Friday: 9am - 5pm CAT<br />
+                    Saturday &amp; Sunday: Closed</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <PhoneIcon className="h-6 w-6 text-gray-500 mr-3" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Phone</h3>
+                    <p className="text-gray-600">+250788689346</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <ChatBubbleLeftRightIcon className="h-6 w-6 text-gray-500 mr-3" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Customer Support</h3>
+                    <p className="text-gray-600">We aim to respond to all inquiries within 24 hours during business days.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -198,7 +246,7 @@ export default function Contact() {
                 {status.success && (
                   <div className="mb-6 bg-green-50 text-green-800 p-4 rounded-md flex items-start">
                     <CheckCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                    <p>Thank you for your message! We&apos;ll get back to you as soon as possible.</p>
+                    <p>Thank you for your message! We'll get back to you as soon as possible.</p>
                   </div>
                 )}
                 
@@ -309,7 +357,7 @@ export default function Contact() {
             <div className="bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
               <h3 className="text-lg font-semibold mb-2">How do I reset my password?</h3>
               <p className="text-gray-600">
-                You can reset your password by clicking the &quot;Forgot Password&quot; link on the login page. Follow the instructions sent to your email to create a new password.
+                You can reset your password by clicking the "Forgot Password" link on the login page. Follow the instructions sent to your email to create a new password.
               </p>
             </div>
             

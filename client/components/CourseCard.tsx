@@ -14,30 +14,6 @@ const getSafeImageUrl = (url: string | undefined | null, fallback: string): stri
   return url;
 };
 
-// Utility function to generate CSS classes for progress bars
-const getProgressWidth = (percentage: number): string => {
-  // Handle bounds
-  if (percentage <= 0) return 'w-0';
-  if (percentage >= 100) return 'w-full';
-  
-  // Map percentages to Tailwind width classes
-  if (percentage <= 5) return 'w-[5%]';
-  if (percentage <= 10) return 'w-[10%]';
-  if (percentage <= 20) return 'w-[20%]';
-  if (percentage <= 25) return 'w-1/4';
-  if (percentage <= 30) return 'w-[30%]';
-  if (percentage <= 33) return 'w-1/3';
-  if (percentage <= 40) return 'w-[40%]';
-  if (percentage <= 50) return 'w-1/2';
-  if (percentage <= 60) return 'w-[60%]';
-  if (percentage <= 66) return 'w-2/3';
-  if (percentage <= 70) return 'w-[70%]';
-  if (percentage <= 75) return 'w-3/4';
-  if (percentage <= 80) return 'w-[80%]';
-  if (percentage <= 90) return 'w-[90%]';
-  return 'w-[95%]';
-};
-
 interface CourseCardProps {
   course: {
     _id: string;
@@ -119,7 +95,8 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
                 </div>
                 <div className="mt-2 w-full bg-secondary rounded-full h-2">
                   <div 
-                    className={`bg-primary h-2 rounded-full transition-all duration-300 ${getProgressWidth(course.progress.percentage)}`}
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${course.progress.percentage}%` }}
                   />
                 </div>
               </div>

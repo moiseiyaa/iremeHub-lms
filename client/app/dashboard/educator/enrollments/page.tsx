@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { 
   UserIcon, 
   CheckCircleIcon,
@@ -12,8 +11,10 @@ import {
   ArrowPathIcon,
   FunnelIcon,
   MagnifyingGlassIcon,
+  ChevronLeftIcon, 
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
-import { apiGet } from '../../../api/apiClient';
+import { apiGet } from '../../../../api/apiClient';
 
 interface UserData {
   name: string;
@@ -46,30 +47,6 @@ interface Enrollment {
   enrolledAt: string;
 }
 
-// Utility function to generate CSS classes for progress bars
-const getProgressWidth = (percentage: number): string => {
-  // Handle bounds
-  if (percentage <= 0) return 'w-0';
-  if (percentage >= 100) return 'w-full';
-  
-  // Map percentages to Tailwind width classes
-  if (percentage <= 5) return 'w-[5%]';
-  if (percentage <= 10) return 'w-[10%]';
-  if (percentage <= 20) return 'w-[20%]';
-  if (percentage <= 25) return 'w-1/4';
-  if (percentage <= 30) return 'w-[30%]';
-  if (percentage <= 33) return 'w-1/3';
-  if (percentage <= 40) return 'w-[40%]';
-  if (percentage <= 50) return 'w-1/2';
-  if (percentage <= 60) return 'w-[60%]';
-  if (percentage <= 66) return 'w-2/3';
-  if (percentage <= 70) return 'w-[70%]';
-  if (percentage <= 75) return 'w-3/4';
-  if (percentage <= 80) return 'w-[80%]';
-  if (percentage <= 90) return 'w-[90%]';
-  return 'w-[95%]';
-};
-
 export default function EnrollmentsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -77,7 +54,8 @@ export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null); 
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [courseFilter, setCourseFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -89,7 +67,7 @@ export default function EnrollmentsPage() {
         try {
           const userResponse = await apiGet<{ success: boolean; data: UserData }>('/auth/me', true);
           if (userResponse.success && userResponse.data) {
-            if (userResponse.data.data.role !== 'educator' && userResponse.data.data.role !== 'admin') {
+            if (userResponse.data.role !== 'educator' && userResponse.data.role !== 'admin') {
               router.push('/dashboard');
               return;
             }
@@ -205,8 +183,9 @@ export default function EnrollmentsPage() {
               enrollment.user.email.toLowerCase().includes(query)
           );
         }
+        
         setEnrollments(filteredEnrollments);
-        // No need to set total pages since we're using mock data
+        setTotalPages(1); // For mock data we'll just set to 1
       } catch (err) {
         console.error('Error fetching enrollments:', err);
         setError('Failed to load enrollment data');
@@ -238,6 +217,12 @@ export default function EnrollmentsPage() {
       case 'approved': return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
       case 'rejected': return <XCircleIcon className="h-5 w-5 text-red-500" />;
       default: return <ClockIcon className="h-5 w-5 text-yellow-500" />;
+    }
+  };
+  
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
     }
   };
   
@@ -405,12 +390,10 @@ export default function EnrollmentsPage() {
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           {enrollment.user.profileImage ? (
-                            <Image
+                            <img
                               className="h-10 w-10 rounded-full object-cover"
                               src={enrollment.user.profileImage.url}
                               alt={enrollment.user.name}
-                              width={40}
-                              height={40}
                             />
                           ) : (
                             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -436,9 +419,10 @@ export default function EnrollmentsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="progress-bar-container">
+                      <div className="w-32 bg-gray-200 rounded-full h-2.5">
                         <div 
-                          className={`progress-bar ${getProgressWidth(enrollment.progress)}`}
+                          className="bg-blue-600 h-2.5 rounded-full" 
+                          style={{ width: `${enrollment.progress}%` }}
                         ></div>
                       </div>
                       <div className="text-xs text-gray-500 mt-1">

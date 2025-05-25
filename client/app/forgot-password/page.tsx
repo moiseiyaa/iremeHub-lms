@@ -10,32 +10,87 @@ export default function ForgotPassword() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [debugInfo, setDebugInfo] = useState('');
+
+  // Direct test function for debugging
+  const testApiDirectly = async () => {
+    setError('');
+    setDebugInfo('Starting direct API test...');
+    
+    try {
+      // Try direct call to the server
+      const baseUrl = 'http://localhost:5001';
+      setDebugInfo(prev => prev + `\nSending request to: ${baseUrl}/api/v1/auth/forgotpassword`);
+      
+      const response = await fetch(`${baseUrl}/api/v1/auth/forgotpassword`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email || 'test@example.com' }),
+      });
+      
+      setDebugInfo(prev => prev + `\nResponse status: ${response.status}`);
+      
+      const text = await response.text();
+      setDebugInfo(prev => prev + `\nRaw response: ${text}`);
+      
+      try {
+        const data = JSON.parse(text);
+        setDebugInfo(prev => prev + `\nParsed data: ${JSON.stringify(data, null, 2)}`);
+      } catch (e) {
+        setDebugInfo(prev => prev + `\nFailed to parse JSON: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setDebugInfo(prev => prev + `\nError: ${errorMessage}`);
+      setError(`Direct API test failed: ${errorMessage}`);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
     setLoading(true);
+    setDebugInfo('Submitting forgot password form...');
 
     try {
-      // This endpoint doesn't exist yet, will need to be implemented in the backend
-      const res = await fetch('/api/v1/auth/forgotpassword', {
+      // Try with relative URL first - this should work with proper proxy setup
+      const apiUrl = '/api/v1/auth/forgotpassword';
+      setDebugInfo(prev => prev + `\nSending request to: ${apiUrl}`);
+      
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),
       });
-
-      const data = await res.json();
+      
+      setDebugInfo(prev => prev + `\nResponse status: ${res.status}`);
+      
+      let data;
+      try {
+        const text = await res.text();
+        setDebugInfo(prev => prev + `\nRaw response: ${text}`);
+        data = JSON.parse(text);
+      } catch (err) {
+        setDebugInfo(prev => prev + `\nError parsing response: ${err instanceof Error ? err.message : String(err)}`);
+        throw new Error('Invalid response from server');
+      }
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to send password reset email');
+        throw new Error(data.error || data.message || 'Failed to send password reset email');
       }
 
       setSuccess(true);
+      setDebugInfo(prev => prev + '\nPassword reset request successful');
     } catch (err: Error | unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
+      setError(errorMessage);
+      setDebugInfo(prev => prev + `\nError: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -61,6 +116,13 @@ export default function ForgotPassword() {
           {success && (
             <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
               Password reset link has been sent to your email address.
+            </div>
+          )}
+          
+          {/* Debug information */}
+          {debugInfo && (
+            <div className="mb-4 p-3 bg-gray-100 border border-gray-400 text-gray-700 rounded text-xs overflow-auto max-h-40">
+              <pre>{debugInfo}</pre>
             </div>
           )}
 
@@ -95,6 +157,17 @@ export default function ForgotPassword() {
               >
                 {loading ? 'Sending email...' : 'Send reset link'}
                 {!loading && <ArrowRightIcon className="ml-2 h-4 w-4" />}
+              </button>
+            </div>
+            
+            {/* Test button - this is the one that should be clicked! */}
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={testApiDirectly}
+                className="w-full flex justify-center items-center py-2 px-4 border border-red-500 rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 animate-pulse"
+              >
+                👉 Test API Directly (Click This Button) 👈
               </button>
             </div>
           </form>

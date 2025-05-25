@@ -7,7 +7,6 @@ export interface ApiResponse<T = unknown> {
 }
 
 const API_BASE_URL = '/api/v1';
-const DEFAULT_TIMEOUT = 15000; // 15 seconds timeout
 
 const handleAuthError = (endpoint: string) => {
   // Only clear token and redirect for specific protected endpoints
@@ -44,14 +43,9 @@ const handleAuthError = (endpoint: string) => {
 const apiRequest = async <T>(
   endpoint: string,
   options: RequestInit = {},
-  requiresAuth = false,
-  timeout = DEFAULT_TIMEOUT
+  requiresAuth = false
 ): Promise<ApiResponse<T>> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  
-  // Create abort controller for timeout
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
   
   try {
     // Add auth header if required
@@ -68,9 +62,6 @@ const apiRequest = async <T>(
       };
     }
 
-    // Add signal to request options
-    options.signal = controller.signal;
-
     // Special handling for auth/me endpoint in development mode
     if (process.env.NODE_ENV === 'development' && endpoint === '/auth/me') {
       // Check if we have a test user token (by checking for our known test user ID)
@@ -82,9 +73,6 @@ const apiRequest = async <T>(
             const payload = JSON.parse(atob(tokenParts[1]));
             if (payload.id === '60d0fe4f5311236168a109ca') {
               console.log('Development mode: Providing mock user data for /auth/me');
-              
-              // Clear timeout since we're bypassing the actual request
-              clearTimeout(timeoutId);
               
               // Return mock user data for our test admin
               return {
@@ -120,32 +108,7 @@ const apiRequest = async <T>(
       },
     });
 
-    // Clear timeout since the request completed
-    clearTimeout(timeoutId);
-
-    // Check content type to ensure we're dealing with JSON
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      // Handle non-JSON responses
-      const textResponse = await response.text();
-      console.error('Non-JSON response received:', textResponse.substring(0, 100) + '...');
-      
-      // If authentication error, handle accordingly
-      if (response.status === 401 && requiresAuth) {
-        handleAuthError(endpoint);
-      }
-      
-      throw new Error(`Server returned non-JSON response: ${textResponse.substring(0, 50)}...`);
-    }
-
-    // Now safely parse JSON
-    let data;
-    try {
-      data = await response.json();
-    } catch (jsonError) {
-      console.error('JSON parse error:', jsonError);
-      throw new Error('Failed to parse JSON response from server');
-    }
+    const data = await response.json();
 
     if (!response.ok) {
       // Handle authentication errors
@@ -183,19 +146,6 @@ const apiRequest = async <T>(
       data: data.data || data,
     };
   } catch (error) {
-    // Clear timeout to prevent memory leaks
-    clearTimeout(timeoutId);
-    
-    // Handle timeout errors
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      console.error(`Request timeout for ${endpoint} after ${timeout}ms`);
-      return {
-        success: false,
-        data: null,
-        error: `Request timed out after ${timeout/1000} seconds. Please try again.`
-      };
-    }
-    
     // If it's an auth error, we've already handled it
     if (error instanceof Error && error.message !== 'Authentication required') {
       console.error('API Error:', error);

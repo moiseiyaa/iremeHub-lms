@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { 
   ArrowLeftIcon, 
   PhotoIcon,
@@ -451,11 +450,9 @@ export default function CreateCourse() {
                 
                 {thumbnailPreview && (
                   <div className="relative w-full sm:w-1/3">
-                    <Image 
+                    <img 
                       src={thumbnailPreview} 
                       alt="Thumbnail preview" 
-                      width={128}
-                      height={128}
                       className="rounded-md object-cover h-32 w-full" 
                     />
                     <button

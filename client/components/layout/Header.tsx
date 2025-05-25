@@ -69,7 +69,7 @@ function classNames(...classes: string[]) {
 }
 
 export default function Header() {
-  const { isAuthenticated, openLoginModal, openRegisterModal, logout, user, loading: isAuthLoading } = useAuth();
+  const { isAuthenticated, openLoginModal, openRegisterModal, logout, user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
@@ -88,9 +88,9 @@ export default function Header() {
   return (
     <Disclosure as="nav" className={classNames(
       scrolled 
-        ? 'bg-white/80 backdrop-blur-lg shadow-lg' 
-        : 'bg-white/60 backdrop-blur-md',
-      'fixed w-full z-40 transition-all duration-300'
+        ? 'bg-white shadow-lg' 
+        : 'bg-white',
+      'fixed w-full z-50 transition-all duration-300'
     )}>
       {({ open }) => (
         <>
@@ -153,13 +153,7 @@ export default function Header() {
                 </div>
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-                {isAuthLoading ? (
-                  // Skeleton UI for when auth state is loading
-                  <div className="flex items-center space-x-2 animate-pulse">
-                    <div className="h-8 w-20 bg-gray-200 rounded-md"></div>
-                    <div className="h-9 w-9 bg-gray-200 rounded-full"></div>
-                  </div>
-                ) : isAuthenticated ? (
+                {isAuthenticated ? (
                   <Menu as="div" className="relative ml-3">
                     <div>
                       <Menu.Button className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
@@ -283,18 +277,20 @@ export default function Header() {
                     </Transition>
                   </Menu>
                 ) : (
-                  <div className="flex items-center space-x-1 md:space-x-2">
+                  <div className="flex space-x-2">
                     <button
+                      type="button"
                       onClick={openLoginModal}
-                      className="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-primary transition-colors duration-200"
+                      className="relative rounded-lg bg-white border border-primary px-4 py-1.5 text-sm font-medium text-primary hover:bg-gray-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50"
                     >
                       Login
                     </button>
                     <button
+                      type="button"
                       onClick={openRegisterModal}
-                      className="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-white bg-primary rounded-full hover:bg-primary/90 transition-all duration-300 transform hover:scale-105 active:scale-95"
+                      className="relative rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-primary/90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-sm hover:shadow-md hover:shadow-primary/20"
                     >
-                      Sign Up
+                      Register
                     </button>
                   </div>
                 )}

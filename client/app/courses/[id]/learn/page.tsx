@@ -3,10 +3,14 @@
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { apiGet, apiPost } from '../../../api/apiClient';
 import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon, CheckIcon, Bars3Icon } from '@heroicons/react/24/outline';
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { CheckCircleIcon, LockClosedIcon, PlayIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
+
+// Default images
+const DEFAULT_AVATAR_IMAGE = 'https://placehold.co/100x100/e2e8f0/1e293b?text=User';
 
 interface Lesson {
   _id: string;
@@ -116,9 +120,10 @@ interface CoursePageProps {
   };
 }
 
-// @ts-ignore - TypeScript error with PageProps constraint
 export default function CourseLearnPage({ params }: CoursePageProps) {
-  const courseId = params.id;
+  // Unwrap the params promise properly
+  const unwrappedParams = React.use(params);
+  const courseId = unwrappedParams.id;
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -406,6 +411,13 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
     }
   };
 
+  // Handle quiz answer selection
+  const handleQuizAnswerSelect = (questionIndex: number, answerIndex: number) => {
+    const newAnswers = [...quizAnswers];
+    newAnswers[questionIndex] = answerIndex;
+    setQuizAnswers(newAnswers);
+  };
+
   // Handle quiz submission
   const handleQuizSubmit = async () => {
     if (!currentLesson || !currentLesson.content.quizQuestions) return;
@@ -583,7 +595,7 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
   const getProgressWidthClass = (percentage: number) => {
     // Round to nearest 5%
     const roundedPercentage = Math.round(percentage / 5) * 5;
-    return `progress-width-${roundedPercentage}`;
+    return `w-[${roundedPercentage}%]`;
   };
 
   return (
@@ -604,6 +616,7 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
             <div className="relative h-2 bg-gray-200 rounded-full w-32 sm:w-48">
               <div 
                 className={`absolute h-2 bg-indigo-500 rounded-full ${getProgressWidthClass(progress?.progressPercentage || 0)}`}
+                style={{ width: `${progress?.progressPercentage || 0}%` }}
               ></div>
             </div>
           </div>

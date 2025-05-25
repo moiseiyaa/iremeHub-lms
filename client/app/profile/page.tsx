@@ -65,6 +65,7 @@ export default function Profile() {
     
     const fetchUserProfile = async () => {
       try {
+        console.log('Fetching user profile...');
         const res = await fetch('/api/v1/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -76,15 +77,31 @@ export default function Profile() {
         }
         
         const data = await res.json();
-        setUser(data.data);
-        setFormData({
-          name: data.data.name || '',
+        console.log('Profile data received:', data);
+        
+        if (!data || !data.data) {
+          console.error('Invalid response format:', data);
+          throw new Error('Invalid response format from server');
+        }
+        
+        const userData = {
+          id: data.data.id || data.data._id || '',
+          name: data.data.name || 'User',
           email: data.data.email || '',
-          bio: data.data.bio || '',
+          role: data.data.role || 'student',
+          avatar: data.data.avatar || null,
+          bio: data.data.bio || ''
+        };
+        
+        setUser(userData);
+        setFormData({
+          name: userData.name,
+          email: userData.email,
+          bio: userData.bio,
         });
       } catch (err) {
         setError('Failed to load profile data');
-        console.error(err);
+        console.error('Profile fetch error:', err);
       } finally {
         setLoading(false);
       }

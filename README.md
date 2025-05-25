@@ -1,6 +1,77 @@
-# IremeHub LMS
+# IremehHub LMS Platform
 
-A comprehensive Learning Management System built with React, Next.js, Node.js, and MongoDB.
+A comprehensive Learning Management System built with Next.js, Express, and MongoDB, now standardized with TypeScript.
+
+## TypeScript Standardization
+
+This project has been standardized to use TypeScript throughout both client and server:
+
+### Server (Express/Node.js)
+- Core files converted to TypeScript (db.ts, server.ts, models, middleware)
+- TypeScript configuration with tsconfig.json
+- Build process for TypeScript compilation
+- Type definitions for MongoDB models, API requests/responses
+
+### Client (Next.js)
+- Already using TypeScript for React components
+- Type definitions for API calls, state management, and props
+- Consistent TypeScript configuration
+
+## Project Structure
+
+```
+iremehub-lms/
+├── client/                 # Next.js frontend
+│   ├── app/                # Next.js app directory
+│   ├── components/         # React components
+│   ├── public/             # Static assets
+│   └── tsconfig.json       # TypeScript config for client
+│
+├── server/                 # Express backend
+│   ├── controllers/        # API controllers
+│   ├── middleware/         # Express middleware
+│   ├── models/             # MongoDB models
+│   ├── routes/             # API routes
+│   ├── utils/              # Utility functions
+│   └── tsconfig.json       # TypeScript config for server
+│
+└── tsconfig.json           # Root TypeScript config
+```
+
+## Development
+
+### Server
+```bash
+cd server
+npm install
+npm run dev     # Run development server with TypeScript
+npm run build   # Build TypeScript files
+npm start       # Run compiled JavaScript
+```
+
+### Client
+```bash
+cd client
+npm install
+npm run dev     # Run development server
+npm run build   # Build the application
+npm start       # Start production server
+```
+
+## Benefits of TypeScript Standardization
+
+1. **Type Safety**: Catch errors at compile time rather than runtime
+2. **Better Developer Experience**: Improved autocomplete and IntelliSense
+3. **Consistent Codebase**: Single language across frontend and backend
+4. **Better Documentation**: Types serve as documentation for APIs and components
+5. **Easier Maintenance**: Refactoring is safer with type checking
+
+## Conversion Status
+
+The TypeScript conversion is partially complete. See the following files for details:
+
+- `server/TYPESCRIPT_CONVERSION.md` - Status of server-side conversion
+- `client/README.md` - Information about client-side TypeScript setup
 
 ## Features
 
@@ -10,11 +81,6 @@ A comprehensive Learning Management System built with React, Next.js, Node.js, a
 - Interactive learning materials
 - Assessment and grading system
 - Admin dashboard for system management
-
-## Project Structure
-
-- `/client` - Frontend application built with Next.js and React
-- `/server` - Backend API built with Node.js and Express
 
 ## Prerequisites
 

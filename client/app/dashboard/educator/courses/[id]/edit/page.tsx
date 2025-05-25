@@ -3,7 +3,6 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { 
   ArrowLeftIcon, 
   PhotoIcon,
@@ -141,13 +140,10 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
-    // Clear error when field is edited using functional update pattern
-    setErrors(prevErrors => {
-      if (prevErrors[name]) {
-        return { ...prevErrors, [name]: '' };
-      }
-      return prevErrors;
-    });
+    // Clear error when field is edited
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
   };
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,13 +158,10 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
       };
       reader.readAsDataURL(file);
       
-      // Clear error using functional update
-      setErrors(prevErrors => {
-        if (prevErrors.thumbnail) {
-          return { ...prevErrors, thumbnail: '' };
-        }
-        return prevErrors;
-      });
+      // Clear error
+      if (errors.thumbnail) {
+        setErrors({ ...errors, thumbnail: '' });
+      }
     }
   };
 
@@ -317,10 +310,10 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
       }
     } catch (err) {
       console.error('Error updating course:', err);
-      setErrors(prevErrors => ({
-        ...prevErrors,
+      setErrors({
+        ...errors,
         form: err instanceof Error ? err.message : 'An error occurred while updating the course'
-      }));
+      });
     } finally {
       setLoading(false);
     }
@@ -552,11 +545,9 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
                 
                 {thumbnailPreview && (
                   <div className="relative w-full sm:w-1/3">
-                    <Image 
+                    <img 
                       src={thumbnailPreview} 
                       alt="Thumbnail preview" 
-                      width={128}
-                      height={128}
                       className="rounded-md object-cover h-32 w-full" 
                     />
                     <button
