@@ -2,21 +2,15 @@
 
 export const dynamic = 'force-dynamic';
 
-import AdminUsersClient from './AdminUsersClient';
-import Link from 'next/link';
-import Image from 'next/image';
-import { 
-  UserIcon, 
-  PencilSquareIcon,
-  TrashIcon,
-  UserPlusIcon,
-  FunnelIcon,
-  ArrowPathIcon,
-  ChevronLeftIcon, 
-  ChevronRightIcon
-} from '@heroicons/react/24/outline';
 
-interface UserData {
+import { Suspense } from 'react';
+import AdminUsersClient from './AdminUsersClient';
+
+
+
+
+/* interface moved to client component */
+// ---- remove rest of file below ----
   _id: string;
   name: string;
   email: string;
