@@ -21,35 +21,31 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'placehold.co',
+        hostname: 'randomuser.me',
+        port: '',
+        pathname: '/api/portraits/**',
       },
       {
         protocol: 'https',
-        hostname: 'cdn.iconscout.com',
+        hostname: 'placehold.co',
+        port: '',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'cdn.jsdelivr.net',
-      },
-      {
-        protocol: 'https',
-        hostname: 'source.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'i.pravatar.cc',
-      }
     ],
     dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
+    contentDispositionType: 'inline',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // Add API routes proxy configuration with increased timeout
@@ -61,14 +57,6 @@ const nextConfig = {
         destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/api/:path*`,
       },
       // Fallback for missing images to prevent 404 errors
-      {
-        source: '/images/iremehub-logo.png',
-        destination: '/images/iremehub-logo.svg',
-      },
-      {
-        source: '/images/iremehub-logo-white.png',
-        destination: '/images/iremehub-logo-white.svg',
-      }
     ];
   },
   // Handle SVG files

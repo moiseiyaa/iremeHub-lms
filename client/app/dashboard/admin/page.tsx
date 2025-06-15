@@ -77,18 +77,16 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      setError(''); // Clear previous errors
+      setError('');
       try {
-        // Fetch user profile first
         const userResponse = await apiGet<{ success: boolean; data: UserData; error?: string }>('/auth/me', true);
         if (userResponse.success && userResponse.data) {
-          if (userResponse.data.role !== 'admin') {
+          if (userResponse.data.role !== 'admin') { 
             router.push('/dashboard'); 
             return;
           }
           setUser(userResponse.data);
         } else if (process.env.NODE_ENV === 'development' && !userResponse.success) {
-          // Fallback to mock user only if /auth/me fails in dev and there was an actual error from apiGet
           console.warn('Dev mode: Using mock admin user for dashboard as /auth/me failed.');
           setUser({
             _id: 'mockadminid_dev',
@@ -102,18 +100,16 @@ export default function AdminDashboard() {
           throw new Error(userResponse.error || 'Failed to fetch user data or user is not admin.');
         }
 
-        // Fetch dashboard stats if user is confirmed or mocked admin
-        if (userResponse.data?.role === 'admin' || (process.env.NODE_ENV === 'development' && user?.role === 'admin')) {
+        if ((userResponse.data && userResponse.data.role === 'admin') || 
+            (process.env.NODE_ENV === 'development' && user?.role === 'admin')) {
           const statsResponse = await apiGet<{ success: boolean; data: AdminStats; error?: string }>('/admin/dashboard-stats', true);
           if (statsResponse.success && statsResponse.data) {
             setStats(statsResponse.data);
           } else {
-            // Don't throw critical error for stats, maybe show partial data or a warning
             console.warn('Could not fetch admin dashboard stats:', statsResponse.error || 'No data returned');
-            setError('Could not load all dashboard statistics. Some data may be missing.'); // Non-blocking error
+            setError('Could not load all dashboard statistics. Some data may be missing.');
           }
         }
-
       } catch (err: unknown) {
         console.error('Admin dashboard setup error:', err);
         let errorMessage = 'Failed to load admin dashboard data';
@@ -121,11 +117,10 @@ export default function AdminDashboard() {
           errorMessage = err.message;
         }
         setError(errorMessage);
-        // If the error is critical (like auth failure), redirect
         if (err instanceof Error && (errorMessage.toLowerCase().includes('unauthorized') || errorMessage.toLowerCase().includes('token'))) {
             localStorage.removeItem('token');
             router.push('/login');
-            return; // Ensure no further processing after redirect
+            return;
         }
       } finally {
         setLoading(false);
@@ -133,7 +128,7 @@ export default function AdminDashboard() {
     };
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]); // Removed user from dependencies to avoid re-fetch loop if only stats fail
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -169,9 +164,6 @@ export default function AdminDashboard() {
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden">
       <div className={`fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-300 ease-in-out w-64 bg-slate-800 text-slate-100 flex flex-col shadow-lg z-30`}>
-        <div className="flex items-center justify-center h-20 border-b border-slate-700">
-          <Image src="/images/iremehub-logo-white.svg" alt="IremeHub Logo" width={150} height={40} />
-        </div>
         <div className="text-center py-5 border-b border-slate-700">
           <Image 
             src={user.avatar?.url || `https://i.pravatar.cc/150?u=${user.email}`}

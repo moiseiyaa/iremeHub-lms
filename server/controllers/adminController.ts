@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import asyncHandler from '../middleware/asyncHandler';
 import User from '../models/User';
 import Course from '../models/Course';
-import Blog from '../models/Blog';
+import { Blog } from '../models/Blog';
 import ErrorResponse from '../utils/errorResponse';
 
 // @desc    Get Admin Dashboard Stats

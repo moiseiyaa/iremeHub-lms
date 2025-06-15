@@ -10,7 +10,7 @@ import { ICourse } from '../models/Course';
 
 // Define custom request interface with user property
 interface UserRequest extends Request {
-  user?: any;
+  user?: IUser;
   files?: any;
 }
 
@@ -27,7 +27,7 @@ export const downloadCertificate = asyncHandler(async (req: UserRequest, res: Re
   }
 
   // Check if user is authorized to download this certificate
-  if (certificate.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (req.user && certificate.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse('Not authorized to access this certificate', 401));
   }
 
@@ -80,7 +80,10 @@ export const verifyCertificateById = asyncHandler(async (req: Request, res: Resp
 // @desc    List certificates for the current user
 // @route   GET /api/v1/certificates/my
 // @access  Private
-export const getMyCertificates = asyncHandler(async (req: UserRequest, res: Response) => {
+export const getMyCertificates = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return next(new ErrorResponse('Not authorized to access this resource', 401));
+  }
   const certificates = await Certificate.find({ user: req.user.id })
     .populate('course', 'title description category level');
 

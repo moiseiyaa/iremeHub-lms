@@ -4,7 +4,8 @@ import "./globals.css";
 import "./styles/components.css";
 import "./styles/auth.css";
 import ConditionalHeader from "../components/layout/ConditionalHeader";
-import Footer from "../components/layout/Footer";
+// import Footer from "../components/layout/Footer"; // Commented out or remove
+import ConditionalFooter from "../components/layout/ConditionalFooter"; // Added
 import ScrollToTop from "../components/ScrollToTop";
 import { AuthProvider } from "../components/auth/AuthProvider";
 
@@ -31,7 +32,7 @@ export default function RootLayout({
         <div className="flex flex-col min-h-screen">
           <ConditionalHeader />
             <main className="flex-grow main-content">{children}</main>
-          <Footer />
+          <ConditionalFooter /> {/* Changed from Footer to ConditionalFooter /> */}
             <ScrollToTop />
         </div>
         </AuthProvider>

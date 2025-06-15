@@ -5,10 +5,11 @@ import ErrorResponse from '../utils/errorResponse';
 import mongoose from 'mongoose';
 import { ICourse } from '../models/Course';
 import { ISection } from '../models/Section';
+import { IUser } from '../models/User';
 
 // Define custom request interface with user property
 interface UserRequest extends Request {
-  user?: any;
+  user?: IUser;
 }
 
 // @desc    Get all sections for a course
@@ -59,8 +60,8 @@ export const createSection = asyncHandler(async (req: UserRequest, res: Response
   }
 
   // Make sure user is course instructor or admin
-  if (course.instructor.toString() !== req.user?.id && req.user?.role !== 'admin') {
-    return next(new ErrorResponse(`User ${req.user?.id} is not authorized to add a section to this course`, 401));
+  if (req.user && course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse(`User ${req.user.id} is not authorized to add a section to this course`, 401));
   }
 
   // Get the count of existing sections to set the order
@@ -92,8 +93,8 @@ export const updateSection = asyncHandler(async (req: UserRequest, res: Response
   }
 
   // Make sure user is course instructor or admin
-  if (course.instructor.toString() !== req.user?.id && req.user?.role !== 'admin') {
-    return next(new ErrorResponse(`User ${req.user?.id} is not authorized to update this section`, 401));
+  if (req.user && course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse(`User ${req.user.id} is not authorized to update this section`, 401));
   }
 
   section = await Section.findByIdAndUpdate(req.params.id, req.body, {
@@ -124,8 +125,8 @@ export const deleteSection = asyncHandler(async (req: UserRequest, res: Response
   }
 
   // Make sure user is course instructor or admin
-  if (course.instructor.toString() !== req.user?.id && req.user?.role !== 'admin') {
-    return next(new ErrorResponse(`User ${req.user?.id} is not authorized to delete this section`, 401));
+  if (req.user && course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse(`User ${req.user.id} is not authorized to delete this section`, 401));
   }
 
   await Section.deleteOne({ _id: section._id });

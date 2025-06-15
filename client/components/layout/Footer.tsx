@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import logoWhite from '@/public/images/iremehub-logo-white.png';
 
 const navigation = {
   main: [
@@ -66,10 +67,12 @@ export default function Footer() {
           <div className="space-y-6">
             <Link href="/" className="block">
               <Image
-                src="/images/iremehub-logo-white.png"
+                src={logoWhite}
                 alt="iremeHub"
                 width={200}
                 height={50}
+                placeholder="empty"
+                priority
                 className="h-10 w-auto"
               />
             </Link>

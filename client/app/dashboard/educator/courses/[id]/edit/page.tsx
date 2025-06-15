@@ -301,6 +301,9 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
       if (response.ok) {
         setSubmitSuccess(true);
         
+        // Refresh data for the current route before redirecting
+        router.refresh(); 
+
         // Show success message and redirect back to courses list
         setTimeout(() => {
           router.push('/dashboard/educator/courses');

@@ -18,6 +18,7 @@ import {
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../auth/AuthProvider';
+import Notifications from '../Notifications';
 
 // Default image for users without an avatar
 const DEFAULT_AVATAR = '/images/default-avatar.png';
@@ -154,130 +155,133 @@ export default function Header() {
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                 {isAuthenticated ? (
-                  <Menu as="div" className="relative ml-3">
-                    <div>
-                      <Menu.Button className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
-                        <span className="sr-only">Open user menu</span>
-                        {(() => {
-                          try {
-                            // Check if user has a valid avatar
-                            const hasValidAvatar = user?.avatar && 
-                              typeof user.avatar === 'object' && 
-                              'url' in user.avatar && 
-                              user.avatar.url && 
-                              !user.avatar.url.includes('default-avatar.jpg') &&
-                              !user.avatar.url.includes('res.cloudinary.com/demo');
-                              
-                            if (hasValidAvatar) {
-                              return (
-                                <div className="h-9 w-9 rounded-full overflow-hidden border border-gray-200">
-                                  <Image
-                                    src={getSafeImageUrl(user.avatar, DEFAULT_AVATAR)}
-                                    alt={user?.name || 'User profile'}
-                                    width={36}
-                                    height={36}
-                                    className="object-cover h-full w-full"
-                                    onError={(e) => {
-                                      // If image fails to load, fallback to default avatar
-                                      const target = e.target as HTMLImageElement;
-                                      target.src = DEFAULT_AVATAR;
-                                      // Prevent the error from propagating
-                                      e.stopPropagation();
-                                    }}
-                                    unoptimized={true}
-                                    priority={true}
-                                  />
-                                </div>
-                              );
-                            } else {
-                              // Display default avatar with user's initials if available
-                              const userInitials = user?.name 
-                                ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
-                                : '';
+                  <div className="flex items-center">
+                    <Notifications />
+                    <Menu as="div" className="relative ml-3">
+                      <div>
+                        <Menu.Button className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                          <span className="sr-only">Open user menu</span>
+                          {(() => {
+                            try {
+                              // Check if user has a valid avatar
+                              const hasValidAvatar = user?.avatar && 
+                                typeof user.avatar === 'object' && 
+                                'url' in user.avatar && 
+                                user.avatar.url && 
+                                !user.avatar.url.includes('default-avatar.jpg') &&
+                                !user.avatar.url.includes('res.cloudinary.com/demo');
                                 
-                              if (userInitials) {
+                              if (hasValidAvatar) {
                                 return (
-                                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-medium">
-                                    {userInitials}
+                                  <div className="h-9 w-9 rounded-full overflow-hidden border border-gray-200">
+                                    <Image
+                                      src={getSafeImageUrl(user.avatar, DEFAULT_AVATAR)}
+                                      alt={user?.name || 'User profile'}
+                                      width={36}
+                                      height={36}
+                                      className="object-cover h-full w-full"
+                                      onError={(e) => {
+                                        // If image fails to load, fallback to default avatar
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = DEFAULT_AVATAR;
+                                        // Prevent the error from propagating
+                                        e.stopPropagation();
+                                      }}
+                                      unoptimized={true}
+                                      priority={true}
+                                    />
                                   </div>
                                 );
                               } else {
-                                // Fallback to icon if no name available
-                                return (
-                                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 transition-colors duration-200">
-                                    <UserCircleIcon className="h-6 w-6" aria-hidden="true" />
-                                  </div>
-                                );
+                                // Display default avatar with user's initials if available
+                                const userInitials = user?.name 
+                                  ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+                                  : '';
+                                
+                                if (userInitials) {
+                                  return (
+                                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                                      {userInitials}
+                                    </div>
+                                  );
+                                } else {
+                                  // Fallback to icon if no name available
+                                  return (
+                                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 transition-colors duration-200">
+                                      <UserCircleIcon className="h-6 w-6" aria-hidden="true" />
+                                    </div>
+                                  );
+                                }
                               }
+                            } catch (error) {
+                              console.error('Error rendering avatar:', error);
+                              return (
+                                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
+                                  <UserCircleIcon className="h-6 w-6" aria-hidden="true" />
+                                </div>
+                              );
                             }
-                          } catch (error) {
-                            console.error('Error rendering avatar:', error);
-                            return (
-                              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
-                                <UserCircleIcon className="h-6 w-6" aria-hidden="true" />
-                              </div>
-                            );
-                          }
-                        })()}
-                      </Menu.Button>
-                    </div>
-                    <Transition
-                      as={Fragment}
-                      enter="transition ease-out duration-200"
-                      enterFrom="transform opacity-0 scale-95"
-                      enterTo="transform opacity-100 scale-100"
-                      leave="transition ease-in duration-150"
-                      leaveFrom="transform opacity-100 scale-100"
-                      leaveTo="transform opacity-0 scale-95"
-                    >
-                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                        <Menu.Item>
-                          {({ active }) => (
-                            <Link
-                              href="/profile"
-                              className={classNames(
-                                active ? 'bg-gray-100' : '',
-                                'flex items-center px-4 py-2 text-sm text-gray-700'
-                              )}
-                            >
-                              <UserCircleIcon className="mr-3 h-5 w-5 text-gray-500" aria-hidden="true" />
-                              My Profile
-                            </Link>
-                          )}
-                        </Menu.Item>
-                        <Menu.Item>
-                          {({ active }) => (
-                  <Link 
-                    href="/dashboard" 
-                              className={classNames(
-                                active ? 'bg-gray-100' : '',
-                                'flex items-center px-4 py-2 text-sm text-gray-700'
-                              )}
-                  >
-                              <AcademicCapIcon className="mr-3 h-5 w-5 text-gray-500" aria-hidden="true" />
-                    Dashboard
-                  </Link>
-                          )}
-                        </Menu.Item>
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={logout}
-                              className={classNames(
-                                active ? 'bg-gray-100' : '',
-                                'flex w-full items-center px-4 py-2 text-sm text-gray-700'
-                              )}
-                            >
-                              <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5 text-gray-500" aria-hidden="true" />
-                              Sign out
-                            </button>
-                          )}
-                        </Menu.Item>
-                      </Menu.Items>
-                    </Transition>
-                  </Menu>
+                          })()}
+                        </Menu.Button>
+                      </div>
+                      <Transition
+                        as={Fragment}
+                        enter="transition ease-out duration-200"
+                        enterFrom="transform opacity-0 scale-95"
+                        enterTo="transform opacity-100 scale-100"
+                        leave="transition ease-in duration-150"
+                        leaveFrom="transform opacity-100 scale-100"
+                        leaveTo="transform opacity-0 scale-95"
+                      >
+                        <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                          <Menu.Item>
+                            {({ active }) => (
+                              <Link
+                                href="/profile"
+                                className={classNames(
+                                  active ? 'bg-gray-100' : '',
+                                  'flex items-center px-4 py-2 text-sm text-gray-700'
+                                )}
+                              >
+                                <UserCircleIcon className="mr-3 h-5 w-5 text-gray-500" aria-hidden="true" />
+                                My Profile
+                              </Link>
+                            )}
+                          </Menu.Item>
+                          <Menu.Item>
+                            {({ active }) => (
+                              <Link
+                                href="/dashboard"
+                                className={classNames(
+                                  active ? 'bg-gray-100' : '',
+                                  'flex items-center px-4 py-2 text-sm text-gray-700'
+                                )}
+                              >
+                                <AcademicCapIcon className="mr-3 h-5 w-5 text-gray-500" aria-hidden="true" />
+                                Dashboard
+                              </Link>
+                            )}
+                          </Menu.Item>
+                          <Menu.Item>
+                            {({ active }) => (
+                              <button
+                                onClick={logout}
+                                className={classNames(
+                                  active ? 'bg-gray-100' : '',
+                                  'w-full text-left flex items-center px-4 py-2 text-sm text-gray-700'
+                                )}
+                              >
+                                <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5 text-gray-500" aria-hidden="true" />
+                                Sign out
+                              </button>
+                            )}
+                          </Menu.Item>
+                        </Menu.Items>
+                      </Transition>
+                    </Menu>
+                  </div>
                 ) : (
-                  <div className="flex space-x-2">
+                  <div className="hidden sm:flex sm:items-center sm:space-x-2">
                     <button
                       type="button"
                       onClick={openLoginModal}

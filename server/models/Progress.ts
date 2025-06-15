@@ -58,6 +58,7 @@ interface ICertificate {
 export interface IProgress extends Document {
   user: mongoose.Types.ObjectId | IUser;
   course: mongoose.Types.ObjectId | ICourse;
+  status: 'pending' | 'active' | 'completed' | 'rejected' | 'cancelled';
   completedLessons: mongoose.Types.ObjectId[] | ILesson[];
   quizResults: IQuizResult[];
   assignmentSubmissions: IAssignmentSubmission[];
@@ -68,6 +69,7 @@ export interface IProgress extends Document {
   completedAt?: Date;
   certificate: ICertificate;
   createdAt: Date;
+  updatedAt: Date;
   progressPercentage: number; // Virtual
 }
 
@@ -81,6 +83,11 @@ const ProgressSchema: Schema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Course',
     required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'active', 'completed', 'rejected', 'cancelled'],
+    default: 'pending'
   },
   completedLessons: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -172,13 +179,10 @@ const ProgressSchema: Schema = new mongoose.Schema({
     certificateId: String,
     certificateUrl: String
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
 }, {
   toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  toObject: { virtuals: true },
+  timestamps: true
 });
 
 // Virtual for progress percentage

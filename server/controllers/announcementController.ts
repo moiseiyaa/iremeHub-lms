@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { Announcement } from '../models';
+import { Announcement, Course, Notification } from '../models';
 import asyncHandler from '../middleware/asyncHandler';
 import ErrorResponse from '../utils/errorResponse';
 import mongoose from 'mongoose';
+import { IUser } from '../models/User';
 
 // Define custom request interface with user property
 interface UserRequest extends Request {
-  user?: any;
+  user?: IUser;
   files?: any;
 }
 
@@ -61,11 +62,30 @@ export const getAnnouncement = asyncHandler(async (req: Request, res: Response, 
 // @desc    Create new announcement
 // @route   POST /api/v1/announcements
 // @access  Private (Educator/Admin)
-export const createAnnouncement = asyncHandler(async (req: UserRequest, res: Response) => {
+export const createAnnouncement = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return next(new ErrorResponse('Not authorized to access this resource', 401));
+  }
   // Add educator to req.body
   req.body.educator = req.user.id;
 
   const announcement = await Announcement.create(req.body);
+
+  // If the announcement is for a course and is published, create notifications
+  if (announcement.courseId && announcement.published) {
+    const course = await Course.findById(announcement.courseId);
+    if (course && course.enrolledStudents) {
+      const notifications = course.enrolledStudents.map(studentId => ({
+        user: studentId,
+        message: `New announcement in ${course.title}: "${announcement.title}"`,
+        link: `/courses/${course._id}/announcements`,
+      }));
+      
+      if (notifications.length > 0) {
+        await Notification.insertMany(notifications);
+      }
+    }
+  }
 
   res.status(201).json({
     success: true,
@@ -84,15 +104,33 @@ export const updateAnnouncement = asyncHandler(async (req: UserRequest, res: Res
   }
 
   // Make sure user is the announcement creator or admin
-  if (announcement.educator.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (req.user && announcement.educator.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to update this announcement`, 401));
   }
+
+  const wasPublished = announcement.published;
 
   // Update the announcement
   announcement = await Announcement.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true
   });
+
+  // If the announcement was just published, create notifications
+  if (announcement && !wasPublished && announcement.published && announcement.courseId) {
+    const course = await Course.findById(announcement.courseId);
+    if (course && course.enrolledStudents) {
+      const notifications = course.enrolledStudents.map(studentId => ({
+        user: studentId,
+        message: `New announcement in ${course.title}: "${announcement.title}"`,
+        link: `/courses/${course._id}/announcements`,
+      }));
+
+      if (notifications.length > 0) {
+        await Notification.insertMany(notifications);
+      }
+    }
+  }
 
   res.status(200).json({
     success: true,
@@ -111,7 +149,7 @@ export const deleteAnnouncement = asyncHandler(async (req: UserRequest, res: Res
   }
 
   // Make sure user is the announcement creator or admin
-  if (announcement.educator.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (req.user && announcement.educator.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to delete this announcement`, 401));
   }
 
@@ -155,7 +193,7 @@ export const togglePublishStatus = asyncHandler(async (req: UserRequest, res: Re
   }
 
   // Make sure user is the announcement creator or admin
-  if (announcement.educator.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (req.user && announcement.educator.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to update this announcement`, 401));
   }
 
@@ -172,7 +210,10 @@ export const togglePublishStatus = asyncHandler(async (req: UserRequest, res: Re
 // @desc    Get announcements by educator
 // @route   GET /api/v1/educator/announcements
 // @access  Private (Educator)
-export const getEducatorAnnouncements = asyncHandler(async (req: UserRequest, res: Response) => {
+export const getEducatorAnnouncements = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return next(new ErrorResponse('Not authorized to access this resource', 401));
+  }
   const announcements = await Announcement.find({ educator: req.user.id })
     .sort('-createdAt')
     .populate('courseId', 'title');

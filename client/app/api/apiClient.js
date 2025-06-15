@@ -123,9 +123,15 @@ export const apiRequest = async (endpoint, options = {}, requiresAuth = false) =
     
     // Prepare headers
     const headers = {
-      'Content-Type': 'application/json',
+      // 'Content-Type': 'application/json', // Conditionally set Content-Type later
       ...options.headers,
     };
+
+    // Only set Content-Type to application/json if the body is not FormData
+    // If body is FormData, the browser will set the correct multipart/form-data header
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
     
     // Add auth token if required (and this isn't a course page)
     // For course pages, we'll include the token if available, but won't fail if it's not
@@ -151,7 +157,7 @@ export const apiRequest = async (endpoint, options = {}, requiresAuth = false) =
     // Make the request
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
-      headers,
+      headers, // headers now conditionally includes Content-Type
       signal: controller.signal,
     });
     
@@ -249,9 +255,9 @@ export const apiGet = (endpoint, requiresAuth = false) => {
 export const apiPost = (endpoint, data, requiresAuth = false) => {
   return apiRequest(
     endpoint,
-    { 
+    {
       method: 'POST',
-      body: JSON.stringify(data)
+      body: data instanceof FormData ? data : JSON.stringify(data),
     },
     requiresAuth
   );

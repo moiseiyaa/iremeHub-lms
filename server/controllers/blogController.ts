@@ -256,6 +256,10 @@ export const addComment = asyncHandler(async (req: UserRequest, res: Response, n
     return next(new ErrorResponse(`Blog not found with id of ${req.params.id}`, 404));
   }
 
+  if (!req.user) {
+    return next(new ErrorResponse('Not authorized to comment', 401));
+  }
+
   // Create comment
   const comment = {
     user: req.user.id,
@@ -272,4 +276,4 @@ export const addComment = asyncHandler(async (req: UserRequest, res: Response, n
     success: true,
     data: blog.comments
   });
-}); 
+});

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { UploadedFile } from 'express-fileupload';
 import { Lesson, Course, Progress, Section } from '../models';
 import asyncHandler from '../middleware/asyncHandler';
 import ErrorResponse from '../utils/errorResponse';
@@ -6,10 +7,11 @@ import cloudinary from '../utils/cloudinary';
 import mongoose from 'mongoose';
 import { ICourse } from '../models/Course';
 import { ILesson } from '../models/Lesson';
+import { IUser } from '../models/User';
 
 // Define custom request interface with user property
 interface UserRequest extends Request {
-  user?: any;
+  user?: IUser;
   files?: any;
 }
 
@@ -63,7 +65,7 @@ export const getLesson = asyncHandler(async (req: UserRequest, res: Response, ne
   }
 
   // If the user is enrolled, mark the lesson as accessed
-  if (isEnrolled) {
+  if (isEnrolled && req.user) {
     // Update lastAccessed in progress
     await Progress.findOneAndUpdate(
       { user: req.user.id, course: lesson.course },
@@ -91,7 +93,7 @@ export const createLesson = asyncHandler(async (req: UserRequest, res: Response,
   }
 
   // Make sure user is course instructor or admin
-  if (course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (req.user && course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to add a lesson to this course`, 401));
   }
 
@@ -142,7 +144,7 @@ export const updateLesson = asyncHandler(async (req: UserRequest, res: Response,
   }
 
   // Make sure user is course instructor or admin
-  if (course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (req.user && course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to update this lesson`, 401));
   }
 
@@ -192,7 +194,7 @@ export const deleteLesson = asyncHandler(async (req: UserRequest, res: Response,
   }
 
   // Make sure user is course instructor or admin
-  if (course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (req.user && course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to delete this lesson`, 401));
   }
 
@@ -234,7 +236,7 @@ export const uploadVideo = asyncHandler(async (req: UserRequest, res: Response, 
   }
 
   // Make sure user is course instructor or admin
-  if (course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (req.user && course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to update this lesson`, 401));
   }
 
@@ -242,7 +244,7 @@ export const uploadVideo = asyncHandler(async (req: UserRequest, res: Response, 
     return next(new ErrorResponse('Please upload a file', 400));
   }
 
-  const file = req.files.video;
+  const file = req.files.video as UploadedFile;
 
   // Make sure the file is a video
   if (!file.mimetype.startsWith('video')) {

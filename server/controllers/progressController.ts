@@ -11,9 +11,21 @@ import { ICertificate } from '../models/Certificate';
 import { ICourse } from '../models/Course';
 import { IUser } from '../models/User';
 
+interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  destination: string;
+  filename: string;
+  path: string;
+  buffer: Buffer;
+}
+
 // Define custom request interface with user property
 interface UserRequest extends Request {
-  user?: any;
+  user: IUser;
   files?: any;
 }
 

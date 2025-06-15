@@ -12,6 +12,8 @@ import {
 } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import { useAuth } from './AuthProvider';
+import Link from 'next/link';
+import logoWhite from '@/public/images/iremehub-logo-white.png';
 
 type AuthMode = 'login' | 'register';
 
@@ -190,10 +192,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
         <div className="bg-[#0091ff] p-6 pb-4 text-white text-center relative">
           <div className="flex justify-center mb-3">
             <Image 
-              src="/images/iremehub-logo-white.png" 
+              src={logoWhite}
               alt="iremeHub Logo" 
               width={130} 
               height={40} 
+              placeholder="empty"
+              priority
               className="h-8 w-auto"
             />
           </div>
@@ -318,20 +322,22 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
                     type="checkbox"
                     checked={rememberMe}
                     onChange={handleRememberMeChange}
-                    className="h-4 w-4 text-[#0091ff] focus:ring-[#0091ff] border-gray-300 rounded"
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                     Remember me
                   </label>
                 </div>
 
-                <button 
-                  type="button"
-                  className="font-medium text-[#0091ff] hover:text-blue-500"
-                  onClick={() => {/* TODO: Forgot password */}}
-                >
-                  Forgot password?
-                </button>
+                <div className="text-sm">
+                  <Link
+                    href="/forgot-password"
+                    onClick={handleClose}
+                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
               </div>
             )}
 

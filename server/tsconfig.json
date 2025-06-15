@@ -12,7 +12,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "types": ["jest", "node"]
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]

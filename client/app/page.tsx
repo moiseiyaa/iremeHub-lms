@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { 
   AcademicCapIcon,
   ClockIcon,
@@ -47,15 +48,16 @@ export default function Home() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await apiGet<{data: Course[]}>('/courses');
+        const response = await apiGet<{success: boolean; data: Course[]; count?: number; pagination?: unknown}>('/courses');
         if (response.success && Array.isArray(response.data)) {
           setCourses(response.data.slice(0, 6)); // Get first 6 courses
         } else {
-          setCourses([]);
+          console.warn('Failed to fetch courses or data is not an array:', response);
+          setCourses([]); // Fallback to empty or placeholder
         }
       } catch (error) {
         console.error('Error fetching courses:', error);
-        setCourses([]);
+        setCourses([]); // Fallback to empty or placeholder
       } finally {
         setLoading(false);
       }
@@ -180,34 +182,26 @@ export default function Home() {
               
               {/* Social Media Icons */}
               <div className="flex items-center space-x-4 mt-8">
-                <a href="#" 
-                  className="text-gray-500 hover:text-primary transition-colors duration-300 hover:scale-110 hover:rotate-3 transform" 
-                  title="Follow us on Twitter" 
-                  aria-label="Follow us on Twitter"
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                  </svg>
-                </a>
                 {/* Other social icons... */}
               </div>
             </div>
 
-            <div className="relative hover:scale-105 transition-all duration-500">
-              {/* Blue icon as shown in second picture */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary rounded-full transform scale-95 animate-pulse"></div>
-                <div className="relative z-10 flex items-center justify-center">
-                  <svg 
-                    viewBox="0 0 600 600" 
-                    className="w-[600px] h-[600px] animate-slowSpin" 
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path fill="currentColor" className="text-primary" d="M300 120c-99.4 0-180 80.6-180 180 0 68.3 38 127.6 94.1 158.5C137.7 475.3 75 471.1 75 471.1c152.5 88.2 255.6 8.9 329.7-105.2 6.3-11.2 9.4-24.1 9.4-37.5-.1-99.8-80.7-180.4-180.1-180.4z" />
-                    <circle fill="currentColor" className="text-primary" cx="390" cy="180" r="75" />
-                  </svg>
-                </div>
-              </div>
+            <div className="relative flex items-center justify-center">
+              <motion.div
+                whileHover={{ scale: 1.05, rotate: 2 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="relative w-[300px] h-[300px] md:w-[450px] md:h-[450px] lg:w-[500px] lg:h-[500px]"
+              >
+                <Image 
+                  src="/images/ireme.png"
+                  alt="Ireme"
+                  fill
+                  style={{ objectFit: 'contain' }}
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="drop-shadow-2xl"
+                />
+              </motion.div>
             </div>
           </div>
         </div>

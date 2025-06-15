@@ -105,11 +105,6 @@
     @apply w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8;
   }
   
-  /* Add padding for fixed navbar */
-  .main-content {
-    padding-top: 5rem; /* 80px */
-  }
-  
   /* Section Styles */
   .section-padding {
     @apply py-8 md:py-12 lg:py-16;

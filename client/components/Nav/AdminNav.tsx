@@ -1,23 +1,31 @@
 'use client';
 
 import Link from 'next/link';
-import { HomeIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
+import { HomeIcon } from '@heroicons/react/24/solid';
+import Notifications from '../Notifications';
+import Image from 'next/image';
 
 export default function AdminNav() {
   return (
     <nav className="bg-slate-800 text-slate-100 p-4 shadow-lg sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="text-xl font-semibold">
-          Admin Panel
+        <Link href="/" title="Back to Main Site">
+          <Image 
+            src="/images/iremehub-logo.png"
+            alt="iremeHub Logo"
+            width={140}
+            height={40}
+            className="transition-all duration-300"
+          />
+        </Link>
+        
+        <div className="flex items-center space-x-4">
+          <Notifications />
+          <Link href="/dashboard/admin" className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-slate-700 transition-colors">
+            <HomeIcon className="h-5 w-5" />
+            <span>Dashboard Home</span>
+          </Link>
         </div>
-        <Link href="/dashboard/admin" className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-slate-700 transition-colors">
-          <HomeIcon className="h-5 w-5" />
-          <span>Dashboard Home</span>
-        </Link>
-        <Link href="/" className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-slate-700 transition-colors">
-          <ArrowLeftIcon className="h-5 w-5" />
-          <span>Exit to Main Site</span>
-        </Link>
       </div>
     </nav>
   );

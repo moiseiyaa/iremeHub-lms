@@ -10,20 +10,25 @@ import { IProgress } from '../models/Progress';
 import { IUser } from '../models/User';
 
 // Define custom request interface with user property
+interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  destination: string;
+  filename: string;
+  path: string;
+  buffer: Buffer;
+  tempFilePath?: string; // for express-fileupload
+}
+
 interface UserRequest extends Request {
-  user?: any;
+  user: IUser;
   files?: any;
 }
 
-interface CourseWithProgress extends mongoose.Document {
-  toObject(): any;
-  title: string;
-  description: string;
-  thumbnail: { public_id?: string; url: string };
-  level: string;
-  category: string;
-  createdAt: Date;
-  instructor: any;
+interface CourseWithProgress extends ICourse {
   progress?: {
     completedLessons: mongoose.Types.ObjectId[] | ILesson[];
     lastAccessed: Date | null;
@@ -203,7 +208,7 @@ export const uploadThumbnail = asyncHandler(async (req: UserRequest, res: Respon
     return next(new ErrorResponse('Please upload a file', 400));
   }
 
-  const file = req.files.thumbnail;
+  const file = req.files.thumbnail as MulterFile;
 
   // Make sure the image is a photo
   if (!file.mimetype.startsWith('image')) {
@@ -222,7 +227,7 @@ export const uploadThumbnail = asyncHandler(async (req: UserRequest, res: Respon
   }
 
   // Upload new thumbnail
-  const result = await cloudinary.uploader.upload(file.tempFilePath, {
+  const result = await cloudinary.uploader.upload((file as any).tempFilePath!, {
     folder: 'lms/thumbnails',
     width: 1280,
     crop: 'scale'

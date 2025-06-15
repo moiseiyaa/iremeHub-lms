@@ -5,9 +5,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { apiGet, apiPost } from '../../../api/apiClient';
-import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon, CheckIcon, Bars3Icon } from '@heroicons/react/24/outline';
-import { CheckCircleIcon, LockClosedIcon, PlayIcon } from '@heroicons/react/24/solid';
+import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon, CheckIcon, Bars3Icon, TrophyIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
+import ReactPlayer from 'react-player/youtube';
 
 // Default images
 const DEFAULT_AVATAR_IMAGE = 'https://placehold.co/100x100/e2e8f0/1e293b?text=User';
@@ -121,9 +122,7 @@ interface CoursePageProps {
 }
 
 export default function CourseLearnPage({ params }: CoursePageProps) {
-  // Unwrap the params promise properly
-  const unwrappedParams = React.use(params);
-  const courseId = unwrappedParams.id;
+  const courseId = params.id;
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -160,6 +159,10 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
     percentageScore: number;
     requiredPassingScore: number;
   } | null>(null);
+  
+  // Certificate state
+  const [generatingCertificate, setGeneratingCertificate] = useState(false);
+  const [certificate, setCertificate] = useState<{ _id: string; certificateId: string } | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -550,6 +553,25 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
     }
   };
 
+  // Generate Certificate
+  const handleGenerateCertificate = async () => {
+    if (!course) return;
+    setGeneratingCertificate(true);
+    try {
+      const response = await apiPost(`/courses/${course._id}/certificate`, {}, true);
+      if (response.success && response.data) {
+        setCertificate(response.data);
+      } else {
+        setError(response.error || 'Failed to generate certificate.');
+      }
+    } catch (err) {
+      console.error('Error generating certificate:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+    } finally {
+      setGeneratingCertificate(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -742,13 +764,13 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
                   
                   {/* YouTube content */}
                   {currentLesson.contentType === 'youtube' && currentLesson.content?.youtubeVideoId && (
-                    <div className="aspect-w-16 aspect-h-9 mb-6">
-                      <iframe
-                        src={`https://www.youtube.com/embed/${currentLesson.content.youtubeVideoId}`}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="w-full h-full rounded-lg"
-                        title={`${currentLesson.title} - Video`}
+                    <div className="aspect-w-16 aspect-h-9 mb-6 bg-black rounded-lg overflow-hidden">
+                      <ReactPlayer
+                        url={`https://www.youtube.com/watch?v=${currentLesson.content.youtubeVideoId}`}
+                        controls
+                        width="100%"
+                        height="100%"
+                        className="absolute top-0 left-0"
                       />
                     </div>
                   )}
@@ -793,11 +815,7 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
                                       name={`question-${qIndex}`}
                                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                                       checked={quizAnswers[qIndex] === oIndex}
-                                      onChange={() => {
-                                        const newAnswers = [...quizAnswers];
-                                        newAnswers[qIndex] = oIndex;
-                                        setQuizAnswers(newAnswers);
-                                      }}
+                                      onChange={() => handleQuizAnswerSelect(qIndex, oIndex)}
                                     />
                                     <label htmlFor={`q${qIndex}-o${oIndex}`} className="ml-2 block text-sm text-gray-700">
                                       {option}
@@ -1073,6 +1091,36 @@ export default function CourseLearnPage({ params }: CoursePageProps) {
                     </Link>
                   )}
                 </div>
+
+                {/* Course Completion Section */}
+                {progress && progress.completed && (
+                  <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-lg text-center">
+                    <TrophyIcon className="h-12 w-12 text-green-500 mx-auto" />
+                    <h3 className="text-xl font-bold text-gray-900 mt-4">Congratulations!</h3>
+                    <p className="text-gray-600 mt-2">You have completed the course.</p>
+                    
+                    {certificate ? (
+                      <div className="mt-4">
+                        <p className="font-semibold text-green-700">Certificate Generated!</p>
+                        <Link
+                          href={`/certificates/${certificate.certificateId}`} // Assuming a page to view the certificate
+                          className="text-indigo-600 hover:underline mt-2 inline-block"
+                        >
+                          View Your Certificate
+                        </Link>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleGenerateCertificate}
+                        disabled={generatingCertificate}
+                        className="btn-primary mt-4"
+                      >
+                        {generatingCertificate ? 'Generating...' : 'Get Your Certificate'}
+                      </button>
+                    )}
+                    {error && !certificate && <p className="text-red-500 mt-2">{error}</p>}
+                  </div>
+                )}
               </div>
             </div>
           ) : (

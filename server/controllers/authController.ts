@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { User } from '../models';
+import { User, IUser } from '../models';
 import asyncHandler from '../middleware/asyncHandler';
 import ErrorResponse from '../utils/errorResponse';
 import jwt from 'jsonwebtoken';
@@ -9,9 +9,21 @@ import cloudinary from 'cloudinary';
 import crypto from 'crypto';
 
 // Define interfaces
+interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  destination: string;
+  filename: string;
+  path: string;
+  buffer: Buffer;
+}
+
 interface UserRequest extends Request {
-  user?: any; // Will be replaced with proper User type
-  files?: any; // For file uploads
+  user?: IUser;
+  files?: any;
 }
 
 interface TokenPayload {
@@ -21,34 +33,40 @@ interface TokenPayload {
 }
 
 interface UpdateFields {
-  [key: string]: any;
+  [key: string]: string | undefined;
   name?: string;
   email?: string;
   bio?: string;
 }
 
 // Mock user for development
-const createMockUser = (email: string, name: string, role: string = 'admin') => {
+const createMockUser = (email: string, name: string, role: string = 'admin'): IUser => {
+  const now = new Date();
   return {
-    _id: '60d0fe4f5311236168a109ca',
-    id: '60d0fe4f5311236168a109ca',
+    _id: ('60d0fe4f5311236168a109ca' as unknown) as any,
     name,
     email,
     role,
+    password: 'mockPasswordHash',
+    createdAt: now,
     avatar: {
       url: 'https://via.placeholder.com/150'
     },
     bio: 'This is a development test user',
-    getSignedJwtToken: function() {
+    enrolledCourses: [],
+    createdCourses: [],
+    resetPasswordToken: undefined,
+    resetPasswordExpire: undefined,
+    matchPassword: async () => true,
+    getSignedJwtToken() {
       const secret = process.env.JWT_SECRET || 'devmode_secret_key_for_testing';
-      // @ts-ignore - Ignoring TypeScript error for jwt.sign
-      return jwt.sign(
-        { id: this._id },
-        secret,
-        { expiresIn: process.env.JWT_EXPIRE || '30d' }
-      );
+      // @ts-ignore
+      return jwt.sign({ id: this._id }, secret, { expiresIn: process.env.JWT_EXPIRE || '30d' });
+    },
+    getResetPasswordToken() {
+      return 'mock-reset-token';
     }
-  };
+  } as unknown as IUser;
 };
 
 // @desc    Register a user
@@ -156,7 +174,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
 // @route   GET /api/v1/auth/me
 // @access  Private
 export const getMe = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  const user = await User.findById(req.user.id);
+  const user = await User.findById(req.user!.id);
 
   res.status(200).json({
     success: true,
@@ -191,7 +209,7 @@ export const updateDetails = asyncHandler(async (req: UserRequest, res: Response
     }
   });
 
-  const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+  const user = await User.findByIdAndUpdate(req.user!.id, fieldsToUpdate, {
     new: true,
     runValidators: true
   });
@@ -206,7 +224,7 @@ export const updateDetails = asyncHandler(async (req: UserRequest, res: Response
 // @route   PUT /api/v1/auth/updatepassword
 // @access  Private
 export const updatePassword = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  const user = await User.findById(req.user.id).select('+password');
+  const user = await User.findById(req.user!.id).select('+password');
 
   if (!user) {
     return next(new ErrorResponse('User not found', 404));
@@ -458,7 +476,7 @@ export const updateAvatar = asyncHandler(async (req: UserRequest, res: Response,
       folder: 'avatars',
       width: 200,
       crop: "fill",
-      public_id: `avatar-${req.user._id}-${Date.now()}`
+      public_id: `avatar-${req.user!._id}-${Date.now()}`
     });
 
     console.log('Cloudinary upload result:', { 
@@ -468,7 +486,7 @@ export const updateAvatar = asyncHandler(async (req: UserRequest, res: Response,
 
     // Update user avatar in database
     const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
+      req.user!.id,
       { 
         avatar: {
           public_id: result.public_id,
@@ -498,49 +516,29 @@ export const updateAvatar = asyncHandler(async (req: UserRequest, res: Response,
 });
 
 // Get token from model, create cookie and send response
-const sendTokenResponse = (user: any, statusCode: number, res: Response): void => {
-  try {
-    // Create token
-    console.log(`Attempting to generate token for user: ${user.email} (ID: ${user._id})`);
-    const token = user.getSignedJwtToken();
-    console.log(`Token generated successfully for user: ${user.email}`);
+const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void => {
+  // Create token
+  const token = user.getSignedJwtToken();
 
-    const userData = {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      avatar: user.avatar,
-      bio: user.bio
-    };
+  const options = {
+    expires: new Date(
+      Date.now() + (process.env.JWT_COOKIE_EXPIRE ? parseInt(process.env.JWT_COOKIE_EXPIRE) : 30) * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict' as 'strict'
+  };
 
-    console.log(`Sending token response for user: ${user.email}`);
-    res.status(statusCode).json({
+  // Ensure password is not sent with the user object
+  const userObj = user.toObject ? user.toObject() : { ...user };
+  delete userObj.password;
+
+  res
+    .status(statusCode)
+    .cookie('token', token, options)
+    .json({
       success: true,
       token,
-      user: userData
+      user: userObj
     });
-    console.log(`Token response sent successfully for user: ${user.email}`);
-
-  } catch (error: any) {
-    console.error('Error in sendTokenResponse:', error.message);
-    console.error('User data that caused error:', {
-      id: user?._id,
-      email: user?.email,
-      name: user?.name
-    });
-    // To avoid sending an HTML error page, we send a JSON error response.
-    // The global errorHandler might still override this if it processes before this response is sent.
-    if (!res.headersSent) {
-        res.status(500).json({
-            success: false,
-            message: 'Server error during token response generation.',
-            error: error.message // Include specific error message for debugging
-        });
-    } else {
-        // If headers already sent, we can't send a new JSON response.
-        // Log and rely on global error handler or client to timeout.
-        console.error('Headers already sent in sendTokenResponse, cannot send JSON error.');
-    }
-  }
 };

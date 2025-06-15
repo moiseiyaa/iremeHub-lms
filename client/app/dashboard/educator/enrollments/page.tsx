@@ -11,10 +11,8 @@ import {
   ArrowPathIcon,
   FunnelIcon,
   MagnifyingGlassIcon,
-  ChevronLeftIcon, 
-  ChevronRightIcon
 } from '@heroicons/react/24/outline';
-import { apiGet } from '../../../../api/apiClient';
+import { apiGet } from '../../../api/apiClient';
 
 interface UserData {
   name: string;
@@ -217,12 +215,6 @@ export default function EnrollmentsPage() {
       case 'approved': return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
       case 'rejected': return <XCircleIcon className="h-5 w-5 text-red-500" />;
       default: return <ClockIcon className="h-5 w-5 text-yellow-500" />;
-    }
-  };
-  
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
     }
   };
   

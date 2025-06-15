@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { apiGet, apiPost } from '../../api/apiClient';
@@ -132,10 +132,8 @@ const fetchWithRetry = async (apiCall: () => Promise<any>, maxRetries = 3) => {
 };
 
 export default function CoursePage({ params }: CoursePageProps) {
-  // Properly unwrap the params promise with React.use()
-  // TypeScript needs help understanding the Promise nature of params in the latest Next.js
-  const unwrappedParams = React.use(params as unknown as Promise<{id: string}>);
-  const courseId = unwrappedParams.id;
+  // unwrap Next.js params promise
+  const { id: courseId } = use(params);
   
   const router = useRouter();
   const [course, setCourse] = useState<Course | null>(null);

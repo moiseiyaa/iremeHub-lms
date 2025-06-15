@@ -3,6 +3,12 @@ import { protect, authorize } from '../middleware/auth';
 import { Course, User, Lesson, Progress, Announcement } from '../models';
 import asyncHandler from '../middleware/asyncHandler';
 import { Request, Response, NextFunction } from 'express';
+import { 
+  getStudentDetailsForEducator, 
+  getStudentsForEducator,
+  getEnrollmentsForEducator,
+  updateEnrollmentStatus
+} from '../controllers/educatorController';
 
 const router = express.Router();
 
@@ -44,7 +50,7 @@ router.get(
     // Calculate completion rate
     const completedCourseCount = await Progress.countDocuments({
       course: { $in: courseIds },
-      progress: 100
+      completed: true
     });
     const completionRate = totalCourses > 0 ? Math.round((completedCourseCount / totalCourses) * 100) : 0;
 
@@ -256,6 +262,38 @@ router.put('/courses/:id', protect, authorize('educator', 'admin'), asyncHandler
     next(error);
   }
 }));
+
+// Get a specific student's details for an educator
+router.get(
+  '/students/:studentId',
+  protect,
+  authorize('educator', 'admin'),
+  getStudentDetailsForEducator
+);
+
+// Get all enrollments for an educator
+router.get(
+  '/enrollments',
+  protect,
+  authorize('educator', 'admin'),
+  getEnrollmentsForEducator
+);
+
+// Update enrollment status
+router.put(
+  '/enrollments/:enrollmentId/status',
+  protect,
+  authorize('educator', 'admin'),
+  updateEnrollmentStatus
+);
+
+// Get all students for an educator
+router.get(
+  '/students',
+  protect,
+  authorize('educator', 'admin'),
+  getStudentsForEducator
+);
 
 // ... more routes
 

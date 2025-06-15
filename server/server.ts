@@ -15,6 +15,7 @@ import certificateRoutes from './routes/certificates';
 import announcementRoutes from './routes/announcements';
 import educatorRoutes from './routes/educator';
 import adminRoutes from './routes/admin';
+import notificationRoutes from './routes/notifications';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +59,7 @@ app.use('/api/v1/certificates', certificateRoutes);
 app.use('/api/v1/announcements', announcementRoutes);
 app.use('/api/v1/educator', educatorRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // Basic route
 app.get('/', (req: Request, res: Response) => {
