@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   UserIcon, 
   PencilSquareIcon,
@@ -15,7 +16,6 @@ import {
   ChevronLeftIcon, 
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
-import { apiGet } from '../../../../api/apiClient';
 
 interface UserData {
   _id: string;
@@ -31,7 +31,7 @@ interface UserData {
 export default function AdminUsersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const roleFilter = searchParams.get('role');
+  const roleFilter = searchParams?.get('role') ?? null;
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -195,24 +195,28 @@ export default function AdminUsersPage() {
             <button
               className={`px-3 py-1 text-sm rounded-full ${!activeFilter ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
               onClick={() => applyFilter(null)}
+              title="All users"
             >
               All
             </button>
             <button
               className={`px-3 py-1 text-sm rounded-full ${activeFilter === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
               onClick={() => applyFilter('admin')}
+              title="Admin users"
             >
               Admins
             </button>
             <button
               className={`px-3 py-1 text-sm rounded-full ${activeFilter === 'educator' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
               onClick={() => applyFilter('educator')}
+              title="Educator users"
             >
               Educators
             </button>
             <button
               className={`px-3 py-1 text-sm rounded-full ${activeFilter === 'student' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
               onClick={() => applyFilter('student')}
+              title="Student users"
             >
               Students
             </button>
@@ -224,6 +228,7 @@ export default function AdminUsersPage() {
               setActiveFilter(null);
               router.push('/dashboard/admin/users');
             }}
+            title="Reset filters"
           >
             <ArrowPathIcon className="h-4 w-4 mr-1" />
             Reset
@@ -256,10 +261,12 @@ export default function AdminUsersPage() {
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         {user.profileImage ? (
-                          <img
+                          <Image
                             className="h-10 w-10 rounded-full object-cover"
                             src={user.profileImage.url}
                             alt={user.name}
+                            width={40}
+                            height={40}
                           />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -287,7 +294,7 @@ export default function AdminUsersPage() {
                         href={`/dashboard/admin/users/${user._id}/edit`}
                         className="text-blue-600 hover:text-blue-900"
                       >
-                        <PencilSquareIcon className="h-5 w-5" />
+                        <PencilSquareIcon className="h-5 w-5" title="Edit" />
                       </Link>
                       <button
                         className="text-red-600 hover:text-red-900"
@@ -296,7 +303,7 @@ export default function AdminUsersPage() {
                           alert(`Delete user ${user.name} - This would be a confirmation modal`);
                         }}
                       >
-                        <TrashIcon className="h-5 w-5" />
+                        <TrashIcon className="h-5 w-5" title="Delete" />
                       </button>
                     </div>
                   </td>
