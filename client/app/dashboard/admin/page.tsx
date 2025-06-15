@@ -162,7 +162,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-slate-100 overflow-hidden -mt-[64px] md:-mt-[72px]">
       <div className={`fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-300 ease-in-out w-64 bg-slate-800 text-slate-100 flex flex-col shadow-lg z-30`}>
         <div className="text-center py-5 border-b border-slate-700">
           <Image 

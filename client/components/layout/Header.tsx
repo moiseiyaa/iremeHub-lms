@@ -72,28 +72,10 @@ function classNames(...classes: string[]) {
 
 export default function Header() {
   const { isAuthenticated, openLoginModal, openRegisterModal, logout, user } = useAuth();
-  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
   return (
-    <Disclosure as="nav" className={classNames(
-      scrolled 
-        ? 'bg-white shadow-lg' 
-        : 'bg-white',
-      'fixed w-full z-50 transition-all duration-300'
-    )}>
+    <Disclosure as="nav" className="bg-white shadow-lg fixed w-full z-50 transition-all duration-300">
       {({ open }) => (
         <>
           <div className="container-custom">

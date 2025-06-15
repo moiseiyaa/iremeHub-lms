@@ -419,9 +419,16 @@ export default function CoursePage({ params }: CoursePageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
-            <p className="mt-2 text-lg text-gray-500">{course.description}</p>
+            <p className="mt-4 text-gray-700 whitespace-pre-line">
+              {course.description && course.description.trim().length > 0 ? (
+                course.description
+              ) : (
+                'No description has been provided for this course yet.'
+              )}
+            </p>
             
-            <div className="mt-4 flex flex-wrap items-center text-sm text-gray-500 gap-4">
+            {/* Summary badges */}
+            <div className="mt-6 flex flex-wrap items-center text-sm text-gray-600 gap-6">
               {course?.level && (
                 <span className="inline-flex items-center">
                   <AcademicCapIcon className="h-4 w-4 text-gray-400 mr-1" />

@@ -104,7 +104,13 @@
   .container-custom {
     @apply w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8;
   }
-  
+
+  /* Main content wrapper - ensures pages are pushed below fixed navbar */
+  .main-content {
+    /* Push content below fixed navbar */
+    @apply pt-[64px] md:pt-[72px];
+  }
+
   /* Section Styles */
   .section-padding {
     @apply py-8 md:py-12 lg:py-16;

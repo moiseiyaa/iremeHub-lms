@@ -39,26 +39,61 @@ const sampleUsers = [
 const sampleCourses = [
   {
     title: 'Introduction to Web Development',
-    description: 'Learn the basics of HTML, CSS, and JavaScript to build modern websites.',
+    description: `Kick-start your developer journey with a thorough foundation in HTML, CSS and vanilla JavaScript. 
+By the end you’ll hand-code responsive pages, understand the DOM, and publish your first static site. Practical mini-projects each module keep things fun and hands-on.`,
     category: 'Web Development',
     level: 'Beginner',
     price: 0,
+    thumbnail: {
+      url: 'https://placehold.co/600x400/0ea5e9/ffffff?text=Web+Dev+Basics'
+    },
     isPublished: true
   },
   {
     title: 'Advanced React Programming',
-    description: 'Master React, Redux, and Next.js for building professional web applications.',
+    description: `Deep-dive into modern React 18 with hooks, context, Redux Toolkit and performance patterns. 
+You’ll architect a production-grade App using Next.js, implement server actions, image optimisation and deploy to Vercel.`,
     category: 'Web Development',
     level: 'Advanced',
     price: 49.99,
+    thumbnail: {
+      url: 'https://placehold.co/600x400/22c55e/ffffff?text=React+Pro'
+    },
     isPublished: true
   },
   {
     title: 'Mobile App Development with React Native',
-    description: 'Create cross-platform mobile apps with React Native and JavaScript.',
+    description: `Build native-feeling iOS & Android apps using a single React Native code-base. 
+Learn navigation, animations, offline storage and publish to the App Store & Play Store. No prior mobile experience required.`,
     category: 'Mobile Development',
     level: 'Intermediate',
     price: 39.99,
+    thumbnail: {
+      url: 'https://placehold.co/600x400/f97316/ffffff?text=React+Native'
+    },
+    isPublished: true
+  },
+  {
+    title: 'Full-Stack TypeScript Bootcamp',
+    description: 'End-to-end bootcamp covering modern TypeScript for front-end (React, Next.js), back-end (Node, Express, Prisma) and deployment. Includes real projects, quizzes, assignments and a final exam.',
+    category: 'Full-Stack Development',
+    level: 'Intermediate',
+    price: 99.0,
+    thumbnail: {
+      url: 'https://placehold.co/600x400/0ea5e9/ffffff?text=TypeScript+Bootcamp'
+    },
+    learningObjectives: [
+      'Master TypeScript fundamentals & advanced types',
+      'Build RESTful APIs with Node.js, Express & Prisma',
+      'Create dynamic UIs with React 18 & Next.js 14',
+      'Implement authentication with JWT & NextAuth',
+      'Test driven development with Jest & React-Testing-Library',
+      'CI/CD & deployment to Vercel and Render'
+    ],
+    requirements: [
+      'Basic JavaScript knowledge',
+      'Comfortable using a code editor and Git'
+    ],
     isPublished: true
   }
 ];
