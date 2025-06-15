@@ -1,9 +1,8 @@
-'use client';
+
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import AdminUsersClient from './AdminUsersClient';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -29,6 +28,19 @@ interface UserData {
 }
 
 export default function AdminUsersPage() {
+  return <AdminUsersClient />;
+}
+
+// --- Client component moved to separate file ---
+
+  return (
+    <Suspense fallback={<div className="p-6">Loading users...</div>}>
+      <UsersPageContent />
+    </Suspense>
+  );
+}
+
+/* Client component removed */
   const router = useRouter();
   const searchParams = useSearchParams();
   const roleFilter = searchParams?.get('role') ?? null;
