@@ -41,7 +41,7 @@ export default function CertificatesPage() {
           return;
         }
         
-        const response = await apiGet('/certificates', true);
+        const response = await apiGet('/certificates/my', true);
         
         if (response.success) {
           setCertificates(response.data);
@@ -172,7 +172,7 @@ export default function CertificatesPage() {
                       View Course
                     </Link>
                     <a
-                      href={`/api/v1/certificates/${certificate.certificateId}`}
+                      href={`/api/certificates/${certificate._id}/download`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center text-sm font-medium bg-indigo-50 text-indigo-700 px-3 py-2 rounded-md hover:bg-indigo-100"

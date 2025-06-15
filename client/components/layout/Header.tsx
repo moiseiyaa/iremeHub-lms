@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../auth/AuthProvider';
 import Notifications from '../Notifications';
+import logoBlue from '@/public/images/iremehub-logo.png';
 
 // Default image for users without an avatar
 const DEFAULT_AVATAR = '/images/default-avatar.png';
@@ -117,10 +118,12 @@ export default function Header() {
                     className="group flex items-center"
                   >
                     <Image 
-                      src="/images/iremehub-logo.png" 
+                      src={logoBlue} 
                       alt="iremeHub Logo" 
                       width={140} 
                       height={40} 
+                      placeholder="empty"
+                      priority
                       className="transition-all duration-300"
                     />
                   </Link>

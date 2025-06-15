@@ -9,9 +9,10 @@
     "dev:local": "nodemon -r dotenv/config server.js dotenv_config_path=.env.local",
     "db:setup": "node utils/dbSetup.js",
     "whitelist-ip": "node whitelist-ip.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --runInBand",
     "build": "node build.js",
     "watch": "tsc --watch",
+    "seed:mock": "ts-node server/scripts/seedMockCourse.ts",
     "clean": "rimraf dist"
   },
   "dependencies": {
@@ -28,6 +29,7 @@
     "mongoose": "^7.0.3",
     "morgan": "^1.10.0",
     "node-fetch": "^3.3.2",
+    "pdfkit": "^0.13.0",
     "react-player": "^2.16.0",
     "stripe": "^13.2.0",
     "validator": "^13.9.0"

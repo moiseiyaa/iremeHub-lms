@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { HomeIcon } from '@heroicons/react/24/solid';
 import Notifications from '../Notifications';
 import Image from 'next/image';
+import logoBlue from '@/public/images/iremehub-logo.png';
 
 export default function AdminNav() {
   return (
@@ -11,10 +12,12 @@ export default function AdminNav() {
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" title="Back to Main Site">
           <Image 
-            src="/images/iremehub-logo.png"
+            src={logoBlue}
             alt="iremeHub Logo"
             width={140}
             height={40}
+            placeholder="empty"
+            priority
             className="transition-all duration-300"
           />
         </Link>
