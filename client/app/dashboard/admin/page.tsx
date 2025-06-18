@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -17,6 +17,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { apiGet } from '../../api/apiClient';
+import ReportGenerationButton from '../../components/ReportGenerationButton';
 
 interface UserData {
   _id: string;
@@ -79,13 +80,14 @@ export default function AdminDashboard() {
       setLoading(true);
       setError('');
       try {
-        const userResponse = await apiGet<{ success: boolean; data: UserData; error?: string }>('/auth/me', true);
+        const userResponse = await apiGet<UserData>('/auth/me', true);
         if (userResponse.success && userResponse.data) {
-          if (userResponse.data.role !== 'admin') { 
+          const userData = userResponse.data;
+          if (userData.role !== 'admin') { 
             router.push('/dashboard'); 
             return;
           }
-          setUser(userResponse.data);
+          setUser(userData);
         } else if (process.env.NODE_ENV === 'development' && !userResponse.success) {
           console.warn('Dev mode: Using mock admin user for dashboard as /auth/me failed.');
           setUser({
@@ -102,9 +104,10 @@ export default function AdminDashboard() {
 
         if ((userResponse.data && userResponse.data.role === 'admin') || 
             (process.env.NODE_ENV === 'development' && user?.role === 'admin')) {
-          const statsResponse = await apiGet<{ success: boolean; data: AdminStats; error?: string }>('/admin/dashboard-stats', true);
+          const statsResponse = await apiGet<AdminStats>('/admin/dashboard-stats', true);
           if (statsResponse.success && statsResponse.data) {
-            setStats(statsResponse.data);
+            const statsData = statsResponse.data;
+            setStats(statsData);
           } else {
             console.warn('Could not fetch admin dashboard stats:', statsResponse.error || 'No data returned');
             setError('Could not load all dashboard statistics. Some data may be missing.');
@@ -222,6 +225,9 @@ export default function AdminDashboard() {
         <main className="flex-1 p-6 bg-slate-100">
           {activeTab === 'dashboard' && (
             <>
+              <div className="flex justify-end mb-4">
+                <ReportGenerationButton />
+              </div>
               <h1 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 hidden md:block">Admin Dashboard</h1>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white p-5 rounded-xl shadow hover:shadow-lg transition-shadow">

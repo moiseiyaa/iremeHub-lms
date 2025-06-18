@@ -211,8 +211,10 @@ export default function AdminUsersClient() {
                     <button
                       onClick={() => alert(`Delete user ${u.name}`)}
                       className="text-red-600 hover:text-red-900"
+                      title={`Delete user ${u.name}`}
+                      aria-label={`Delete user ${u.name}`}
                     >
-                      <TrashIcon className="h-5 w-5" title="Delete" />
+                      <TrashIcon className="h-5 w-5" aria-hidden="true" />
                     </button>
                   </td>
                 </tr>

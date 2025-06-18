@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import React from 'react';
@@ -135,6 +134,15 @@ export default function CourseLearnPage() {
   const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizResults, setQuizResults] = useState<{ correct: boolean; score: number; total: number } | null>(null);
+
+  // ref for progress bar to avoid inline style lint warning
+  const progressBarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (progressBarRef.current) {
+      progressBarRef.current.style.setProperty('--progress', `${progress?.progressPercentage || 0}%`);
+    }
+  }, [progress]);
   
   // Assignment state
   const [assignmentText, setAssignmentText] = useState('');
@@ -632,8 +640,8 @@ export default function CourseLearnPage() {
             
             <div className="relative h-2 bg-gray-200 rounded-full w-32 sm:w-48">
               <div 
-                className={`absolute h-2 bg-indigo-500 rounded-full ${getProgressWidthClass(progress?.progressPercentage || 0)}`}
-                style={{ width: `${progress?.progressPercentage || 0}%` }}
+                className={`absolute h-2 bg-indigo-500 rounded-full progress-bar ${getProgressWidthClass(progress?.progressPercentage || 0)}`}
+                ref={progressBarRef}
               ></div>
             </div>
           </div>

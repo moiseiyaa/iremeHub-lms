@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -13,6 +13,7 @@ import {
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { apiGet } from '../../api/apiClient';
+import ReportGenerationButton from '../../components/ReportGenerationButton';
 
 interface UserData {
   name: string;
@@ -56,12 +57,13 @@ export default function EducatorDashboard() {
       try {
         // Fetch user profile
         try {
-          const userResponse = await apiGet<{ success: boolean; data: UserData }>('/auth/me', true);
+          const userResponse = await apiGet<UserData>('/auth/me', true);
           if (userResponse.success && userResponse.data) {
-            setUser(userResponse.data);
+            const profile = userResponse.data;
+            setUser(profile);
             
             // Check if user is an educator/instructor
-            if (userResponse.data.role !== 'educator' && userResponse.data.role !== 'admin') {
+            if (profile.role !== 'educator' && profile.role !== 'admin') {
               router.push('/dashboard');
               return;
             }
@@ -76,9 +78,10 @@ export default function EducatorDashboard() {
         // Fetch educator dashboard stats
         try {
           // This endpoint will need to be implemented in your backend
-          const statsResponse = await apiGet<{ success: boolean; data: DashboardStats }>('/educator/dashboard-stats', true);
+          const statsResponse = await apiGet<DashboardStats>('/educator/dashboard-stats', true);
           if (statsResponse.success && statsResponse.data) {
-            setStats(statsResponse.data);
+            const statsData = statsResponse.data;
+            setStats(statsData);
           }
         } catch (statsErr) {
           console.error('Stats fetch error:', statsErr);
@@ -355,6 +358,11 @@ export default function EducatorDashboard() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Report Generation */}
+          <div className="mb-6 flex justify-end">
+            <ReportGenerationButton />
           </div>
 
           {/* Quick Links */}

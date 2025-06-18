@@ -100,6 +100,11 @@
            hover:before:opacity-100 hover:shadow-lg hover:shadow-primary/10;
   }
   
+  /* Progress bar dynamic width */
+  .progress-bar {
+    width: var(--progress, 0%);
+  }
+
   /* Container */
   .container-custom {
     @apply w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8;
