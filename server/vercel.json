@@ -3,14 +3,14 @@
   "name": "iremehub-server",
   "builds": [
     {
-      "src": "server.ts",
+      "src": "server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "server.ts"
+      "dest": "server.js"
     }
   ],
   "env": {
@@ -18,9 +18,9 @@
   },
   "regions": ["iad1"],
   "functions": {
-    "server.ts": {
+    "server.js": {
       "memory": 1024,
       "maxDuration": 10
     }
   }
-}
+} 
