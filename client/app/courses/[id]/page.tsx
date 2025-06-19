@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
-import { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { apiGet, apiPost } from '../../api/apiClient';
+import { apiGet, apiPost, ApiResponse } from '../../api/apiClient';
 import { StarIcon, UserIcon, TagIcon, AcademicCapIcon } from '@heroicons/react/24/solid';
 import { CheckCircleIcon, PlayIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -15,45 +14,29 @@ const DEFAULT_AVATAR_IMAGE = 'https://placehold.co/100x100/e2e8f0/1e293b?text=Us
 
 // Utility function to ensure we never have empty image URLs
 const getSafeImageUrl = (url: string | undefined | null, fallback: string): string => {
-  if (url === undefined || url === null || typeof url !== 'string') {
+  if (!url || typeof url !== 'string' || url.trim() === '' || url.includes('res.cloudinary.com/demo')) {
     return fallback;
   }
-  
-  if (url.trim() === '') {
-    return fallback;
-  }
-  
-  if (url.includes('res.cloudinary.com/demo')) {
-    return fallback;
-  }
-  
   return url;
 };
 
-interface Lesson {
+// Define interfaces for data structures
+interface Instructor {
   _id: string;
-  title: string;
-  description: string;
-  contentType: string;
-  isPreview: boolean;
-  order: number;
-  completionTime: number;
-  section?: {
-    _id: string;
-    title: string;
-  };
+  name: string;
+  avatar?: { url: string };
+  bio?: string;
 }
 
-interface Rating {
+interface Review {
   _id: string;
-  rating: number;
-  review: string;
   user: {
+    _id: string;
     name: string;
-    avatar: {
-      url: string;
-    };
+    avatar?: { url: string };
   };
+  rating: number;
+  comment: string;
   createdAt: string;
 }
 
@@ -61,43 +44,48 @@ interface Course {
   _id: string;
   title: string;
   description: string;
+  category: string;
+  level: string;
   thumbnail: {
     url: string;
   };
   price: number;
-  level: string;
-  category: string;
-  ratings: Rating[];
-  instructor: {
+  instructor: Instructor;
+  students: string[];
+  rating: number;
+  reviews: Review[];
+  lessons: string[];
+  createdAt: string;
+  updatedAt: string;
+  averageRating?: number;
+  ratings?: Review[];
+  enrolledStudents?: string[];
+}
+
+interface Lesson {
+  _id: string;
+  title: string;
+  contentType: string;
+  order: number;
+  section: {
     _id: string;
-    name: string;
-    avatar: {
-      url: string;
-    };
-    bio: string;
+    title: string;
   };
-  enrolledStudents: string[];
-  averageRating: number;
-  isPublished: boolean;
 }
 
 interface Progress {
   completedLessons: string[];
-  lastAccessed: string;
-  progressPercentage: number;
-  totalLessons: number;
-  completed: boolean;
   nextLesson: Lesson | null;
-}
-
-interface UserResponse {
-  role: string;
+  progressPercentage?: number;
 }
 
 interface CourseWithProgress {
-  course: Course;
   isEnrolled: boolean;
-  progress?: Progress;
+  progress: Progress | null;
+}
+
+interface User {
+  role: string;
 }
 
 interface CoursePageProps {
@@ -107,10 +95,10 @@ interface CoursePageProps {
 }
 
 // Add utility function to retry API calls
-const fetchWithRetry = async (apiCall: () => Promise<any>, maxRetries = 3) => {
+const fetchWithRetry = async <T,>(apiCall: () => Promise<ApiResponse<T>>, maxRetries = 3): Promise<ApiResponse<T>> => {
   let retries = 0;
-  let lastError: any;
-  
+  let lastError: unknown;
+
   while (retries < maxRetries) {
     try {
       return await apiCall();
@@ -118,7 +106,7 @@ const fetchWithRetry = async (apiCall: () => Promise<any>, maxRetries = 3) => {
       lastError = error;
       retries++;
       console.log(`Retry ${retries}/${maxRetries} for API call due to error:`, error);
-      
+
       // Add exponential backoff delay
       if (retries < maxRetries) {
         const delay = Math.min(1000 * 2 ** retries, 8000); // Cap at 8 seconds
@@ -126,14 +114,13 @@ const fetchWithRetry = async (apiCall: () => Promise<any>, maxRetries = 3) => {
       }
     }
   }
-  
+
   // All retries failed
   throw lastError;
 };
 
 export default function CoursePage({ params }: CoursePageProps) {
-  // unwrap Next.js params promise
-  const { id: courseId } = use(params);
+  const { id: courseId } = params;
   
   const router = useRouter();
   const [course, setCourse] = useState<Course | null>(null);
@@ -145,7 +132,7 @@ export default function CoursePage({ params }: CoursePageProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [enrollmentLoading, setEnrollmentLoading] = useState(false);
-  
+
   // Group lessons by section
   const lessonsBySection = lessons.reduce((acc: Record<string, Lesson[]>, lesson) => {
     const sectionId = lesson.section?._id || 'uncategorized';
@@ -157,18 +144,10 @@ export default function CoursePage({ params }: CoursePageProps) {
   }, {});
 
   // Format price
-  const formatPrice = (price: number | undefined | null) => {
-    // If price is undefined or null, show as Free
-    if (price === undefined || price === null) {
+  const formatPrice = (price: number) => {
+    if (price === undefined || price === null || price === 0) {
       return 'Free';
     }
-    
-    // If price is 0, show as Free
-    if (price === 0) {
-      return 'Free';
-    }
-    
-    // Otherwise format with 2 decimal places
     return `$${price.toFixed(2)}`;
   };
 
@@ -190,7 +169,6 @@ export default function CoursePage({ params }: CoursePageProps) {
 
   // Generate width class based on progress percentage
   const getProgressWidthClass = (percentage: number | undefined) => {
-    // Round to nearest 5%
     const safePercentage = typeof percentage === 'number' ? percentage : 0;
     const roundedPercentage = Math.round(safePercentage / 5) * 5;
     return `w-[${roundedPercentage}%]`;
@@ -202,116 +180,47 @@ export default function CoursePage({ params }: CoursePageProps) {
       setError('');
       
       try {
-        // IMPORTANT: Always load public data first to ensure course can be viewed
-        // even if authentication fails later
-        console.log('Loading public course data first');
-        
-        // Fetch course data with retries
-        const publicCourseResponse = await fetchWithRetry(
-          () => apiGet(`/courses/${courseId}`, false),
-          3 // 3 retries max
-        );
-        
-        // Set course data from public endpoint
-        if (typeof publicCourseResponse === 'object') {
-          // Handle both TS and JS client formats
-          if (publicCourseResponse.success !== undefined) {
-            if (publicCourseResponse.success && publicCourseResponse.data) {
-              setCourse(publicCourseResponse.data);
-            }
-          } else {
-            setCourse(publicCourseResponse);
-          }
-
-          // Also load public lesson data with retry
-          const publicLessonsResponse = await fetchWithRetry(
-            () => apiGet(`/courses/${courseId}/lessons`, false),
-            2 // 2 retries max
-          );
-          
-          if (typeof publicLessonsResponse === 'object') {
-            if (publicLessonsResponse.success !== undefined) {
-              if (publicLessonsResponse.success && publicLessonsResponse.data) {
-                setLessons(publicLessonsResponse.data);
-              }
-            } else if (Array.isArray(publicLessonsResponse)) {
-              setLessons(publicLessonsResponse);
-            }
-          }
-          
-          // Public data loaded, now check if user is authenticated
-          const token = localStorage.getItem('token');
-          const isAuth = !!token;
-          setIsAuthenticated(isAuth);
-          
-          // Now attempt to load authenticated data (progress, enrollment, etc)
-          // These are secondary and can fail without breaking the page
-          if (isAuth) {
-            console.log('Attempting to load authenticated data');
-            try {
-              // Try to get user role - but don't throw if it fails
-              try {
-                const userResponse = await fetchWithRetry(
-                  () => apiGet('/auth/me', true),
-                  1 // Just 1 retry for user data
-                );
-                if (typeof userResponse === 'object') {
-                  if (userResponse.success !== undefined && userResponse.success && userResponse.data) {
-                    setUserRole(userResponse.data.role);
-                  } else if (userResponse.role) {
-                    setUserRole(userResponse.role);
-                  }
-                }
-              } catch (userError) {
-                console.error('Failed to get user role, continuing anyway:', userError);
-              }
-              
-              // Try to get enrollment status - but don't throw if it fails
-              try {
-                const progressResponse = await fetchWithRetry(
-                  () => apiGet(`/courses/${courseId}/with-progress`, true),
-                  2 // 2 retries for progress data
-                );
-                if (typeof progressResponse === 'object') {
-                  if (progressResponse.success !== undefined && progressResponse.success && progressResponse.data) {
-                    setIsEnrolled(progressResponse.data.isEnrolled);
-                    if (progressResponse.data.progress) {
-                      setProgress(progressResponse.data.progress);
-                    }
-                  } else if (progressResponse.isEnrolled !== undefined) {
-                    setIsEnrolled(progressResponse.isEnrolled);
-                    if (progressResponse.progress) {
-                      setProgress(progressResponse.progress);
-                    }
-                  }
-                }
-              } catch (progressError) {
-                console.error('Failed to get enrollment status, continuing anyway:', progressError);
-              }
-              
-              // Try to get full lesson data - but don't throw if it fails
-              try {
-                const fullLessonsResponse = await fetchWithRetry(
-                  () => apiGet(`/courses/${courseId}/lessons`, true),
-                  2 // 2 retries for lesson data
-                );
-                if (typeof fullLessonsResponse === 'object') {
-                  if (fullLessonsResponse.success !== undefined && fullLessonsResponse.success && fullLessonsResponse.data) {
-                    setLessons(fullLessonsResponse.data);
-                  } else if (Array.isArray(fullLessonsResponse)) {
-                    setLessons(fullLessonsResponse);
-                  }
-                }
-              } catch (lessonError) {
-                console.error('Failed to get full lesson data, continuing with preview lessons:', lessonError);
-              }
-            } catch (authError) {
-              // Authentication errors should not prevent viewing the course
-              console.error('Authentication failed but course can still be viewed:', authError);
-            }
-          }
+        // Step 1: Fetch public course and lesson data
+        const courseRes = await fetchWithRetry(() => apiGet<Course>(`/courses/${courseId}`, false));
+        if (courseRes.success && courseRes.data) {
+          setCourse(courseRes.data);
         } else {
-          throw new Error('Failed to load course data');
+          throw new Error(courseRes.error || 'Failed to load course data');
+        }
+
+        const lessonsRes = await fetchWithRetry(() => apiGet<Lesson[]>(`/courses/${courseId}/lessons`, false));
+        if (lessonsRes.success && lessonsRes.data) {
+          setLessons(lessonsRes.data);
+        }
+
+        // Step 2: Check for auth and fetch user-specific data
+        const token = localStorage.getItem('token');
+        if (token) {
+          setIsAuthenticated(true);
+
+          // Fetch user role (non-critical)
+          fetchWithRetry(() => apiGet<User>('/auth/me', true))
+            .then(res => {
+              if (res.success && res.data) setUserRole(res.data.role);
+            })
+            .catch(err => console.error('Could not fetch user role:', err));
+
+          // Fetch enrollment status and progress (non-critical)
+          fetchWithRetry(() => apiGet<CourseWithProgress>(`/courses/${courseId}/with-progress`, true))
+            .then(res => {
+              if (res.success && res.data) {
+                setIsEnrolled(res.data.isEnrolled);
+                setProgress(res.data.progress);
+              }
+            })
+            .catch(err => console.error('Could not fetch progress:', err));
+
+          // Fetch full lesson list for enrolled users (non-critical)
+          fetchWithRetry(() => apiGet<Lesson[]>(`/courses/${courseId}/lessons`, true))
+            .then(res => {
+              if (res.success && res.data) setLessons(res.data);
+            })
+            .catch(err => console.error('Could not fetch full lesson list:', err));
         }
       } catch (err) {
         console.error('Course fetch error:', err);
@@ -320,7 +229,7 @@ export default function CoursePage({ params }: CoursePageProps) {
         setLoading(false);
       }
     };
-    
+
     fetchCourseData();
   }, [courseId]);
 

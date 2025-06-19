@@ -120,7 +120,7 @@ export default function CourseLearnPage() {
   
   const router = useRouter();
   const searchParams = useSearchParams();
-  const lessonId = searchParams.get('lesson');
+  const lessonId = searchParams?.get('lesson') || '';
   
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -252,28 +252,16 @@ export default function CourseLearnPage() {
       try {
         // ALWAYS load public data first to ensure the page works without auth
         console.log('Loading public course data first');
-        const publicCourseData = await apiGet(`/courses/${courseId}`, false);
+        const publicCourseRes = await apiGet<Course>(`/courses/${courseId}`, false);
         
-        if (typeof publicCourseData === 'object') {
+        if (publicCourseRes.success && publicCourseRes.data) {
           // Set course data from public endpoint
-          if (publicCourseData.success !== undefined) {
-            if (publicCourseData.success && publicCourseData.data) {
-              setCourse(publicCourseData.data);
-            }
-          } else {
-            setCourse(publicCourseData);
-          }
+          setCourse(publicCourseRes.data);
           
           // Also get public lessons (preview only)
-          const publicLessonsData = await apiGet(`/courses/${courseId}/lessons`, false);
-          if (typeof publicLessonsData === 'object') {
-            if (publicLessonsData.success !== undefined) {
-              if (publicLessonsData.success && publicLessonsData.data) {
-                setLessons(publicLessonsData.data);
-              }
-            } else if (Array.isArray(publicLessonsData)) {
-              setLessons(publicLessonsData);
-            }
+          const publicLessonsRes = await apiGet<Lesson[]>(`/courses/${courseId}/lessons`, false);
+          if (publicLessonsRes.success && publicLessonsRes.data) {
+            setLessons(publicLessonsRes.data);
           }
           
           // Now that we have public data, try to get authenticated data
@@ -282,29 +270,17 @@ export default function CourseLearnPage() {
             console.log('Attempting to load authenticated data');
             try {
               // Try to get enrollment and progress data
-              const authCourseData = await apiGet(`/courses/${courseId}/with-progress`, true);
-              if (typeof authCourseData === 'object') {
-                if (authCourseData.success !== undefined) {
-                  if (authCourseData.success && authCourseData.data) {
-                    if (authCourseData.data.course) setCourse(authCourseData.data.course);
-                    if (authCourseData.data.progress) setProgress(authCourseData.data.progress);
-                  }
-                } else {
-                  if (authCourseData.course) setCourse(authCourseData.course);
-                  if (authCourseData.progress) setProgress(authCourseData.progress);
-                }
+              interface CourseWithProgress { course: Course; progress: Progress }
+              const authCourseRes = await apiGet<CourseWithProgress>(`/courses/${courseId}/with-progress`, true);
+              if (authCourseRes.success && authCourseRes.data) {
+                setCourse(authCourseRes.data.course);
+                setProgress(authCourseRes.data.progress);
               }
               
               // Try to get authenticated lessons
-              const authLessonsData = await apiGet(`/courses/${courseId}/lessons`, true);
-              if (typeof authLessonsData === 'object') {
-                if (authLessonsData.success !== undefined) {
-                  if (authLessonsData.success && authLessonsData.data) {
-                    setLessons(authLessonsData.data);
-                  }
-                } else if (Array.isArray(authLessonsData)) {
-                  setLessons(authLessonsData);
-                }
+              const authLessonsRes = await apiGet<Lesson[]>(`/courses/${courseId}/lessons`, true);
+              if (authLessonsRes.success && authLessonsRes.data) {
+                setLessons(authLessonsRes.data);
               }
             } catch (authError) {
               // Authentication errors should not prevent viewing the course
@@ -362,8 +338,10 @@ export default function CourseLearnPage() {
       // Otherwise, fetch the lesson data
       try {
         setLessonLoading(true);
-        const lessonData = await apiGet(`/lessons/${lessonId}`, true);
-        setCurrentLesson(lessonData.data);
+        const lessonRes = await apiGet<Lesson>(`/lessons/${lessonId}`, true);
+        if (lessonRes.success && lessonRes.data) {
+          setCurrentLesson(lessonRes.data);
+        }
         
         // Reset quiz state
         setQuizAnswers([]);
@@ -488,7 +466,18 @@ export default function CourseLearnPage() {
     if (!currentLesson) return;
     
     try {
-      const response = await apiPost(`/lessons/${currentLesson._id}/exam/start`, {}, true);
+      interface ExamStart {
+  startedAt?: string;
+  timeLimit?: number; // minutes remaining for exam or duration
+  message?: string;
+  data?: {
+    score: number;
+    totalPoints: number;
+    percentageScore: number;
+    passingScore?: number;
+  };
+}
+      const response = await apiPost<ExamStart>(`/lessons/${currentLesson._id}/exam/start`, {}, true);
       
       if (response.success) {
         const examData = response.data;
@@ -526,7 +515,16 @@ export default function CourseLearnPage() {
     if (!currentLesson || !examStartTime) return;
     
     try {
-      const response = await apiPost(`/lessons/${currentLesson._id}/exam/submit`, {
+      interface ExamSubmitRes {
+  passed: boolean;
+  examResult: {
+    score: number;
+    totalPoints: number;
+  };
+  percentageScore: number;
+  requiredPassingScore: number;
+}
+    const response = await apiPost<ExamSubmitRes>(`/lessons/${currentLesson._id}/exam/submit`, {
         answers: examAnswers,
         startedAt: examStartTime
       }, true);
@@ -561,7 +559,7 @@ export default function CourseLearnPage() {
     if (!course) return;
     setGeneratingCertificate(true);
     try {
-      const response = await apiPost(`/courses/${course._id}/certificate`, {}, true);
+      const response = await apiPost<{ _id: string; certificateId: string }>(`/courses/${course._id}/certificate`, {}, true);
       if (response.success && response.data) {
         setCertificate(response.data);
       } else {
