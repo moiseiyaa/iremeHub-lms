@@ -162,7 +162,7 @@ export default function AdminDashboard() {
     { id: 'users', name: 'Users', href: '/dashboard/admin/users', icon: UserGroupIcon },
     { id: 'courses', name: 'Courses', href: '/dashboard/admin/courses', icon: AcademicCapIcon },
     { id: 'blogs', name: 'Blogs', href: '/dashboard/admin/blogs', icon: NewspaperIcon },
-    { id: 'settings', name: 'Profile Settings', href: '/dashboard/admin/settings', icon: Cog6ToothIcon },
+    { id: 'profile', name: 'Profile Settings', href: '/profile', icon: Cog6ToothIcon },
   ];
 
   // Hide the "Dashboard" item when we are already on the dashboard home
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
             <Link
               key={item.name}
               href={item.href}
-              onClick={() => { setActiveTab(item.name.toLowerCase()); setSidebarOpen(false); }}
+              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
               className={`flex items-center space-x-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-slate-700 hover:text-white transition-colors ${
                 item.current ? 'bg-slate-900 text-white shadow-md' : 'text-slate-200'
               }`}
