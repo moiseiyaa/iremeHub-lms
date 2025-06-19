@@ -6,7 +6,12 @@ export interface ApiResponse<T = unknown> {
   error?: string;
 }
 
-const API_BASE_URL = '/api/v1';
+export type JsonResponse<T> = T | { success?: boolean; data?: T; error?: string };
+
+// If deploying the front-end separately (e.g. Vercel) provide the absolute URL of
+// the backend in NEXT_PUBLIC_API_BASE_URL – e.g. "https://lms-backend.vercel.app/api/v1"
+// Otherwise fall back to relative path for local dev / same-origin deployments.
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api/v1').replace(/\/$/, '');
 
 const handleAuthError = (endpoint: string) => {
   // Only clear token and redirect for specific protected endpoints
@@ -108,7 +113,15 @@ const apiRequest = async <T>(
       },
     });
 
-    const data = await response.json();
+    // Attempt to parse JSON – but if the server returned HTML (often an error page)
+    // we throw a descriptive error so the UI can surface it.
+    const text = await response.text();
+    let data: JsonResponse<T>;
+    try {
+      data = JSON.parse(text) as JsonResponse<T>;
+    } catch { // text was not valid JSON
+      throw new Error('Server returned HTML instead of JSON. The API server might be unavailable or misconfigured.');
+    }
 
     if (!response.ok) {
       // Handle authentication errors
@@ -138,12 +151,13 @@ const apiRequest = async <T>(
         };
       }
       
-      throw new Error(data.error || 'API request failed');
+      const envelopeError = (typeof data === 'object' && data && 'error' in data) ? (data as { error?: string }).error : undefined;
+      throw new Error(envelopeError || 'API request failed');
     }
 
     return {
       success: true,
-      data: data.data || data,
+      data: (typeof data === 'object' && data && 'data' in data) ? (data as { data: T }).data : (data as T),
     };
   } catch (error) {
     // If it's an auth error, we've already handled it
