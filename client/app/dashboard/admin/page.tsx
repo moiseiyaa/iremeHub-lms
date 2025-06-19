@@ -156,13 +156,19 @@ export default function AdminDashboard() {
     return <div className="min-h-screen flex items-center justify-center">Redirecting to login...</div>;
   }
 
-  const navigationItems = [
-    { name: 'Dashboard', href: '/dashboard/admin', icon: ChartBarIcon, current: activeTab === 'dashboard' },
-    { name: 'Users', href: '/dashboard/admin/users', icon: UserGroupIcon, current: activeTab === 'users' },
-    { name: 'Courses', href: '/dashboard/admin/courses', icon: AcademicCapIcon, current: activeTab === 'courses' },
-    { name: 'Blogs', href: '/dashboard/admin/blogs', icon: NewspaperIcon, current: activeTab === 'blogs' },
-    { name: 'Settings', href: '/dashboard/admin/settings', icon: Cog6ToothIcon, current: activeTab === 'settings' },
+  // Base sidebar items (without the `current` flag). We compute the current state
+  const baseSidebarItems = [
+    { id: 'dashboard', name: 'Dashboard', href: '/dashboard/admin', icon: ChartBarIcon },
+    { id: 'users', name: 'Users', href: '/dashboard/admin/users', icon: UserGroupIcon },
+    { id: 'courses', name: 'Courses', href: '/dashboard/admin/courses', icon: AcademicCapIcon },
+    { id: 'blogs', name: 'Blogs', href: '/dashboard/admin/blogs', icon: NewspaperIcon },
+    { id: 'settings', name: 'Profile Settings', href: '/dashboard/admin/settings', icon: Cog6ToothIcon },
   ];
+
+  // Hide the "Dashboard" item when we are already on the dashboard home
+  const navigationItems = baseSidebarItems
+    .filter(item => !(item.id === 'dashboard' && activeTab === 'dashboard'))
+    .map(item => ({ ...item, current: activeTab === item.id }));
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden -mt-[64px] md:-mt-[72px]">
