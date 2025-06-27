@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { apiGet, apiPost } from '../../api/apiClient';
+import { useAuth } from '../../../components/auth/AuthProvider';
 import type { ApiResponse } from '../../api/apiClient';
 import { StarIcon, UserIcon, TagIcon, AcademicCapIcon } from '@heroicons/react/24/solid';
 import { CheckCircleIcon, PlayIcon, LockClosedIcon } from '@heroicons/react/24/outline';
@@ -106,11 +107,7 @@ interface CourseWithProgress {
 
 
 
-interface CoursePageProps {
-  params: {
-    id: string;
-  };
-}
+// Props typing no longer needed since we read params via useParams
 
 // Type guard to detect ApiResponse wrapper
 function isApiResponse<T>(obj: unknown): obj is ApiResponse<T> {
@@ -147,11 +144,12 @@ async function fetchWithRetry<T>(apiCall: () => Promise<T>, maxRetries = 3): Pro
   throw lastError;
 };
 
-export default function CoursePage({ params }: CoursePageProps) {
-  // unwrap Next.js params promise
-  const { id: courseId } = params;
+export default function CoursePage() {
+  const { id: courseId } = useParams<{ id: string }>();
+
   
   const router = useRouter();
+  const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
@@ -161,9 +159,11 @@ export default function CoursePage({ params }: CoursePageProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [enrollmentLoading, setEnrollmentLoading] = useState(false);
+  const [enrollPending, setEnrollPending] = useState(false);
   
-  // Group lessons by section
-  const lessonsBySection = lessons.reduce((acc: Record<string, Lesson[]>, lesson) => {
+  // Group lessons by section safely even if lessons is null/unknown
+  const lessonsBySection = (Array.isArray(lessons) ? lessons : []).reduce(
+    (acc: Record<string, Lesson[]>, lesson) => {
     const sectionId = lesson.section?._id || 'uncategorized';
     if (!acc[sectionId]) {
       acc[sectionId] = [];
@@ -331,6 +331,21 @@ export default function CoursePage({ params }: CoursePageProps) {
     fetchCourseData();
   }, [courseId]);
 
+  useEffect(() => {
+    if (!courseId || !user?._id) return;
+    (async () => {
+      try {
+        const res = await apiGet<{ data: 'pending' | 'approved' | 'rejected' | null }>(
+          `/courses/${courseId}/enrollment-request-status`,
+          true
+        );
+        if (res.data === 'pending') setEnrollPending(true);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, [courseId, user]);
+
   const handleEnroll = async () => {
     if (!isAuthenticated) {
       const currentPath = `/courses/${courseId}`;
@@ -340,12 +355,11 @@ export default function CoursePage({ params }: CoursePageProps) {
     
     try {
       setEnrollmentLoading(true);
-      const response = await apiPost(`/courses/${courseId}/enroll`, {}, true);
+      const response = await apiPost(`/courses/${courseId}/request-enroll`, {}, true);
       
       if (response.success) {
-        setIsEnrolled(true);
-        // Refresh page to get updated enrollment status and progress
-        window.location.reload();
+        // Redirect to waiting page
+        window.location.href = `/enroll/waiting?course=${courseId}`;
       } else {
         setError(response.error || 'Failed to enroll in the course');
       }
@@ -529,16 +543,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                   </div>
                 ) : (
                   <button
-                    onClick={handleEnroll}
-                    disabled={enrollmentLoading}
-                    className="btn-primary w-full"
+                    onClick={enrollPending ? undefined : handleEnroll}
+                    disabled={enrollmentLoading || enrollPending}
+                    className="mt-4 w-full bg-slate-800 text-white px-4 py-2 rounded-md hover:bg-slate-700 disabled:opacity-50"
                   >
-                    {enrollmentLoading ? (
-                      <span className="flex items-center justify-center">
-                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
-                        Enrolling...
-                      </span>
-                    ) : 'Enroll Now'}
+                    {enrollPending ? 'Enroll Pending' : enrollmentLoading ? 'Processing...' : 'Enroll Now'}
                   </button>
                 )}
                 

@@ -79,7 +79,7 @@ export default function CertificatesPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
             <p className="text-gray-600 mb-6">{error}</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={fetchCertificates}
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
             >
               Try Again

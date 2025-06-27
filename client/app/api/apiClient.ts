@@ -208,6 +208,16 @@ export const apiPost = <T>(endpoint: string, body: Record<string, unknown>, requ
     requiresAuth
   );
 
+export const apiPatch = <T>(endpoint: string, body: Record<string, unknown>, requiresAuth = false) =>
+  apiRequest<T>(
+    endpoint,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    },
+    requiresAuth
+  );
+
 export const apiPut = <T>(endpoint: string, body: Record<string, unknown>, requiresAuth = false) =>
   apiRequest<T>(
     endpoint,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Fragment } from 'react';
+import { Fragment } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -71,8 +71,13 @@ function classNames(...classes: string[]) {
 }
 
 export default function Header() {
-  const { isAuthenticated, openLoginModal, openRegisterModal, logout, user } = useAuth();
+  const { isAuthenticated, loading, openLoginModal, openRegisterModal, logout, user } = useAuth();
+  
   const pathname = usePathname();
+
+  if (loading) {
+    return null; // avoid flicker until auth state resolved
+  }
 
   return (
     <Disclosure as="nav" className="bg-white shadow-lg fixed w-full z-50 transition-all duration-300">

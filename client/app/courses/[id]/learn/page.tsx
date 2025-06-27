@@ -154,7 +154,7 @@ export default function CourseLearnPage() {
   const [examMode, setExamMode] = useState(false);
   const [examStartTime, setExamStartTime] = useState<Date | null>(null);
   const [examTimeRemaining, setExamTimeRemaining] = useState<number>(0);
-  const [examSubmitted, setExamSubmitted] = useState(false);
+  const [examSubmitted, setExamSubmitted] = useState<boolean>(false);
   const [examResults, setExamResults] = useState<{
     passed: boolean;
     score: number;
@@ -252,14 +252,14 @@ export default function CourseLearnPage() {
       try {
         // ALWAYS load public data first to ensure the page works without auth
         console.log('Loading public course data first');
-        const publicCourseRes = await apiGet<Course>(`/courses/${courseId}`, false);
+        const publicCourseRes = await apiGet<Course>(`/courses/${courseId}`, true);
         
         if (publicCourseRes.success && publicCourseRes.data) {
           // Set course data from public endpoint
           setCourse(publicCourseRes.data);
           
           // Also get public lessons (preview only)
-          const publicLessonsRes = await apiGet<Lesson[]>(`/courses/${courseId}/lessons`, false);
+          const publicLessonsRes = await apiGet<Lesson[]>(`/courses/${courseId}/lessons`, true);
           if (publicLessonsRes.success && publicLessonsRes.data) {
             setLessons(publicLessonsRes.data);
           }
@@ -481,15 +481,19 @@ export default function CourseLearnPage() {
       
       if (response.success) {
         const examData = response.data;
+          if (!examData) {
+            console.warn('No exam data returned');
+            return;
+          }
         
         // If exam already completed and passed, just mark as complete
-        if (examData.message === 'Exam already completed and passed') {
+        if (examData?.message === 'Exam already completed and passed' && examData.data) {
           setExamResults({
             passed: true,
-            score: examData.data.score,
-            total: examData.data.totalPoints,
-            percentageScore: examData.data.percentageScore,
-            requiredPassingScore: examData.data.passingScore || 85
+            score: examData.data?.score ?? 0,
+            total: examData.data?.totalPoints ?? 0,
+            percentageScore: examData.data?.percentageScore ?? 0,
+            requiredPassingScore: examData.data?.passingScore ?? 85
           });
           setExamSubmitted(true);
           return;
@@ -497,8 +501,8 @@ export default function CourseLearnPage() {
         
         // Set exam mode
         setExamMode(true);
-        setExamStartTime(new Date(examData.startedAt || new Date()));
-        setExamTimeRemaining(examData.timeLimit * 60);
+        setExamStartTime(new Date(examData.startedAt ?? new Date()));
+        setExamTimeRemaining((examData.timeLimit ?? 0) * 60);
         
         // Initialize empty answers array
         if (currentLesson.content.examQuestions) {
@@ -531,21 +535,25 @@ export default function CourseLearnPage() {
       
       if (response.success) {
         const result = response.data;
+        if (!result) {
+          console.warn('No exam submit result');
+          return;
+        }
         
         // Update exam results state
         setExamResults({
-          passed: result.passed,
-          score: result.examResult.score,
-          total: result.examResult.totalPoints,
-          percentageScore: result.percentageScore,
-          requiredPassingScore: result.requiredPassingScore
+          passed: result?.passed ?? false,
+          score: result.examResult?.score ?? 0,
+          total: result.examResult?.totalPoints ?? 0,
+          percentageScore: result?.percentageScore ?? 0,
+          requiredPassingScore: result?.requiredPassingScore ?? 0
         });
         
         setExamSubmitted(true);
         setExamMode(false);
         
         // If passed, mark lesson as complete
-        if (result.passed) {
+        if (result?.passed) {
           await markLessonComplete();
         }
       }

@@ -266,6 +266,17 @@ export const apiPost = (endpoint, data, requiresAuth = false) => {
 /**
  * Shorthand for PUT requests
  */
+export const apiPatch = (endpoint, data, requiresAuth = false) => {
+  return apiRequest(
+    endpoint,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    },
+    requiresAuth
+  );
+};
+
 export const apiPut = (endpoint, data, requiresAuth = false) => {
   return apiRequest(
     endpoint,

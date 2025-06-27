@@ -178,7 +178,7 @@ export const completeLesson = asyncHandler(async (req: UserRequest, res: Respons
   const totalLessons = await Lesson.countDocuments({ course: lesson.course });
   
   // Check if all lessons are completed
-  if (progress.completedLessons.length === totalLessons && !progress.completed) {
+  if (totalLessons > 0 && progress.completedLessons.length === totalLessons && !progress.completed) {
     progress.completed = true;
     progress.completedAt = new Date();
     await progress.save();

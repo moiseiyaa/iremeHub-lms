@@ -3,15 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  AcademicCapIcon, 
-  UserGroupIcon, 
+import {
+  AcademicCapIcon,
+  UserGroupIcon,
   DocumentTextIcon,
-  PresentationChartBarIcon, 
+  PresentationChartBarIcon,
   PencilSquareIcon,
   BellAlertIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  Bars3Icon
 } from '@heroicons/react/24/outline';
+import EducatorSidebar from '../../components/EducatorSidebar';
 import { apiGet } from '../../api/apiClient';
 import ReportGenerationButton from '../../components/ReportGenerationButton';
 
@@ -43,6 +45,8 @@ export default function EducatorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [user, setUser] = useState<UserData | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState<DashboardStats>({
     totalCourses: 0,
     totalStudents: 0,
@@ -140,18 +144,19 @@ export default function EducatorDashboard() {
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading educator dashboard...</p>
+          <p className="mt-4 text-slate-600">Loading educator dashboard...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-8">
+  // Preserve existing dashboard markup as `content`
+  const content = (
+    <div className="bg-slate-100 min-h-[calc(100vh-64px)] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Educator Dashboard</h1>
-          <p className="mt-1 text-gray-500">
+          <h1 className="text-3xl font-bold text-slate-800">Educator Dashboard</h1>
+          <p className="mt-1 text-slate-500">
             Welcome back, {user?.name || 'Educator'}!
           </p>
         </div>
@@ -172,15 +177,15 @@ export default function EducatorDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Courses</dt>
+                    <dt className="text-sm font-medium text-slate-500 truncate">Total Courses</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.totalCourses}</div>
+                      <div className="text-lg font-medium text-slate-800">{stats.totalCourses}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-slate-100 px-5 py-3">
               <Link href="/dashboard/educator/courses" className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
                 View courses
                 <ChevronRightIcon className="ml-1 h-4 w-4" />
@@ -196,15 +201,15 @@ export default function EducatorDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Students</dt>
+                    <dt className="text-sm font-medium text-slate-500 truncate">Total Students</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.totalStudents}</div>
+                      <div className="text-lg font-medium text-slate-800">{stats.totalStudents}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-slate-100 px-5 py-3">
               <Link href="/dashboard/educator/students" className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
                 View students
                 <ChevronRightIcon className="ml-1 h-4 w-4" />
@@ -220,16 +225,16 @@ export default function EducatorDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Lessons</dt>
+                    <dt className="text-sm font-medium text-slate-500 truncate">Total Lessons</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.totalLessons}</div>
+                      <div className="text-lg font-medium text-slate-800">{stats.totalLessons}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
-              <div className="text-sm text-gray-500 font-medium">
+            <div className="bg-slate-100 px-5 py-3">
+              <div className="text-sm text-slate-500 font-medium">
                 Across all courses
               </div>
             </div>
@@ -243,15 +248,15 @@ export default function EducatorDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Active Enrollments</dt>
+                    <dt className="text-sm font-medium text-slate-500 truncate">Active Enrollments</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.activeEnrollments}</div>
+                      <div className="text-lg font-medium text-slate-800">{stats.activeEnrollments}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-slate-100 px-5 py-3">
               <Link href="/dashboard/educator/enrollments" className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
                 Manage enrollments
                 <ChevronRightIcon className="ml-1 h-4 w-4" />
@@ -267,16 +272,16 @@ export default function EducatorDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Completion Rate</dt>
+                    <dt className="text-sm font-medium text-slate-500 truncate">Completion Rate</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.completionRate}%</div>
+                      <div className="text-lg font-medium text-slate-800">{stats.completionRate}%</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
-              <div className="text-sm text-gray-500 font-medium">
+            <div className="bg-slate-100 px-5 py-3">
+              <div className="text-sm text-slate-500 font-medium">
                 Average across courses
               </div>
             </div>
@@ -286,8 +291,8 @@ export default function EducatorDashboard() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Recent Courses */}
           <div className="lg:col-span-2 bg-white shadow rounded-lg">
-            <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-lg font-medium text-gray-900">Your Recent Courses</h2>
+            <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
+              <h2 className="text-lg font-medium text-slate-800">Your Recent Courses</h2>
               <Link href="/dashboard/educator/courses/create" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <PencilSquareIcon className="h-4 w-4 mr-2" />
                 Create Course
@@ -297,8 +302,8 @@ export default function EducatorDashboard() {
               {stats.recentCoursesCreated.length === 0 ? (
                 <div className="text-center py-8">
                   <AcademicCapIcon className="h-12 w-12 text-gray-400 mx-auto" />
-                  <h3 className="mt-2 text-lg font-medium text-gray-900">No courses yet</h3>
-                  <p className="mt-1 text-gray-500">
+                  <h3 className="mt-2 text-lg font-medium text-slate-800">No courses yet</h3>
+                  <p className="mt-1 text-slate-500">
                     You haven&apos;t created any courses yet.
                   </p>
                   <div className="mt-6">
@@ -322,14 +327,14 @@ export default function EducatorDashboard() {
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="text-sm font-medium text-slate-800 truncate">
                               {course.title}
                             </p>
                             <div className="flex items-center mt-1">
-                              <p className="text-sm text-gray-500 mr-4">
+                              <p className="text-sm text-slate-500 mr-4">
                                 <span className="font-medium">{course.enrollmentCount}</span> enrolled
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-slate-500">
                                 <span className="font-medium">{course.completion}%</span> completion
                               </p>
                             </div>
@@ -337,7 +342,7 @@ export default function EducatorDashboard() {
                           <div>
                             <Link
                               href={`/dashboard/educator/courses/${course._id}/edit`}
-                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-100"
                             >
                               Edit
                             </Link>
@@ -368,28 +373,28 @@ export default function EducatorDashboard() {
           {/* Quick Links */}
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white shadow rounded-lg">
-              <div className="px-6 py-5 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Quick Actions</h2>
+              <div className="px-6 py-5 border-b border-slate-200">
+                <h2 className="text-lg font-medium text-slate-800">Quick Actions</h2>
               </div>
               <div className="px-6 py-5">
                 <nav className="space-y-3">
                   <Link
                     href="/dashboard/educator/courses/create"
-                    className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-blue-600"
+                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 hover:text-blue-600"
                   >
                     <PencilSquareIcon className="mr-3 h-5 w-5 text-gray-400" />
                     Create a new course
                   </Link>
                   <Link
                     href="/dashboard/educator/announcements"
-                    className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-blue-600"
+                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 hover:text-blue-600"
                   >
                     <BellAlertIcon className="mr-3 h-5 w-5 text-gray-400" />
                     Manage announcements
                   </Link>
                   <Link
                     href="/dashboard/educator/students"
-                    className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-blue-600"
+                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 hover:text-blue-600"
                   >
                     <UserGroupIcon className="mr-3 h-5 w-5 text-gray-400" />
                     View student progress
@@ -399,8 +404,8 @@ export default function EducatorDashboard() {
             </div>
 
             <div className="bg-white shadow rounded-lg">
-              <div className="px-6 py-5 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Resources</h2>
+              <div className="px-6 py-5 border-b border-slate-200">
+                <h2 className="text-lg font-medium text-slate-800">Resources</h2>
               </div>
               <div className="px-6 py-5">
                 <ul className="space-y-4">
@@ -444,4 +449,25 @@ export default function EducatorDashboard() {
       </div>
     </div>
   );
-} 
+
+  return (
+    <div className="min-h-screen flex">
+      <EducatorSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
+      <div className="flex-1 md:ml-64">
+        {/* Mobile header */}
+        <div className="bg-slate-800 text-white h-16 flex items-center px-4 md:hidden">
+          <button aria-label="Open sidebar" onClick={() => setSidebarOpen(true)}>
+            <Bars3Icon className="h-6 w-6" />
+          </button>
+          <span className="ml-4 font-semibold">Dashboard Home</span>
+        </div>
+        {content}
+      </div>
+    </div>
+  );
+}
