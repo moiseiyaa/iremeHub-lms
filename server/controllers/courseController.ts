@@ -644,7 +644,7 @@ export const getEnrolledCourses = asyncHandler(async (req: UserRequest, res: Res
         
         // Calculate progress percentage safely
         const progressPercentage = totalLessons > 0 ? 
-          ((completedLessons.length / totalLessons) * 100).toFixed(2) : 
+          Number(((completedLessons.length / totalLessons) * 100).toFixed(2)) : 
           0;
         
         // Add to results
@@ -713,7 +713,7 @@ export const getCourseWithProgress = asyncHandler(async (req: UserRequest, res: 
     
     // Calculate progress percentage
     const progressPercentage = totalLessons > 0 && progress
-      ? (progress.completedLessons.length / totalLessons * 100).toFixed(2)
+      ? Number(((progress.completedLessons.length / totalLessons) * 100).toFixed(2))
       : 0;
     
     // Find next lesson to watch (first incomplete lesson)

@@ -75,7 +75,17 @@ export default function Dashboard() {
         try {
           const response = await apiGet<ApiResponse<Course[]>>('/courses/my/enrolled', true);
           if (response.success && response.data && Array.isArray(response.data)) {
-            setCourses(response.data);
+            // Normalize progress object to ensure `percentage` exists
+            const normalized = response.data.map((c) => ({
+              ...c,
+              progress: {
+                ...c.progress,
+                percentage:
+                  (c.progress as any).percentage ??
+                  (c.progress as any).progressPercentage ?? 0,
+              },
+            }));
+            setCourses(normalized as Course[]);
           }
         } catch (courseErr) {
           console.error('Course fetch error:', courseErr);

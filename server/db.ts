@@ -9,23 +9,19 @@ dotenv.config();
  * Connect to MongoDB with fallback options
  */
 const connectDB = async (): Promise<boolean> => {
-  // Get MongoDB URI from environment or use a default value
-  let mongoURI: string = process.env.MONGODB_URI || '';
-  
+  // Get MongoDB URI from environment.
+  const mongoURI: string | undefined = process.env.MONGODB_URI;
+
   if (!mongoURI) {
-    console.error('ERROR: MONGODB_URI is not defined in .env file');
-    mongoURI = 'mongodb://localhost:27017/lms'; // Default fallback
-    console.log('Using default fallback connection: mongodb://localhost:27017/lms');
+    console.error('ERROR: MONGODB_URI is not defined in .env file. Set it to your Atlas (or other) connection string.');
+    return false; // Abort startup – we cannot run without a valid DB
   }
 
   // Connection attempts counter
   let attempts: number = 0;
   
-  // List of fallback URIs to try if the primary fails
-  const fallbackURIs: string[] = [
-    'mongodb://localhost:27017/lms'
-    // We've removed other connection strings for security and consistency
-  ];
+  // No fallback URIs – rely solely on the primary connection string.
+  const fallbackURIs: string[] = [];
   
   // Connection options with increased timeouts and retries
   const connectionOptions = {
@@ -86,6 +82,11 @@ const connectDB = async (): Promise<boolean> => {
     return true;
   }
   
+  if (fallbackURIs.length === 0) {
+    console.error('Primary connection failed and no fallback URIs configured.');
+    return false;
+  }
+
   // If primary URI fails, try fallbacks
   console.log('Primary connection failed. Trying fallback connections...');
   
