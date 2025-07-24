@@ -26,6 +26,13 @@ router.post('/courses/:id/request-enroll', protect, async (req, res, next) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
+    // Notify the instructor that a new request has arrived
+    await Notification.create({
+      user: course.instructor,
+      message: `${req.user.name || 'A student'} requested to enroll in ${course.title}.`,
+      link: `/educator/requests`
+    });
+
     res.status(201).json({ success: true, data: doc });
   } catch (err) {
     next(err);

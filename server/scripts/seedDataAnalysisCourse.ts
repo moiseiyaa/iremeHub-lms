@@ -2,7 +2,7 @@ import connectDB from '../db';
 import User from '../models/User';
 import Course from '../models/Course';
 import Section from '../models/Section';
-import Lesson from '../models/Lesson';
+import Lesson, { ILesson } from '../models/Lesson';
 
 (async () => {
   try {
@@ -73,7 +73,7 @@ import Lesson from '../models/Lesson';
      * 6. Lessons helper
      *********************************************************************/
     let order = 1;
-    const makeLesson = (data: Partial<typeof Lesson> & { title: string; contentType: string }) => ({
+    const makeLesson = (data: Partial<ILesson> & { title: string; contentType: string }) => ({
       course: course._id,
       order: order++,
       completionTime: 12,
