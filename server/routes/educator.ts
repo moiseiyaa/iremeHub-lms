@@ -81,8 +81,12 @@ router.get(
   authorize('educator', 'admin'),
   asyncHandler(async (req: UserRequest, res: Response) => {
     // Using instructor field to match the field name in the Course model
-    const courses = await Course.find({ instructor: req.user?._id })
-      .sort({ createdAt: -1 });
+        // Try fetching by instructor id first; fallback to createdCourses array (useful for legacy seeded data)
+    let courses = await Course.find({ instructor: req.user?._id }).sort({ createdAt: -1 });
+
+    if (courses.length === 0 && req.user?.createdCourses && req.user.createdCourses.length > 0) {
+      courses = await Course.find({ _id: { $in: req.user.createdCourses } }).sort({ createdAt: -1 });
+    }
     
     res.status(200).json({
       success: true,

@@ -16,7 +16,7 @@ interface INotification {
 
 interface NotificationApiResponse {
   success: boolean;
-  data: INotification[];
+  data: INotification[] | null;
   unreadCount?: number;
 }
 
@@ -24,10 +24,12 @@ export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<INotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = async () => {
     try {
+      // Fetch notifications
       const res: NotificationApiResponse = await apiGet('/notifications', true);
       if (res.success) {
         if (Array.isArray(res.data)) {
@@ -36,6 +38,15 @@ export default function Notifications() {
         if (typeof res.unreadCount === 'number') {
           setUnreadCount(res.unreadCount);
         }
+      }
+      // Fetch pending enrollment requests for educators
+      try {
+        const reqRes = await apiGet('/educator/requests', true);
+        if (reqRes && Array.isArray(reqRes.data)) {
+          setPendingRequests(reqRes.data.length);
+        }
+      } catch (e) {
+        // ignore if user is not educator
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
@@ -93,8 +104,10 @@ export default function Notifications() {
       >
         <span className="sr-only">View notifications</span>
         <BellIcon className="h-6 w-6" aria-hidden="true" />
-        {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+        {(unreadCount > 0 || pendingRequests > 0) && (
+          <span className="absolute -top-1 -right-1 flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-xs">
+            {unreadCount + pendingRequests}
+          </span>
         )}
       </button>
 
@@ -108,6 +121,16 @@ export default function Notifications() {
               </button>
             )}
           </div>
+          {/* Educator pending requests shortcut */}
+          {pendingRequests > 0 && (
+            <Link
+              href="/dashboard/educator/requests"
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-3 text-sm text-indigo-700 font-semibold hover:bg-indigo-50"
+            >
+              {pendingRequests} Enrollment Request{pendingRequests>1?'s':''} Pending
+            </Link>
+          )}
           <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
             {notifications.length > 0 ? (
               notifications.map(notification => (

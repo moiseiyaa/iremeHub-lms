@@ -43,7 +43,10 @@ router.post('/courses/:id/request-enroll', protect, async (req, res, next) => {
 router.get('/educator/requests', protect, authorize('educator'), async (req, res, next) => {
   try {
     // find courses owned by educator
-    const courses = await Course.find({ instructor: req.user._id }).select('_id');
+    let courses = await Course.find({ instructor: req.user._id }).select('_id');
+    if (courses.length === 0 && req.user.createdCourses && req.user.createdCourses.length > 0) {
+      courses = await Course.find({ _id: { $in: req.user.createdCourses } }).select('_id');
+    }
     console.log(`[EnrollReq] educator ${req.user._id} owns ${courses.length} courses`);
     const courseIds = courses.map((c) => c._id);
 

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, CookieOptions } from 'express';
 import { User, IUser } from '../models';
 import asyncHandler from '../middleware/asyncHandler';
 import ErrorResponse from '../utils/errorResponse';
@@ -520,13 +520,17 @@ const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void
   // Create token
   const token = user.getSignedJwtToken();
 
-  const options = {
+  // Determine cookie security settings
+  const isProd = process.env.NODE_ENV === 'production';
+  const sameSiteOption: boolean | 'lax' | 'strict' | 'none' = isProd ? 'strict' : 'none';
+
+  const options: CookieOptions = {
     expires: new Date(
       Date.now() + (process.env.JWT_COOKIE_EXPIRE ? parseInt(process.env.JWT_COOKIE_EXPIRE) : 30) * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as 'strict'
+    secure: isProd ? true : false,
+    sameSite: sameSiteOption
   };
 
   // Ensure password is not sent with the user object

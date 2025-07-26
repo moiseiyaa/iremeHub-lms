@@ -645,9 +645,9 @@ export default function CourseLearnPage() {
             </span>
             
             <div className="relative h-2 bg-gray-200 rounded-full w-32 sm:w-48">
-              <div 
-                className={`absolute h-2 bg-indigo-500 rounded-full progress-bar ${getProgressWidthClass(progress?.progressPercentage || 0)}`}
-                ref={progressBarRef}
+              <div
+                className="absolute h-2 bg-indigo-500 rounded-full"
+                style={{ width: `${progress?.progressPercentage ?? 0}%` }}
               ></div>
             </div>
           </div>
@@ -1065,12 +1065,12 @@ export default function CourseLearnPage() {
                       disabled={completingLesson || 
                         (currentLesson.contentType === 'quiz' && !quizSubmitted) ||
                         (currentLesson.contentType === 'assignment' && !assignmentSubmitted && !getAssignmentSubmission(currentLesson._id)) ||
-                        (currentLesson.contentType === 'exam' && (!examSubmitted || (examResults && !examResults.passed)))}
+                        (currentLesson.contentType === 'exam' && (!examSubmitted || (!examResults?.passed)))}
                       className={`btn-primary flex items-center ${
                         completingLesson || 
                         (currentLesson.contentType === 'quiz' && !quizSubmitted) ||
                         (currentLesson.contentType === 'assignment' && !assignmentSubmitted && !getAssignmentSubmission(currentLesson._id)) ||
-                        (currentLesson.contentType === 'exam' && (!examSubmitted || (examResults && !examResults.passed)))
+                        (currentLesson.contentType === 'exam' && (!examSubmitted || (!examResults?.passed)))
                           ? 'opacity-50 cursor-not-allowed'
                           : ''
                       }`}
