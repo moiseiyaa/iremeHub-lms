@@ -4,7 +4,7 @@ import Course from '../models/Course';
 import Section from '../models/Section';
 import Lesson, { ILesson } from '../models/Lesson';
 
-(async () => {
+async function seedCourse() {
   try {
     // 1. Connect to DB
     await connectDB();
@@ -28,13 +28,14 @@ import Lesson, { ILesson } from '../models/Lesson';
      *********************************************************************/
     const existing = await Course.findOne({ title: 'Complete Data Analysis Bootcamp' });
     if (existing) {
-      console.log('🚫 Data Analysis course already exists, aborting.');
-      process.exit(0);
+      console.log('📚 Course already exists, skipping seed');
+      return;
     }
 
     /*********************************************************************
      * 4. Create course
      *********************************************************************/
+    // Create the course first
     const course = await Course.create({
       title: 'Complete Data Analysis Bootcamp',
       description: 'Hands-on pathway from raw data to insights: cleaning, EDA, statistics, visualisation & ML.',
@@ -48,30 +49,21 @@ import Lesson, { ILesson } from '../models/Lesson';
       instructor: educator._id,
       enrolledStudents: []
     });
-    console.log('📚 Created Data Analysis course');
 
-    /*********************************************************************
-     * 5. Sections (chapters)
-     *********************************************************************/
-    const sectionTitles = [
-      'Introduction to Data Analysis',
-      'Data Wrangling with Python',
-      'Exploratory Data Analysis (EDA)',
-      'Statistics for Data Analysis',
-      'Data Visualisation',
-      'Intro to Machine Learning'
-    ];
-
-    const sections = await Section.insertMany(sectionTitles.map((title, idx) => ({
-      title,
-      course: course._id,
-      order: idx + 1
+    // Create sections
+    const sections = await Section.insertMany([
+      { title: 'Introduction to Data Analysis', order: 1 },
+      { title: 'Data Wrangling with Python', order: 2 },
+      { title: 'Exploratory Data Analysis (EDA)', order: 3 },
+      { title: 'Statistics for Data Analysis', order: 4 },
+      { title: 'Data Visualisation', order: 5 },
+      { title: 'Intro to Machine Learning', order: 6 }
+    ].map(section => ({
+      ...section,
+      course: course._id
     })));
-    console.log('📂 Created sections');
 
-    /*********************************************************************
-     * 6. Lessons helper
-     *********************************************************************/
+    // Create lessons helper
     let order = 1;
     const makeLesson = (data: Partial<ILesson> & { title: string; contentType: string }) => ({
       course: course._id,
@@ -81,9 +73,7 @@ import Lesson, { ILesson } from '../models/Lesson';
       ...data
     });
 
-    /*********************************************************************
-     * 7. Lessons (videos, quizzes, assignments)
-     *********************************************************************/
+    // Define and create lessons
     const lessons = [
       // INTRODUCTION
       makeLesson({
@@ -219,13 +209,24 @@ import Lesson, { ILesson } from '../models/Lesson';
       })
     ];
 
-    await Lesson.insertMany(lessons);
-    console.log('▶️  Lessons inserted');
+    // Create all lessons in the database
+    const createdLessons = await Lesson.insertMany(lessons);
+    
+    // Update course with lessons
+    await Course.findByIdAndUpdate(course._id, {
+      lessons: createdLessons.map(l => l._id)
+    });
 
-    console.log('🎉 Data Analysis course seeding complete!');
-    process.exit(0);
+    // Refresh course with populated data
+    await course.populate('lessons');
+    console.log('✅ Course and lessons created:', course.title);
+    console.log('📚 Created Data Analysis course');
+
   } catch (err) {
     console.error('❌ Seed failed:', err);
     process.exit(1);
   }
-})();
+}
+
+// Execute the seeding function
+seedCourse();

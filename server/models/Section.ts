@@ -8,7 +8,7 @@ export interface ISection extends Document {
   course: mongoose.Types.ObjectId | ICourse;
   order: number;
   createdAt: Date;
-  lessons?: ILesson[];
+  lessons: mongoose.Types.ObjectId[];
 }
 
 const SectionSchema: Schema = new mongoose.Schema({

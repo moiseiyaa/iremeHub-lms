@@ -1,5 +1,7 @@
 import mongoose, { Document, Schema, Model } from 'mongoose';
 import { IUser } from './User';
+import { ISection } from './Section';
+import { ILesson } from './Lesson';
 
 // Define Course interfaces
 export interface IRating {
@@ -27,11 +29,17 @@ export interface ICourse extends Document {
     url?: string;
   };
   instructor: mongoose.Types.ObjectId | IUser;
-  enrolledStudents: mongoose.Types.ObjectId[] | IUser[];
+  enrolledStudents: mongoose.Types.ObjectId[];
+  sections: mongoose.Types.ObjectId[];
+  lessons: mongoose.Types.ObjectId[];
   ratings: IRating[];
   createdAt: Date;
   averageRating: number;
   studentsCount: number;
+  _doc?: {
+    sections?: ISection[];
+    lessons?: ILesson[];
+  };
 }
 
 const CourseSchema: Schema = new mongoose.Schema({
@@ -102,6 +110,16 @@ const CourseSchema: Schema = new mongoose.Schema({
   enrolledStudents: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  }],
+  sections: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Section',
+    required: true
+  }],
+  lessons: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lesson',
+    required: true
   }],
   ratings: [{
     rating: {

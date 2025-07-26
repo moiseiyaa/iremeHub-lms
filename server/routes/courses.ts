@@ -39,6 +39,7 @@ router.get('/', getCourses);
 router.get('/instructor/:instructorId', getCoursesByInstructor);
 router.get('/:id/ratings', getCourseRatings);
 router.get('/:id/ratings/:ratingId', getSingleRating);
+router.get('/:id', getCourse);
 
 // Protected routes
 router.use(protect);
@@ -46,7 +47,6 @@ router.use(protect);
 // Student routes
 router.get('/my/enrolled', getEnrolledCourses);
 router.get('/:id/with-progress', getCourseWithProgress);
-router.get('/:id', getCourse);
 router.post('/:id/ratings', authorize('student'), addRating);
 router.put('/:id/ratings/:ratingId', authorize('student'), updateRating);
 router.delete('/:id/ratings/:ratingId', authorize('student'), deleteRating);

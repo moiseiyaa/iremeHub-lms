@@ -58,19 +58,64 @@ export const getCourses = asyncHandler(async (req: Request, res: Response, next:
 // @route   GET /api/v1/courses/:id
 // @access  Public
 export const getCourse = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const course = await Course.findById(req.params.id)
-    .populate('instructor', 'name email avatar bio')
-    .populate('ratings.user', 'name avatar')
-    .populate('enrolledStudents', 'name email avatar');
+  try {
+    const course = await Course.findById(req.params.id)
+      .populate('instructor', 'name email avatar bio')
+      .populate('sections')
+      .populate('ratings.user', 'name avatar')
+      .populate('enrolledStudents', 'name email avatar');
 
-  if (!course) {
-    return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
+    if (!course) {
+      return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
+    }
+
+    // Get all lessons for the course
+    const lessons = await Lesson.find({
+      course: course._id
+    })
+    .select('title description contentType order completionTime section');
+
+    // Group lessons by section
+    const lessonsBySection = lessons.reduce((acc, lesson) => {
+      if (lesson.section) {
+        const sectionId = lesson.section.toString();
+        if (!acc[sectionId]) {
+          acc[sectionId] = [];
+        }
+        acc[sectionId].push(lesson);
+      }
+      return acc;
+    }, {} as { [key: string]: any[] });
+
+    // Attach lessons to each populated section
+    if (course.sections && course.sections.length > 0) {
+      const populatedSections = (course.sections as any[]).map((sectionDoc: any) => {
+        const sectionId = sectionDoc._id.toString();
+        return {
+          ...sectionDoc.toObject(),
+          lessons: lessonsBySection[sectionId] || []
+        };
+      });
+
+      const courseWithSections = {
+        ...course.toObject(),
+        sections: populatedSections
+      };
+
+      return res.status(200).json({
+        success: true,
+        data: courseWithSections
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: course
+    });
+  } catch (error) {
+    console.error('Error in getCourse:', error);
+    return next(new ErrorResponse('Error fetching course details', 500));
   }
-
-  res.status(200).json({
-    success: true,
-    data: course
-  });
 });
 
 // @desc    Create new course
@@ -524,7 +569,7 @@ export const unenrollFromCourse = asyncHandler(async (req: UserRequest, res: Res
   // Remove user from enrolledStudents
   course.enrolledStudents = course.enrolledStudents.filter(
     student => student.toString() !== req.user.id
-  ) as mongoose.Types.ObjectId[] | IUser[];
+  ) as mongoose.Types.ObjectId[];
   await course.save();
 
   // Remove course from user's enrolledCourses
@@ -537,6 +582,8 @@ export const unenrollFromCourse = asyncHandler(async (req: UserRequest, res: Res
     data: course
   });
 });
+
+
 
 // @desc    Get enrolled courses for current user with progress
 // @route   GET /api/v1/courses/my/enrolled
@@ -579,7 +626,9 @@ export const getEnrolledCourses = asyncHandler(async (req: UserRequest, res: Res
     .populate({
       path: 'instructor',
       select: 'name avatar'
-    });
+    })
+    .populate('sections')
+    .populate('lessons');
     
     if (!courses || courses.length === 0) {
       return res.status(200).json({
