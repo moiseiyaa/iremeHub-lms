@@ -54,7 +54,7 @@ export default function Dashboard() {
       try {
         // Fetch user profile using the API client
         try {
-          const response = await apiGet<ApiResponse<UserData>>('/auth/me', true);
+          const response = await apiGet<UserData>('/auth/me', true);
           if (response.success && response.data) {
             setUser(response.data);
             
@@ -73,18 +73,20 @@ export default function Dashboard() {
         
         // Fetch enrolled courses with progress
         try {
-          const response = await apiGet<ApiResponse<Course[]>>('/courses/my/enrolled', true);
+          const response = await apiGet<Course[]>('/courses/my/enrolled', true);
           if (response.success && response.data && Array.isArray(response.data)) {
             // Normalize progress object to ensure `percentage` exists
-            const normalized = response.data.map((c) => ({
-              ...c,
-              progress: {
-                ...c.progress,
-                percentage:
-                  (c.progress as any).percentage ??
-                  (c.progress as any).progressPercentage ?? 0,
-              },
-            }));
+            const normalized = response.data.map((c) => {
+              const progressObj = (c as any).progress ?? {};
+              const percentage = (progressObj as any).percentage ?? (progressObj as any).progressPercentage ?? 0;
+              return {
+                ...c,
+                progress: {
+                  ...progressObj,
+                  percentage,
+                },
+              };
+            });
             setCourses(normalized as Course[]);
           }
         } catch (courseErr) {
