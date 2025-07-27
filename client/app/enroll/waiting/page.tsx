@@ -1,5 +1,8 @@
 'use client';
 
+// Skip static prerendering so that build does not evaluate client hooks.
+export const dynamic = 'force-dynamic';
+
 import React, { useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -7,7 +10,7 @@ const WaitingApproval: React.FC = () => {
   const router = useRouter();
   const dialogRef = useRef<HTMLDivElement>(null);
   const params = useSearchParams();
-  const courseId = params.get('course');
+  const courseId = params?.get('course');
 
   // Close dialog when clicking outside
   useEffect(() => {
