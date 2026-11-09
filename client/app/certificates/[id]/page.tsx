@@ -1,350 +1,55 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { ArrowLeftIcon, ArrowDownTrayIcon, CheckBadgeIcon, ShieldCheckIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
 import { apiGet } from '../../api/apiClient';
-import { 
-  AcademicCapIcon, 
-  ArrowLeftIcon, 
-  ArrowDownTrayIcon, 
-  CheckBadgeIcon, 
-  ClockIcon,
-  CalendarIcon,
-  UserCircleIcon,
-  DocumentTextIcon,
-  BuildingLibraryIcon
-} from '@heroicons/react/24/outline';
-
-interface Certificate {
-  _id: string;
-  certificateId: string;
-  user: {
-    _id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-  };
-  course: {
-    _id: string;
-    title: string;
-    description: string;
-    category: string;
-    level: string;
-    instructor: {
-      _id: string;
-      name: string;
-      email: string;
-    };
-  };
-  issuedAt: string;
-  metadata: {
-    courseCompletionDate: string;
-    grade: string;
-    examScore: string | number;
-    hoursCompleted: number;
-  };
+interface Credential {
+ _id:string;certificateId:string;issuedAt:string;user?:{name:string};course?:{title:string;category?:string;description?:string};metadata?:{grade?:string;hoursCompleted?:number;courseCompletionDate?:string}
 }
-
-export default function CertificateDetailPage({ params }: { params: { id: string } }) {
-  const [certificate, setCertificate] = useState<Certificate | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [verificationStatus, setVerificationStatus] = useState<{
-    isVerifying: boolean;
-    isValid?: boolean;
-    message?: string;
-  }>({ isVerifying: false });
-
-  useEffect(() => {
-    const fetchCertificate = async () => {
-      try {
-        setLoading(true);
-        
-        const response = await apiGet(`/certificates/${params.id}`, true);
-        
-        if (response.success) {
-          setCertificate(response.data);
-        } else {
-          setError(response.error || 'Failed to load certificate');
-        }
-      } catch (err) {
-        console.error('Error fetching certificate:', err);
-        setError(err instanceof Error ? err.message : 'Something went wrong');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchCertificate();
-  }, [params.id]);
-  
-  const verifyCertificate = async () => {
-    try {
-      setVerificationStatus({ isVerifying: true });
-      
-      const response = await apiGet(`/certificates/${params.id}/verify`);
-      
-      if (response.success) {
-        setVerificationStatus({
-          isVerifying: false,
-          isValid: response.isValid,
-          message: response.message
-        });
-      } else {
-        setVerificationStatus({
-          isVerifying: false,
-          isValid: false,
-          message: response.error || 'Verification failed'
-        });
-      }
-    } catch (err) {
-      console.error('Error verifying certificate:', err);
-      setVerificationStatus({
-        isVerifying: false,
-        isValid: false,
-        message: 'Verification failed. Please try again.'
-      });
-    }
-  };
-  
-  if (loading) {
-    return (
-      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading certificate...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  if (error || !certificate) {
-    return (
-      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
-        <div className="max-w-md w-full bg-white shadow-sm rounded-lg p-8">
-          <div className="text-center">
-            <div className="text-red-500 text-3xl mb-4">😕</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Certificate Not Found</h2>
-            <p className="text-gray-600 mb-6">{error || 'The certificate you are looking for does not exist or is no longer available.'}</p>
-            <Link
-              href="/certificates"
-              className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#104a39]"
-            >
-              <ArrowLeftIcon className="h-4 w-4 mr-2" />
-              Back to Certificates
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="min-h-[calc(100vh-76px)] bg-[#f5f7f2] py-12">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <Link
-            href="/certificates"
-            className="inline-flex items-center text-primary hover:text-[#246a4b]"
-          >
-            <ArrowLeftIcon className="h-4 w-4 mr-1" />
-            Back to Certificates
-          </Link>
-        </div>
-        
-        {/* Certificate Card */}
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
-          {/* Header */}
-          <div className="relative">
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 h-48 flex items-center justify-center">
-              <div className="text-center text-white px-4">
-                <AcademicCapIcon className="h-16 w-16 mx-auto mb-4" />
-                <h1 className="text-2xl font-bold tracking-[-.045em]">Certificate of Completion</h1>
-                <p className="mt-1 text-white/80">ID: {certificate.certificateId}</p>
-              </div>
-            </div>
-            
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2 border-4 border-indigo-100 shadow-sm">
-              <div className="bg-[#edf6ed]0 rounded-full w-16 h-16 flex items-center justify-center">
-                <CheckBadgeIcon className="h-10 w-10 text-white" />
-              </div>
-            </div>
-          </div>
-          
-          {/* Content */}
-          <div className="pt-16 pb-8 px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-xl font-bold text-gray-900">
-                This is to certify that
-              </h2>
-              <p className="mt-2 text-2xl font-bold text-primary">
-                {certificate.user.name}
-              </p>
-              <p className="mt-2 text-gray-600">
-                has successfully completed
-              </p>
-              <h3 className="mt-2 text-xl font-bold text-gray-900">
-                {certificate.course.title}
-              </h3>
-              <p className="mt-1 text-sm text-gray-600">
-                {certificate.course.category} • {certificate.course.level}
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <CalendarIcon className="h-6 w-6 text-indigo-500 mr-3 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-gray-900">Issued On</h4>
-                    <p className="text-gray-600">
-                      {new Date(certificate.issuedAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <UserCircleIcon className="h-6 w-6 text-indigo-500 mr-3 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-gray-900">Instructor</h4>
-                    <p className="text-gray-600">
-                      {certificate.course.instructor.name}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <DocumentTextIcon className="h-6 w-6 text-indigo-500 mr-3 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-gray-900">Grade Achieved</h4>
-                    <div className="flex items-center">
-                      <span className="text-lg font-semibold text-primary mr-2">
-                        {certificate.metadata.grade}
-                      </span>
-                      <span className="text-gray-600">
-                        ({typeof certificate.metadata.examScore === 'number' 
-                          ? `${certificate.metadata.examScore}%` 
-                          : certificate.metadata.examScore})
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <ClockIcon className="h-6 w-6 text-indigo-500 mr-3 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-gray-900">Completion Date</h4>
-                    <p className="text-gray-600">
-                      {new Date(certificate.metadata.courseCompletionDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <BuildingLibraryIcon className="h-6 w-6 text-indigo-500 mr-3 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-gray-900">Course Duration</h4>
-                    <p className="text-gray-600">
-                      {certificate.metadata.hoursCompleted} hours
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <CheckBadgeIcon className="h-6 w-6 text-indigo-500 mr-3 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-gray-900">Certificate Status</h4>
-                    <p className="text-green-600 font-medium">Valid</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Course Description */}
-            <div className="bg-[#edf6ed] p-4 rounded-xl mb-8">
-              <h4 className="font-medium text-gray-900 mb-2">Course Description</h4>
-              <p className="text-gray-600 text-sm">{certificate.course.description}</p>
-            </div>
-            
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <button
-                onClick={verifyCertificate}
-                disabled={verificationStatus.isVerifying}
-                className="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-primary rounded-xl hover:bg-[#edf6ed] w-full sm:w-auto justify-center"
-              >
-                {verificationStatus.isVerifying ? (
-                  <>
-                    <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-indigo-600 border-r-2 rounded-full"></div>
-                    Verifying...
-                  </>
-                ) : (
-                  <>
-                    <CheckBadgeIcon className="h-5 w-5 mr-2" />
-                    Verify Certificate
-                  </>
-                )}
-              </button>
-              
-              <div className="flex gap-2 w-full sm:w-auto">
-                <a
-                  href={`/api/v1/certificates/${certificate.certificateId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#104a39] w-full sm:w-auto justify-center"
-                >
-                  <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-                  Download
-                </a>
-                
-                <Link
-                  href={`/courses/${certificate.course._id}`}
-                  className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-800 rounded-xl hover:bg-gray-200 w-full sm:w-auto justify-center"
-                >
-                  View Course
-                </Link>
-              </div>
-            </div>
-            
-            {/* Verification Results */}
-            {verificationStatus.isValid !== undefined && (
-              <div className={`mt-6 p-4 rounded-xl ${
-                verificationStatus.isValid ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-              }`}>
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    {verificationStatus.isValid ? (
-                      <CheckBadgeIcon className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    )}
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium">
-                      {verificationStatus.isValid ? 'Certificate is Valid' : 'Certificate Verification Failed'}
-                    </h3>
-                    <div className="mt-1 text-sm">
-                      <p>{verificationStatus.message}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+export default function CertificateDetailPage(){
+ const router=useRouter();const params=useParams();const id=String(params?.id??'');
+ const [cert,setCert]=useState<Credential|null>(null);const [loading,setLoading]=useState(true);const [error,setError]=useState('');
+ const [verification,setVerification]=useState('');const [verifying,setVerifying]=useState(false);
+ const [downloading,setDownloading]=useState(false);
+ useEffect(()=>{if(!id)return;let active=true;
+   if(!localStorage.getItem('token')){router.replace('/login?redirect=%2Fcertificates');return;}
+   (async()=>{const result=await apiGet<Credential>(`/certificates/${encodeURIComponent(id)}`,true);if(!active)return;if(result.success&&result.data)setCert(result.data);else setError(result.error||'Certificate not found.');setLoading(false)})();
+   return()=>{active=false};
+ },[id,router]);
+ const verify=async()=>{if(!cert)return;setVerifying(true);setVerification('');
+   try{const res=await fetch('/api/v1/certificates/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({certificateId:cert.certificateId})});
+    const body=await res.json().catch(()=>null);if(!res.ok||!body?.success)throw new Error(body?.error||'Verification unavailable.');
+    setVerification(body.isValid===true?'Verified: the credential is recognized.':'Verification unsuccessful: this credential was not recognized.');
+   }catch(err){setVerification(err instanceof Error?err.message:'Could not verify this credential.');}finally{setVerifying(false);}
+ };
+ const download=async()=>{if(!cert)return;setDownloading(true);setError('');
+   try{const token=localStorage.getItem('token');if(!token)throw new Error('Sign in to download your certificate.');
+    const res=await fetch(`/api/v1/certificates/${encodeURIComponent(id)}/download`,{headers:{Authorization:`Bearer ${token}`}});
+    if(!res.ok||!res.headers.get('content-type')?.includes('application/pdf'))throw new Error('The certificate PDF could not be generated.');
+    const blob=await res.blob();const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`iremehub-certificate-${cert.certificateId.replace(/[^a-zA-Z0-9-]/g,'')}.pdf`;document.body.appendChild(link);link.click();link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+   }catch(err){setError(err instanceof Error?err.message:'Download failed.');}finally{setDownloading(false);}
+ };
+ return <div className="min-h-[75vh] bg-[#f5f7f2] py-12 lg:py-20"><div className="ih-container max-w-[970px]">
+  <Link href="/certificates" className="inline-flex items-center gap-2 text-sm font-bold text-[#277a53]"><ArrowLeftIcon className="w-5 h-5"/> All certificates</Link>
+  {loading?<div className="ih-skeleton h-[530px] mt-8" aria-label="Loading certificate"/>:!cert?<div className="ih-empty mt-9"><CheckBadgeIcon className="h-10 w-10 text-[#508963]"/><h1 className="font-bold text-xl mt-4">Certificate unavailable</h1><p className="text-sm ih-muted mt-2">{error}</p></div>:<>
+   <div className="mt-10 mb-7 flex flex-wrap items-end justify-between gap-4"><div><span className="ih-eyebrow">Achievement details</span><h1 className="text-3xl sm:text-4xl font-bold tracking-[-.05em] mt-4">Your credential.</h1></div><button className="ih-btn ih-btn-primary disabled:opacity-50" onClick={()=>void download()} type="button" disabled={downloading}><ArrowDownTrayIcon className="w-5 h-5"/>{downloading?'Preparing PDF...':'Download certificate'}</button></div>
+   {error&&<p role="alert" className="p-4 mb-5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">{error}</p>}
+   <div className="ih-card p-4 sm:p-8"><div className="border-2 rounded-2xl border-[#b8d6bc] bg-[#fafcf7] min-h-[445px] p-8 sm:p-14 text-center flex flex-col items-center justify-center">
+    <span className="inline-flex w-16 h-16 rounded-2xl bg-[#dbedda] items-center justify-center"><CheckBadgeIcon className="w-10 h-10 text-[#357f57]"/></span>
+    <p className="mt-6 text-xl font-extrabold tracking-[-.075em] text-[#1b6148]">iremehub<span className="text-[#5d9a71]">+</span></p>
+    <p className="mt-8 uppercase tracking-[.2em] text-xs font-bold text-[#6a8a71]">Certificate of completion</p>
+    <p className="mt-5 text-sm text-[#657f6d]">Presented to</p><h2 className="mt-2 text-3xl sm:text-4xl tracking-[-.04em] font-bold">{cert.user?.name||'Learner'}</h2>
+    <p className="mt-5 text-sm text-[#657f6d]">For successfully completing</p><h3 className="mt-3 text-2xl font-bold text-[#287350] max-w-2xl">{cert.course?.title||'Learning course'}</h3>
+    <p className="mt-7 text-xs text-[#7b8c7f]">Issued {new Date(cert.issuedAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</p>
+    <p className="mt-3 text-[11px] text-[#809583]">Credential ID: {cert.certificateId}</p>
+   </div></div>
+   <div className="ih-card p-7 mt-6 flex flex-wrap items-center justify-between gap-5">
+    <div><h2 className="font-bold inline-flex gap-2 items-center"><ShieldCheckIcon className="w-5 h-5 text-[#308354]"/> Verify this credential</h2><p className="text-sm ih-muted mt-2">Check its authenticity against the certificate records.</p></div>
+    <button type="button" disabled={verifying} onClick={()=>void verify()} className="ih-btn ih-btn-neutral disabled:opacity-50">{verifying?'Verifying...':'Verify now'}</button>
+    {verification&&<p role="status" className="w-full text-sm text-[#286b4b]">{verification}</p>}
+   </div>
+  </>}
+ </div></div>;
 }
