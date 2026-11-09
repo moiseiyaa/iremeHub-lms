@@ -119,6 +119,19 @@ export const getCourse = asyncHandler(async (req: Request, res: Response, next: 
   }
 });
 
+
+/**
+ * Secure authoring read, including drafts. Never use public GET /courses/:id for editing.
+ */
+export const getManagedCourse = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
+  const course = await Course.findById(req.params.id);
+  if (!course) return next(new ErrorResponse('Course not found', 404));
+  if (course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse('Not authorized to manage this course', 403));
+  }
+  res.json({success: true, data: course});
+});
+
 // @desc    Create new course
 // @route   POST /api/v1/courses
 // @access  Private (Educator/Admin)

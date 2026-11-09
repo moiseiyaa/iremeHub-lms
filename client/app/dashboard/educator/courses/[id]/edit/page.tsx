@@ -76,7 +76,7 @@ export default function EditCourse({ params }: { params: Promise<{ id: string }>
     const fetchCourse = async () => {
       try {
         setFetchingCourse(true);
-        const response = await fetch(`/api/v1/courses/${courseId}`, {
+        const response = await fetch(`/api/v1/courses/${courseId}/manage`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }

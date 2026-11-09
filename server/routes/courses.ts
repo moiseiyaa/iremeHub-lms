@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getCourses,
   getCourse,
+  getManagedCourse,
   createCourse,
   updateCourse,
   deleteCourse,
@@ -39,6 +40,7 @@ router.get('/', getCourses);
 router.get('/instructor/:instructorId', getCoursesByInstructor);
 router.get('/:id/ratings', getCourseRatings);
 router.get('/:id/ratings/:ratingId', getSingleRating);
+router.get('/:id/manage', protect, authorize('educator', 'admin'), getManagedCourse);
 router.get('/:id', getCourse);
 
 // Protected routes

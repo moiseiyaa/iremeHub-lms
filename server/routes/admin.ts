@@ -1,5 +1,5 @@
 import express from 'express';
-import { getDashboardStats } from '../controllers/adminController';
+import { getDashboardStats, getAdminCourses } from '../controllers/adminController';
 import { protect, authorize } from '../middleware/auth'; // Adjust path if your middleware is elsewhere
 
 const router = express.Router();
@@ -9,5 +9,6 @@ router.use(protect);
 router.use(authorize('admin'));
 
 router.route('/dashboard-stats').get(getDashboardStats);
+router.get('/courses', getAdminCourses);
 
 export default router; 
