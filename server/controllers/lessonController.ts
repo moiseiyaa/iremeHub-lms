@@ -42,6 +42,10 @@ export const getLessons = asyncHandler(async (req: UserRequest, res: Response, n
 export const getLesson = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   const lesson = await Lesson.findById(req.params.id).populate('section');
 
+  if (lesson && req.params.courseId && lesson.course.toString() !== req.params.courseId) {
+    return next(new ErrorResponse('Lesson does not belong to this course', 404));
+  }
+
   if (!lesson) {
     return next(new ErrorResponse(`Lesson not found with id of ${req.params.id}`, 404));
   }
@@ -88,8 +92,6 @@ export const getLesson = asyncHandler(async (req: UserRequest, res: Response, ne
 // @route   POST /api/v1/courses/:courseId/lessons
 // @access  Private (Educator/Admin)
 export const createLesson = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  req.body.course = req.params.courseId;
-
   const course = await Course.findById(req.params.courseId);
 
   if (!course) {
@@ -99,6 +101,11 @@ export const createLesson = asyncHandler(async (req: UserRequest, res: Response,
   // Make sure user is course instructor or admin
   if (req.user && course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to add a lesson to this course`, 401));
+  }
+
+  // A lesson can only belong to a section in its own course.
+  if (req.body.section && !(await Section.exists({ _id: req.body.section, course: course._id }))) {
+    return next(new ErrorResponse('Section does not belong to this course', 400));
   }
 
   // Handle YouTube videos
@@ -121,9 +128,17 @@ export const createLesson = asyncHandler(async (req: UserRequest, res: Response,
 
   // Get the count of existing lessons to set the order
   const lessonCount = await Lesson.countDocuments({ course: req.params.courseId });
-  req.body.order = req.body.order || lessonCount + 1;
-
-  const lesson = await Lesson.create(req.body);
+  const lesson = await Lesson.create({
+    title: req.body.title,
+    description: req.body.description,
+    course: course._id,
+    section: req.body.section || undefined,
+    contentType: req.body.contentType,
+    content: req.body.content,
+    isPreview: Boolean(req.body.isPreview),
+    completionTime: req.body.completionTime,
+    order: lessonCount + 1
+  });
   await Course.findByIdAndUpdate(course._id, { $addToSet: { lessons: lesson._id } });
 
   res.status(201).json({
@@ -171,7 +186,17 @@ export const updateLesson = asyncHandler(async (req: UserRequest, res: Response,
     }
   }
 
-  lesson = await Lesson.findByIdAndUpdate(req.params.id, req.body, {
+  if (req.params.courseId && course._id.toString() !== req.params.courseId) {
+    return next(new ErrorResponse('Lesson does not belong to this course', 404));
+  }
+  if (req.body.section && !(await Section.exists({ _id: req.body.section, course: course._id }))) {
+    return next(new ErrorResponse('Section does not belong to this course', 400));
+  }
+  const updates: Record<string, unknown> = {};
+  for (const key of ['title', 'description', 'contentType', 'content', 'section', 'isPreview', 'completionTime', 'order']) {
+    if (Object.prototype.hasOwnProperty.call(req.body, key)) updates[key] = req.body[key];
+  }
+  lesson = await Lesson.findByIdAndUpdate(req.params.id, updates, {
     new: true,
     runValidators: true
   });
