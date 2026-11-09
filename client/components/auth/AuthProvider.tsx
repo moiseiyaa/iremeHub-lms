@@ -72,7 +72,15 @@ export function AuthProvider({children}:{children:ReactNode}){
   useEffect(()=>{if(pathname==='/login'||pathname==='/register')setOpen(false);},[pathname]);
 
   const logout=()=>{
-    if(typeof window!=='undefined')window.localStorage.removeItem('token');
+    if(typeof window!=='undefined'){
+      // Clear the legacy HttpOnly cookie as well as the browser token.
+      // Full bearer-token revocation requires the upcoming session store.
+      void fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        credentials: 'same-origin'
+      }).catch(() => undefined);
+      window.localStorage.removeItem('token');
+    }
     setUser(null);setOpen(false);
     const protectedRoute=Boolean(pathname&&(/^(\/dashboard|\/profile|\/change-password|\/certificates)(\/|$)/.test(pathname)||/\/learn(\/|$)/.test(pathname)));
     if(protectedRoute)router.replace('/login');
