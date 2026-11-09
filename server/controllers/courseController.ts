@@ -309,8 +309,10 @@ export const uploadThumbnail = asyncHandler(async (req: UserRequest, res: Respon
 // @route   GET /api/v1/courses/instructor/:instructorId
 // @access  Public
 export const getCoursesByInstructor = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const courses = await Course.find({ instructor: req.params.instructorId })
-    .populate('instructor', 'name email avatar')
+  // This is a PUBLIC profile listing, not an educator's private draft inventory.
+  const courses = await Course.find({ instructor: req.params.instructorId, isPublished: true })
+    .select('-enrolledStudents')
+    .populate('instructor', 'name avatar')
     .populate('ratings.user', 'name avatar');
 
   res.status(200).json({
@@ -439,7 +441,7 @@ export const deleteRating = asyncHandler(async (req: UserRequest, res: Response,
 // @route   GET /api/v1/courses/:id/ratings/:ratingId
 // @access  Public
 export const getSingleRating = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const course = await Course.findById(req.params.id);
+  const course = await Course.findOne({ _id: req.params.id, isPublished: true });
 
   if (!course) {
     return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
@@ -476,7 +478,7 @@ export const getSingleRating = asyncHandler(async (req: Request, res: Response, 
 // @route   GET /api/v1/courses/:id/ratings
 // @access  Public
 export const getCourseRatings = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const course = await Course.findById(req.params.id)
+  const course = await Course.findOne({ _id: req.params.id, isPublished: true })
     .select('ratings')
     .populate('ratings.user', 'name avatar');
 
@@ -495,7 +497,7 @@ export const getCourseRatings = asyncHandler(async (req: Request, res: Response,
 // @route   POST /api/v1/courses/:id/enroll
 // @access  Private (Students)
 export const enrollInCourse = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  const course = await Course.findById(req.params.id);
+  const course = await Course.findOne({ _id: req.params.id, isPublished: true });
 
   if (!course) {
     return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
@@ -754,6 +756,10 @@ export const getCourseWithProgress = asyncHandler(async (req: UserRequest, res: 
     return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
   }
 
+  // Draft metadata is visible only to the author or an administrator.
+  if (!course.isPublished && course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse('Course not found', 404));
+  }
   // Check if enrolled
   const isEnrolled = course.enrolledStudents.some(student => student.toString() === req.user.id);
 
