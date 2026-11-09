@@ -1,415 +1,77 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
-import { UserIcon, EnvelopeIcon, PencilIcon, CheckIcon, XMarkIcon, CameraIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { CameraIcon, UserCircleIcon, ShieldCheckIcon, ArrowUpRightIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { apiGet, apiPut } from '../api/apiClient';
 
-// Default image for users without an avatar
-const DEFAULT_AVATAR = 'https://placehold.co/160x160/e2e8f0/1e293b/png?text=User';
-
-// Utility function to ensure we never have empty image URLs
-const getSafeImageUrl = (avatar: { public_id?: string; url: string; } | string | null | undefined, fallback: string): string => {
-  if (!avatar) {
-    return fallback;
-  }
-  
-  // If avatar is a string (for backward compatibility)
-  if (typeof avatar === 'string') {
-    return avatar.trim() === '' ? fallback : avatar;
-  }
-  
-  // If avatar is an object with url property
-  if (typeof avatar === 'object' && avatar.url) {
-    return avatar.url.trim() === '' ? fallback : avatar.url;
-  }
-  
-  return fallback;
+interface Profile {id?:string;_id?:string;name:string;email:string;role:string;avatar?:{url?:string}|string;bio?:string}
+const avatarSource=(p:Profile|null)=>{
+ const url=typeof p?.avatar==='string'?p.avatar:p?.avatar?.url;
+ return url&&/^https:\/\//i.test(url)&&!url.includes('res.cloudinary.com/demo')?url:null;
 };
-
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  avatar: {
-    public_id?: string;
-    url: string;
-  } | string;
-  bio: string;
+export default function ProfilePage(){
+ const router=useRouter();
+ const [profile,setProfile]=useState<Profile|null>(null);
+ const [form,setForm]=useState({name:'',email:'',bio:''});
+ const [loading,setLoading]=useState(true);const [editing,setEditing]=useState(false);
+ const [saving,setSaving]=useState(false);const [uploading,setUploading]=useState(false);
+ const [error,setError]=useState('');const [success,setSuccess]=useState('');
+ useEffect(()=>{let active=true;if(!localStorage.getItem('token')){router.replace('/login?redirect=%2Fprofile');return;}
+ (async()=>{const response=await apiGet<Profile>('/auth/me',true);if(!active)return;
+  if(response.success&&response.data){setProfile(response.data);setForm({name:response.data.name||'',email:response.data.email||'',bio:response.data.bio||''});}
+  else setError(response.error||'Unable to load your profile.');
+  setLoading(false);
+ })();return()=>{active=false};
+ },[router]);
+ const save=async(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();setSaving(true);setError('');setSuccess('');
+  const result=await apiPut<Profile>('/auth/updatedetails',form,true);
+  if(result.success&&result.data){setProfile(result.data);setEditing(false);setSuccess('Your profile has been updated.');}
+  else setError(result.error||'Could not save your profile.');
+  setSaving(false);
+ };
+ const upload=async(e:ChangeEvent<HTMLInputElement>)=>{
+   const file=e.target.files?.[0];if(!file)return;
+   if(!file.type.startsWith('image/')||file.size>5*1024*1024){setError('Choose an image under 5 MB.');return;}
+   const token=localStorage.getItem('token');if(!token){router.replace('/login');return;}
+   setUploading(true);setError('');setSuccess('');
+   try{
+     const payload=new FormData();payload.append('avatar',file);
+     const response=await fetch('/api/v1/auth/updateavatar',{method:'PUT',headers:{Authorization:`Bearer ${token}`},body:payload});
+     const body=await response.json().catch(()=>null);
+     if(!response.ok||!body?.data)throw new Error(body?.error||'Could not update your profile image.');
+     setProfile(body.data);setSuccess('Your profile picture has been updated.');
+   }catch(err){setError(err instanceof Error?err.message:'Image upload failed.');}
+   finally{setUploading(false);e.target.value='';}
+ };
+ const source=avatarSource(profile);
+ return <div className="min-h-screen bg-[#f5f7f2]">
+ <header className="bg-[#143e31] text-white py-14 lg:py-20"><div className="ih-container"><span className="text-xs font-bold tracking-[.14em] uppercase text-[#b2d2bd]">Account settings</span><h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-[-.05em]">Your personal space.</h1><p className="mt-4 text-[#b9d0c0]">Manage your profile, preferences and account details.</p></div></header>
+ <div className="ih-container max-w-[980px] py-12 lg:py-16">
+ {loading?<div className="ih-skeleton h-[450px]" aria-label="Loading profile"/>:
+ <div className="ih-card overflow-hidden">
+  <div className="bg-[#e5f0e6] p-7 sm:p-9 flex items-center gap-5 flex-wrap">
+   <div className="w-24 h-24 rounded-full bg-[#b7d9c0] flex items-center justify-center overflow-hidden relative border-4 border-white shrink-0">
+    {source?<Image src={source} alt="" fill unoptimized sizes="96px" className="object-cover"/>:<UserCircleIcon className="w-14 h-14 text-[#447d58]"/>}
+   </div>
+   <div className="flex-1 min-w-[190px]"><h2 className="text-2xl font-bold tracking-tight">{profile?.name||'Learner'}</h2><p className="mt-1 text-sm text-[#688170] break-words">{profile?.email}</p><span className="ih-badge mt-3 capitalize">{profile?.role||'Account'}</span></div>
+   <label className={`ih-btn ih-btn-neutral cursor-pointer ${uploading?'opacity-50 pointer-events-none':''}`}><CameraIcon className="w-5 h-5"/>{uploading?'Uploading...':'Change photo'}<input type="file" accept="image/*" className="sr-only" onChange={e=>void upload(e)} disabled={uploading}/></label>
+  </div>
+  <div className="p-7 sm:p-10">
+   {error&&<p role="alert" className="mb-5 border border-red-200 bg-red-50 text-red-700 p-4 text-sm rounded-xl">{error}</p>}
+   {success&&<p role="status" className="mb-5 border border-[#b8e2be] bg-[#ecf7ec] text-[#2d744b] p-4 text-sm rounded-xl inline-flex items-center gap-2"><CheckCircleIcon className="w-5 h-5"/>{success}</p>}
+   {!profile?<div className="ih-empty">We couldn't find your profile. Please sign in again.</div>:<>
+   <div className="flex gap-5 flex-wrap items-center justify-between"><div><h3 className="text-xl font-bold">Personal information</h3><p className="text-sm ih-muted mt-2">Keep your details up to date.</p></div><button type="button" onClick={()=>{if(editing)setForm({name:profile.name,email:profile.email,bio:profile.bio||''});setEditing(v=>!v);setError('');setSuccess('')}} className="ih-btn ih-btn-neutral">{editing?'Cancel editing':'Edit profile'}</button></div>
+   <form className="grid sm:grid-cols-2 gap-6 mt-8" onSubmit={e=>void save(e)}>
+    <div><label className="ih-form-label" htmlFor="profile-name">Full name</label><input id="profile-name" className="ih-input" required minLength={2} maxLength={100} disabled={!editing} value={form.name} onChange={e=>setForm(v=>({...v,name:e.target.value}))}/></div>
+    <div><label className="ih-form-label" htmlFor="profile-email">Email address</label><input id="profile-email" className="ih-input" type="email" required disabled={!editing} value={form.email} onChange={e=>setForm(v=>({...v,email:e.target.value}))}/></div>
+    <div className="sm:col-span-2"><label className="ih-form-label" htmlFor="profile-bio">About you</label><textarea id="profile-bio" className="ih-input !min-h-[130px]" maxLength={500} disabled={!editing} value={form.bio} placeholder="Add a short introduction..." onChange={e=>setForm(v=>({...v,bio:e.target.value}))}/><p className="mt-2 text-xs ih-muted">{form.bio.length}/500 characters</p></div>
+    {editing&&<div className="sm:col-span-2 flex justify-end"><button type="submit" className="ih-btn ih-btn-primary disabled:opacity-50" disabled={saving}>{saving?'Saving...':'Save profile'}<ArrowUpRightIcon className="w-4 h-4"/></button></div>}
+   </form></>}
+  </div>
+ </div>}
+ <div className="ih-card p-7 sm:p-9 mt-7 flex flex-wrap justify-between gap-5 items-center"><div className="flex gap-4 items-center"><div className="bg-[#e6f2e6] rounded-2xl p-3"><ShieldCheckIcon className="w-7 h-7 text-[#297a50]"/></div><div><h3 className="font-bold text-lg">Account security</h3><p className="text-sm ih-muted mt-2">Update your password regularly.</p></div></div><Link href="/change-password" className="ih-btn ih-btn-neutral">Change password <ArrowUpRightIcon className="w-4 h-4"/></Link></div>
+ </div></div>;
 }
-
-export default function Profile() {
-  const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    bio: '',
-  });
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    
-    const fetchUserProfile = async () => {
-      try {
-        console.log('Fetching user profile...');
-        const res = await fetch('/api/v1/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (!res.ok) {
-          throw new Error('Failed to fetch profile');
-        }
-        
-        const data = await res.json();
-        console.log('Profile data received:', data);
-        
-        if (!data || !data.data) {
-          console.error('Invalid response format:', data);
-          throw new Error('Invalid response format from server');
-        }
-        
-        const userData = {
-          id: data.data.id || data.data._id || '',
-          name: data.data.name || 'User',
-          email: data.data.email || '',
-          role: data.data.role || 'student',
-          avatar: data.data.avatar || null,
-          bio: data.data.bio || ''
-        };
-        
-        setUser(userData);
-        setFormData({
-          name: userData.name,
-          email: userData.email,
-          bio: userData.bio,
-        });
-      } catch (err) {
-        setError('Failed to load profile data');
-        console.error('Profile fetch error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchUserProfile();
-  }, [router]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    
-    try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-      
-      const res = await fetch('/api/v1/auth/updatedetails', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData),
-      });
-      
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to update profile');
-      }
-      
-      setUser(data.data);
-      setSuccess('Profile updated successfully');
-      setIsEditing(false);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
-      setError(errorMessage);
-    }
-  };
-
-  const cancelEdit = () => {
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        bio: user.bio || '',
-      });
-    }
-    setIsEditing(false);
-  };
-
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Reset messages
-    setError('');
-    setSuccess('');
-    setUploadingImage(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      // Create form data
-      const formData = new FormData();
-      formData.append('avatar', file);
-
-      const res = await fetch('/api/v1/auth/updateavatar', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to update profile picture');
-      }
-
-      console.log('Avatar update response:', data);
-      console.log('User avatar data:', data.data.avatar);
-      
-      setUser(data.data);
-      setSuccess('Profile picture updated successfully');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile picture';
-      setError(errorMessage);
-      console.error('Avatar update error:', error);
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0091ff] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white min-h-[calc(100vh-76px)] py-10">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-[#0091ff]/90 to-blue-700/80 px-6 py-8 sm:p-10">
-            <div className="flex flex-col sm:flex-row items-center justify-between">
-              <div className="flex flex-col sm:flex-row items-center mb-4 sm:mb-0">
-                <div 
-                  className="h-20 w-20 rounded-full bg-white flex items-center justify-center mb-4 sm:mb-0 sm:mr-6 relative group cursor-pointer"
-                  onClick={handleImageClick}
-                >
-                  {uploadingImage ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                    </div>
-                  ) : (
-                    <>
-                      {user?.avatar ? (
-                        <>
-                          <div className="relative w-full h-full rounded-full overflow-hidden">
-                            <Image
-                              src={getSafeImageUrl(user.avatar, DEFAULT_AVATAR)}
-                              alt={user?.name || 'User'}
-                              fill
-                              sizes="80px"
-                              className="object-cover"
-                            />
-                          </div>
-                          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <CameraIcon className="h-6 w-6 text-white" />
-                          </div>
-                        </>
-                      ) : (
-                        <UserIcon className="h-10 w-10 text-[#0091ff]" />
-                      )}
-                    </>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    title="Upload profile picture"
-                    aria-label="Upload profile picture"
-                  />
-                </div>
-                <div className="text-center sm:text-left">
-                  <h2 className="text-2xl font-bold text-white">{user?.name}</h2>
-                  <p className="text-blue-100">
-                    {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex space-x-3">
-                {!isEditing && (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center px-4 py-2 bg-white text-[#0091ff] rounded-xl hover:bg-gray-100"
-                  >
-                    <PencilIcon className="h-4 w-4 mr-2" />
-                    Edit Profile
-                  </button>
-                )}
-                <button
-                  onClick={() => router.push('/dashboard')}
-                  className="flex items-center px-4 py-2 bg-white text-[#0091ff] rounded-xl hover:bg-gray-100"
-                >
-                  <HomeIcon className="h-4 w-4 mr-2" />
-                  Dashboard
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div className="px-6 py-8 sm:p-10">
-            {error && (
-              <div className="mb-6 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {error}
-              </div>
-            )}
-            
-            {success && (
-              <div className="mb-6 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-                {success}
-              </div>
-            )}
-            
-            {isEditing ? (
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      id="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-[#0091ff] focus:border-[#0091ff]"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      id="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-[#0091ff] focus:border-[#0091ff]"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
-                      Bio
-                    </label>
-                    <textarea
-                      name="bio"
-                      id="bio"
-                      rows={4}
-                      value={formData.bio}
-                      onChange={handleChange}
-                      className="block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-[#0091ff] focus:border-[#0091ff]"
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={cancelEdit}
-                      className="flex items-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#f5f7f2]"
-                    >
-                      <XMarkIcon className="h-4 w-4 mr-2" />
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex items-center px-4 py-2 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-[#0091ff] hover:bg-primary"
-                    >
-                      <CheckIcon className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
-              </form>
-            ) : (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-1">Contact Information</h3>
-                  <div className="text-gray-500 flex items-center">
-                    <EnvelopeIcon className="h-5 w-5 mr-2 text-gray-400" />
-                    {user?.email}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-1">Bio</h3>
-                  <p className="text-gray-500">
-                    {user?.bio || 'No bio provided yet.'}
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-1">Account Settings</h3>
-                  <div className="mt-3 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-                    <a
-                      href="/change-password"
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#f5f7f2]"
-                    >
-                      Change Password
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-} 

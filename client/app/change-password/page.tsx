@@ -1,207 +1,42 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { LockClosedIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { ArrowLeftIcon, LockClosedIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
-export default function ChangePassword() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const { currentPassword, newPassword, confirmPassword } = formData;
-
-  useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    }
-  }, [router]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    
-    // Validate passwords
-    if (newPassword !== confirmPassword) {
-      setError('New passwords do not match');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
-    
-    setLoading(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-      
-      const res = await fetch('/api/v1/auth/updatepassword', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword
-        }),
-      });
-      
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to update password');
-      }
-      
-      // Success - clear form
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      });
-      
-      setSuccess('Password updated successfully!');
-      
-      // Update token in localStorage if a new one is returned
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="bg-white min-h-[calc(100vh-76px)] py-10">
-      <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-[#0091ff]/90 to-blue-700/80 px-6 py-8">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-white tracking-[-.045em]">Change Password</h1>
-              <p className="mt-2 text-sm text-blue-100">
-                Update your password to keep your account secure
-              </p>
-            </div>
-          </div>
-          
-          <div className="px-6 py-8">
-            {error && (
-              <div className="mb-6 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {error}
-              </div>
-            )}
-            
-            {success && (
-              <div className="mb-6 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-                {success}
-              </div>
-            )}
-            
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <div>
-                <div className="relative rounded-xl shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  </div>
-                  <input
-                    id="currentPassword"
-                    name="currentPassword"
-                    type="password"
-                    required
-                    value={currentPassword}
-                    onChange={handleChange}
-                    className="block w-full pl-10 sm:text-sm border border-gray-300 rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent"
-                    placeholder="Current Password"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="relative rounded-xl shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  </div>
-                  <input
-                    id="newPassword"
-                    name="newPassword"
-                    type="password"
-                    required
-                    value={newPassword}
-                    onChange={handleChange}
-                    className="block w-full pl-10 sm:text-sm border border-gray-300 rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent"
-                    placeholder="New Password"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="relative rounded-xl shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  </div>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={handleChange}
-                    className="block w-full pl-10 sm:text-sm border border-gray-300 rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent"
-                    placeholder="Confirm New Password"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Link
-                  href="/profile"
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#f5f7f2]"
-                >
-                  <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                  Back to Profile
-                </Link>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex items-center px-6 py-2 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-[#0091ff] hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0091ff] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Updating...' : 'Update Password'}
-                </button>
-              </div>
-            </form>
-            
-            <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-              <div className="flex items-center justify-center text-sm text-gray-500">
-                <p>Remember to use a strong password that combines uppercase and lowercase letters, numbers, and special characters.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-} 
+export default function ChangePasswordPage(){
+ const router=useRouter();
+ const [form,setForm]=useState({currentPassword:'',newPassword:'',confirmPassword:''});
+ const [loading,setLoading]=useState(false),[error,setError]=useState(''),[success,setSuccess]=useState('');
+ useEffect(()=>{if(!window.localStorage.getItem('token'))router.replace('/login?redirect=%2Fchange-password')},[router]);
+ const submit=async(e:FormEvent<HTMLFormElement>)=>{
+  e.preventDefault();setError('');setSuccess('');
+  if(form.newPassword!==form.confirmPassword){setError('Your new passwords do not match.');return;}
+  if(form.newPassword.length<8){setError('Use a password at least eight characters long.');return;}
+  if(form.newPassword===form.currentPassword){setError('Choose a new password different from your current password.');return;}
+  const token=localStorage.getItem('token');if(!token){router.replace('/login');return;}
+  setLoading(true);
+  try{
+   const response=await fetch('/api/v1/auth/updatepassword',{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({currentPassword:form.currentPassword,newPassword:form.newPassword})});
+   const body=await response.json().catch(()=>null);
+   if(!response.ok||!body?.success)throw new Error(body?.error||'Unable to change password.');
+   if(body.token)localStorage.setItem('token',body.token);
+   setForm({currentPassword:'',newPassword:'',confirmPassword:''});
+   setSuccess('Your password was updated successfully.');
+  }catch(err){setError(err instanceof Error?err.message:'Unable to change password.');}
+  finally{setLoading(false);}
+ };
+ return <div className="min-h-[75vh] bg-[#f5f7f2] py-12 lg:py-20"><div className="ih-container max-w-[620px]">
+  <Link href="/profile" className="text-[#28764f] text-sm font-semibold inline-flex items-center gap-2"><ArrowLeftIcon className="w-4 h-4"/> Back to profile</Link>
+  <div className="ih-card p-7 sm:p-11 mt-7"><span className="ih-eyebrow">Account security</span><div className="mt-6 rounded-2xl bg-[#e5f2e7] inline-flex p-3"><LockClosedIcon className="w-8 h-8 text-[#267c53]"/></div><h1 className="mt-5 text-3xl font-bold tracking-[-.05em]">Change your password.</h1><p className="text-sm ih-muted leading-7 mt-4">Use a strong password that you don't use on other websites.</p>
+  <form className="mt-8 space-y-5" onSubmit={e=>void submit(e)}>
+   <div><label className="ih-form-label" htmlFor="current-password">Current password</label><input className="ih-input" id="current-password" type="password" autoComplete="current-password" required value={form.currentPassword} onChange={e=>setForm(v=>({...v,currentPassword:e.target.value}))}/></div>
+   <div><label className="ih-form-label" htmlFor="new-password">New password</label><input className="ih-input" id="new-password" type="password" autoComplete="new-password" minLength={8} required value={form.newPassword} onChange={e=>setForm(v=>({...v,newPassword:e.target.value}))}/></div>
+   <div><label className="ih-form-label" htmlFor="confirm-password">Confirm new password</label><input className="ih-input" id="confirm-password" type="password" autoComplete="new-password" minLength={8} required value={form.confirmPassword} onChange={e=>setForm(v=>({...v,confirmPassword:e.target.value}))}/></div>
+   {error&&<p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl p-4">{error}</p>}
+   {success&&<p role="status" className="text-sm text-[#277a4f] bg-[#e8f4e9] border border-[#b7d8bf] rounded-xl p-4 inline-flex gap-2 items-center"><CheckCircleIcon className="w-5 h-5"/>{success}</p>}
+   <button type="submit" className="ih-btn ih-btn-primary w-full disabled:opacity-50" disabled={loading}>{loading?'Updating...':'Update password'}</button>
+  </form>
+  </div></div></div>;
+}
