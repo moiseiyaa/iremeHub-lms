@@ -1,582 +1,68 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { 
-  PlusIcon, 
-  BellAlertIcon, 
-  PencilSquareIcon,
-  TrashIcon,
-  MagnifyingGlassIcon,
-  AdjustmentsHorizontalIcon,
-  XMarkIcon,
-  CheckIcon
-} from '@heroicons/react/24/outline';
-import { apiGet, apiPost, apiDelete } from '../../../api/apiClient';
+import { useEffect, useState, type FormEvent } from 'react';
+import { BellIcon, PlusIcon, PencilIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { apiGet, apiPost, apiPut, apiDelete } from '../../../api/apiClient';
 
-interface Announcement {
-  _id: string;
-  title: string;
-  content: string;
-  courseId: string | null;
-  courseName?: string;
-  createdAt: string;
-  updatedAt: string;
-  published: boolean;
+type Notice = {_id:string;title:string;content:string;published:boolean;courseId?:{_id:string;title:string}|string|null;createdAt?:string};
+type Course = {_id:string;title:string};
+type Draft = {title:string;content:string;published:boolean;courseId:string};
+const blank:Draft={title:'',content:'',published:true,courseId:''};
+
+export default function AnnouncementsPage(){
+ const [items,setItems]=useState<Notice[]>([]);
+ const [courses,setCourses]=useState<Course[]>([]);
+ const [loading,setLoading]=useState(true);
+ const [error,setError]=useState('');
+ const [working,setWorking]=useState(false);
+ const [editing,setEditing]=useState<string|null>(null);
+ const [open,setOpen]=useState(false);
+ const [draft,setDraft]=useState<Draft>(blank);
+ const [search,setSearch]=useState('');
+ const reload=async()=>{
+   setLoading(true);setError('');
+   const [a,c]=await Promise.all([apiGet<Notice[]>('/announcements/educator/list',true),apiGet<Course[]>('/educator/courses',true)]);
+   if(a.success&&Array.isArray(a.data))setItems(a.data);
+   else setError(a.error||'Could not load announcements.');
+   if(c.success&&Array.isArray(c.data))setCourses(c.data);
+   setLoading(false);
+ };
+ useEffect(()=>{void reload()},[]);
+ const begin=(item?:Notice)=>{
+   setError('');setEditing(item?._id||null);
+   setDraft(item?{title:item.title,content:item.content,published:item.published,courseId:typeof item.courseId==='string'?item.courseId:item.courseId?._id||''}:blank);
+   setOpen(true);
+ };
+ const save=async(e:FormEvent<HTMLFormElement>)=>{
+   e.preventDefault();setWorking(true);setError('');
+   const payload={title:draft.title.trim(),content:draft.content.trim(),published:draft.published,courseId:draft.courseId||null};
+   const result=editing?await apiPut<Notice>(`/announcements/${editing}`,payload,true):await apiPost<Notice>('/announcements',payload,true);
+   if(result.success){setOpen(false);void reload();}
+   else setError(result.error||'Could not save announcement.');
+   setWorking(false);
+ };
+ const toggle=async(item:Notice)=>{
+   const result=await apiPost<Notice>(`/announcements/${item._id}/toggle-publish`,{},true);
+   if(result.success&&result.data)setItems(prev=>prev.map(x=>x._id===item._id?{...x,published:result.data!.published}:x));
+   else setError(result.error||'Could not update publication status.');
+ };
+ const remove=async(item:Notice)=>{
+   if(!window.confirm(`Delete "${item.title}" permanently?`))return;
+   const result=await apiDelete(`/announcements/${item._id}`,true);
+   if(result.success)setItems(prev=>prev.filter(x=>x._id!==item._id));
+   else setError(result.error||'Could not delete announcement.');
+ };
+ const filtered=items.filter(x=>[x.title,x.content].join(' ').toLowerCase().includes(search.toLowerCase()));
+ return <div className="bg-[#f5f7f2] min-h-screen py-10"><div className="ih-container">
+  <div className="flex flex-wrap gap-5 justify-between items-end mb-9"><div><span className="ih-eyebrow">Educator communications</span><h1 className="text-3xl sm:text-4xl font-bold tracking-[-.05em] mt-4">Announcements.</h1><p className="text-sm ih-muted mt-3">Keep your learners informed about lessons and course updates.</p></div><button type="button" onClick={()=>begin()} className="ih-btn ih-btn-primary"><PlusIcon className="w-5 h-5"/>New announcement</button></div>
+  {error&&<p role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 mb-5 text-sm">{error}</p>}
+  <section className="ih-card overflow-hidden"><div className="p-6 border-b border-[#e7eee5] flex flex-wrap gap-4 justify-between items-center"><div><h2 className="text-lg font-bold">Message library</h2><p className="text-xs ih-muted mt-2">{filtered.length} announcements</p></div><input className="ih-input !w-[245px]" type="search" value={search} onChange={e=>setSearch(e.target.value)} aria-label="Search announcements" placeholder="Search announcements"/></div>
+    {loading?<div className="p-7 space-y-3">{[0,1,2].map(i=><div key={i} className="ih-skeleton h-20"/>)}</div>:
+     filtered.length===0?<div className="ih-empty !border-0"><BellIcon className="h-10 w-10 text-[#4a9567]"/><h3 className="font-bold text-xl mt-5">No announcements found</h3><p className="text-sm ih-muted mt-2">Create a message or change your search.</p></div>:
+     <div className="divide-y divide-[#e7eee5]">{filtered.map(item=><article key={item._id} className="p-6 flex flex-wrap justify-between gap-5"><div className="max-w-[650px]"><span className={`text-xs rounded-full px-3 py-1 font-bold ${item.published?'bg-[#e4f2e3] text-[#25744a]':'bg-[#f5eedf] text-[#806e4e]'}`}>{item.published?'Published':'Draft'}</span><h3 className="font-bold text-lg mt-4">{item.title}</h3><p className="text-sm ih-muted leading-7 mt-2 line-clamp-3">{item.content}</p><p className="text-xs ih-muted mt-3">{typeof item.courseId==='object'&&item.courseId?item.courseId.title:'General update'}</p></div><div className="flex flex-wrap h-fit gap-2"><button type="button" className="ih-btn ih-btn-neutral !text-xs !min-h-10 !px-3" onClick={()=>begin(item)}><PencilIcon className="w-4 h-4"/>Edit</button><button type="button" className="ih-btn ih-btn-neutral !text-xs !min-h-10 !px-3" onClick={()=>void toggle(item)}>{item.published?'Unpublish':'Publish'}</button><button type="button" className="ih-btn ih-btn-neutral !text-xs !min-h-10 !px-3 !text-red-700" onClick={()=>void remove(item)}><TrashIcon className="w-4 h-4"/>Delete</button></div></article>)}</div>}
+  </section>
+  {open&&<div role="presentation" className="fixed inset-0 bg-[#0c281b]/75 z-[110] p-4 flex justify-center items-center overflow-y-auto"><div role="dialog" aria-modal="true" aria-labelledby="announcement-dialog-title" className="w-full max-w-[580px] rounded-3xl bg-white p-7 sm:p-9"><div className="flex gap-4 items-center justify-between"><h2 id="announcement-dialog-title" className="text-xl font-bold">{editing?'Edit announcement':'Create announcement'}</h2><button type="button" onClick={()=>setOpen(false)} aria-label="Close announcement form" className="text-xl rounded-lg p-2 hover:bg-[#edf3eb]">×</button></div>
+    <form onSubmit={e=>void save(e)} className="mt-6 space-y-4"><div><label htmlFor="notice-title" className="ih-form-label">Title</label><input id="notice-title" className="ih-input" maxLength={100} required value={draft.title} onChange={e=>setDraft(v=>({...v,title:e.target.value}))}/></div><div><label htmlFor="notice-body" className="ih-form-label">Message</label><textarea id="notice-body" className="ih-input !min-h-[150px]" maxLength={5000} required value={draft.content} onChange={e=>setDraft(v=>({...v,content:e.target.value}))}/></div><div><label htmlFor="notice-audience" className="ih-form-label">Audience</label><select id="notice-audience" className="ih-input" value={draft.courseId} onChange={e=>setDraft(v=>({...v,courseId:e.target.value}))}><option value="">General update</option>{courses.map(c=><option key={c._id} value={c._id}>{c.title}</option>)}</select></div><label className="flex items-center gap-3 text-sm font-semibold"><input type="checkbox" checked={draft.published} onChange={e=>setDraft(v=>({...v,published:e.target.checked}))}/> Publish now</label>{error&&<p role="alert" className="text-red-700 text-sm">{error}</p>}<div className="flex gap-3 justify-end"><button type="button" className="ih-btn ih-btn-neutral" onClick={()=>setOpen(false)}>Cancel</button><button type="submit" className="ih-btn ih-btn-primary" disabled={working}><CheckIcon className="w-4 h-4"/>{working?'Saving...':'Save'}</button></div></form>
+   </div></div>}
+ </div></div>;
 }
-
-interface Course {
-  _id: string;
-  title: string;
-}
-
-// Mock data for development
-const MOCK_ANNOUNCEMENTS: Announcement[] = [
-  {
-    _id: '1',
-    title: 'New Web Development Course Launch',
-    content: 'We are excited to announce the launch of our new web development course. Join us to learn the latest technologies!',
-    courseId: '1',
-    courseName: 'Introduction to Web Development',
-    createdAt: '2023-12-01T10:00:00.000Z',
-    updatedAt: '2023-12-01T10:00:00.000Z',
-    published: true
-  },
-  {
-    _id: '2',
-    title: 'Holiday Break Schedule',
-    content: 'Please note that there will be no new lessons during the holiday break from December 24th to January 2nd.',
-    courseId: null,
-    createdAt: '2023-12-05T14:30:00.000Z',
-    updatedAt: '2023-12-05T14:30:00.000Z',
-    published: true
-  },
-  {
-    _id: '3',
-    title: 'JavaScript Workshop this Weekend',
-    content: 'Join our special JavaScript workshop this Saturday at 10AM. We will cover advanced topics like closures, promises, and async/await.',
-    courseId: '2',
-    courseName: 'Advanced JavaScript Concepts',
-    createdAt: '2023-12-10T09:15:00.000Z',
-    updatedAt: '2023-12-10T09:15:00.000Z',
-    published: true
-  },
-  {
-    _id: '4',
-    title: 'System Maintenance Notice',
-    content: 'The platform will be down for maintenance on December 15th from 2AM to 4AM UTC.',
-    courseId: null,
-    createdAt: '2023-12-12T16:45:00.000Z',
-    updatedAt: '2023-12-12T16:45:00.000Z',
-    published: true
-  },
-  {
-    _id: '5',
-    title: '[Draft] Upcoming React Course Updates',
-    content: 'We are planning to update our React course curriculum with the latest features. Stay tuned for more information.',
-    courseId: '3',
-    courseName: 'React Framework Deep Dive',
-    createdAt: '2023-12-14T11:20:00.000Z',
-    updatedAt: '2023-12-14T11:20:00.000Z',
-    published: false
-  }
-];
-
-const MOCK_COURSES: Course[] = [
-  { _id: '1', title: 'Introduction to Web Development' },
-  { _id: '2', title: 'Advanced JavaScript Concepts' },
-  { _id: '3', title: 'React Framework Deep Dive' }
-];
-
-export default function AnnouncementsManagement() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [courseFilter, setCourseFilter] = useState<string>('all');
-  const [showModal, setShowModal] = useState(false);
-  const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    courseId: '',
-    published: true
-  });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch announcements
-        try {
-          const response = await apiGet('/educator/announcements', true);
-          if (response.success && Array.isArray(response.data)) {
-            setAnnouncements(response.data);
-          } else {
-            setError('Failed to load announcements');
-          }
-        } catch (announcementErr) {
-          console.error('Announcement fetch error:', announcementErr);
-          setError('An error occurred while loading announcements');
-          
-          // Fallback dummy data for development
-          setAnnouncements(MOCK_ANNOUNCEMENTS);
-        }
-        
-        // Fetch courses for dropdown filters
-        try {
-          const response = await apiGet('/educator/courses', true);
-          if (response.success && Array.isArray(response.data)) {
-            setCourses(response.data);
-          }
-        } catch (courseErr) {
-          console.error('Course fetch error:', courseErr);
-          
-          // Fallback dummy data for courses
-          setCourses(MOCK_COURSES);
-        }
-      } catch (err) {
-        console.error('Data fetch error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
-  
-  const openCreateModal = () => {
-    setCurrentAnnouncement(null);
-    setFormData({
-      title: '',
-      content: '',
-      courseId: '',
-      published: true
-    });
-    setShowModal(true);
-  };
-  
-  const openEditModal = (announcement: Announcement) => {
-    setCurrentAnnouncement(announcement);
-    setFormData({
-      title: announcement.title,
-      content: announcement.content,
-      courseId: announcement.courseId || '',
-      published: announcement.published
-    });
-    setShowModal(true);
-  };
-  
-  const closeModal = () => {
-    setShowModal(false);
-    setCurrentAnnouncement(null);
-  };
-  
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    
-    if (type === 'checkbox') {
-      setFormData({
-        ...formData,
-        [name]: (e.target as HTMLInputElement).checked
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    }
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const payload = {
-      ...formData,
-      courseId: formData.courseId || null  // Convert empty string to null
-    };
-    
-    try {
-      if (currentAnnouncement) {
-        // Update existing announcement
-        const response = await apiPost(
-          `/educator/announcements/${currentAnnouncement._id}`, 
-          payload,
-          true
-        );
-        
-        if (response.success && response.data) {
-          // Update the announcements list
-          const updatedAnnouncement = response.data as Announcement;
-          setAnnouncements(prevAnnouncements => 
-            prevAnnouncements.map(a => 
-              a._id === updatedAnnouncement._id ? updatedAnnouncement : a
-            )
-          );
-          closeModal();
-        }
-      } else {
-        // Create new announcement
-        const response = await apiPost(
-          '/educator/announcements', 
-          payload,
-          true
-        );
-        
-        if (response.success && response.data) {
-          // Add to the announcements list
-          const newAnnouncement = response.data as Announcement;
-          setAnnouncements(prevAnnouncements => [newAnnouncement, ...prevAnnouncements]);
-          closeModal();
-        }
-      }
-    } catch (err) {
-      console.error('Error saving announcement:', err);
-      setError('Failed to save announcement');
-    }
-  };
-  
-  const handleDelete = async (id: string) => {
-    if (confirmDelete !== id) {
-      setConfirmDelete(id);
-      return;
-    }
-    
-    try {
-      const response = await apiDelete(`/educator/announcements/${id}`, true);
-      
-      if (response.success) {
-        // Remove from the announcements list
-        setAnnouncements(prevAnnouncements => 
-          prevAnnouncements.filter(a => a._id !== id)
-        );
-      }
-    } catch (err) {
-      console.error('Error deleting announcement:', err);
-      setError('Failed to delete announcement');
-    } finally {
-      setConfirmDelete(null);
-    }
-  };
-  
-  const togglePublish = async (announcement: Announcement) => {
-    try {
-      const response = await apiPost(
-        `/educator/announcements/${announcement._id}/toggle-publish`,
-        {},
-        true
-      );
-      
-      if (response.success && response.data) {
-        // Update the announcements list
-        const updatedAnnouncement = response.data as Announcement;
-        setAnnouncements(prevAnnouncements => 
-          prevAnnouncements.map(a => 
-            a._id === updatedAnnouncement._id ? updatedAnnouncement : a
-          )
-        );
-      }
-    } catch (err) {
-      console.error('Error toggling publish status:', err);
-      setError('Failed to update announcement status');
-    }
-  };
-  
-  const filteredAnnouncements = announcements.filter(announcement => {
-    const matchesSearch = 
-      announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      announcement.content.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCourse = 
-      courseFilter === 'all' || 
-      (courseFilter === 'general' && announcement.courseId === null) ||
-      announcement.courseId === courseFilter;
-    
-    return matchesSearch && matchesCourse;
-  });
-  
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  return (
-    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-[-.045em]">Announcements</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Create and manage announcements for your courses
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0">
-            <button
-              onClick={openCreateModal}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Create Announcement
-            </button>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-5 border-b border-gray-200">
-            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-              <div className="relative flex-1 max-w-lg">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
-                  placeholder="Search announcements..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <select
-                    value={courseFilter}
-                    onChange={(e) => setCourseFilter(e.target.value)}
-                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
-                    aria-label="Filter announcements by course"
-                  >
-                    <option value="all">All Announcements</option>
-                    <option value="general">General (No Course)</option>
-                    {courses.map((course) => (
-                      <option key={course._id} value={course._id}>{course.title}</option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <AdjustmentsHorizontalIcon className="h-4 w-4 text-gray-400" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="py-12 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading announcements...</p>
-            </div>
-          ) : filteredAnnouncements.length === 0 ? (
-            <div className="text-center py-12">
-              <BellAlertIcon className="h-12 w-12 text-gray-400 mx-auto" />
-              <h3 className="mt-2 text-lg font-medium text-gray-900">No announcements found</h3>
-              <p className="mt-1 text-gray-500">
-                {announcements.length === 0 
-                  ? "You haven't created any announcements yet." 
-                  : "No announcements match your current filters."}
-              </p>
-              {announcements.length === 0 && (
-                <div className="mt-6">
-                  <button
-                    onClick={openCreateModal}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                  >
-                    Create Your First Announcement
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-hidden">
-              <ul className="divide-y divide-gray-200">
-                {filteredAnnouncements.map((announcement) => (
-                  <li key={announcement._id} className={`p-6 hover:bg-[#f5f7f2] ${!announcement.published ? 'bg-[#f5f7f2]' : ''}`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center">
-                          <h3 className="text-lg font-medium text-gray-900">{announcement.title}</h3>
-                          {!announcement.published && (
-                            <span className="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
-                              Draft
-                            </span>
-                          )}
-                        </div>
-                        
-                        <div className="mt-1 flex items-center text-sm text-gray-500">
-                          <span>
-                            {announcement.courseId 
-                              ? `Course: ${announcement.courseName || courses.find(c => c._id === announcement.courseId)?.title || 'Unknown Course'}`
-                              : 'General Announcement'}
-                          </span>
-                          <span className="mx-2">•</span>
-                          <span>Posted: {formatDate(announcement.createdAt)}</span>
-                        </div>
-                        
-                        <div className="mt-3 text-sm text-gray-700">
-                          <p className="whitespace-pre-line">{announcement.content}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="ml-4 flex-shrink-0 flex space-x-2">
-                        <button
-                          onClick={() => togglePublish(announcement)}
-                          className={`p-2 ${announcement.published ? 'text-primary hover:text-blue-900 bg-[#edf6ed] hover:bg-[#e3f0e5]' : 'text-gray-600 hover:text-gray-900 bg-[#f5f7f2] hover:bg-gray-100'} rounded-xl inline-flex items-center`}
-                          title={announcement.published ? 'Unpublish' : 'Publish'}
-                        >
-                          {announcement.published ? (
-                            <XMarkIcon className="h-5 w-5" />
-                          ) : (
-                            <CheckIcon className="h-5 w-5" />
-                          )}
-                        </button>
-                        
-                        <button
-                          onClick={() => openEditModal(announcement)}
-                          className="p-2 text-primary hover:text-blue-900 bg-[#edf6ed] hover:bg-[#e3f0e5] rounded-xl inline-flex items-center"
-                          title="Edit"
-                        >
-                          <PencilSquareIcon className="h-5 w-5" />
-                        </button>
-                        
-                        <button
-                          onClick={() => handleDelete(announcement._id)}
-                          className={`p-2 ${confirmDelete === announcement._id ? 'bg-red-100' : 'bg-red-50 hover:bg-red-100'} text-red-600 hover:text-red-900 rounded-xl inline-flex items-center`}
-                          title={confirmDelete === announcement._id ? 'Click again to confirm delete' : 'Delete'}
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Create/Edit Announcement Modal */}
-      {showModal && (
-        <div className="fixed inset-0 overflow-y-auto z-50">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-[#f5f7f2]0 opacity-75"></div>
-            </div>
-
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      {currentAnnouncement ? 'Edit Announcement' : 'Create Announcement'}
-                    </h3>
-                    
-                    <div className="mt-4">
-                      <form id="announcementForm" onSubmit={handleSubmit}>
-                        <div className="space-y-4">
-                          <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                              Title
-                            </label>
-                            <input
-                              type="text"
-                              name="title"
-                              id="title"
-                              value={formData.title}
-                              onChange={handleFormChange}
-                              required
-                              className="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                              placeholder="Announcement title"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-                              Content
-                            </label>
-                            <textarea
-                              name="content"
-                              id="content"
-                              rows={5}
-                              value={formData.content}
-                              onChange={handleFormChange}
-                              required
-                              className="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                              placeholder="Announcement content"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="courseId" className="block text-sm font-medium text-gray-700">
-                              Course (optional)
-                            </label>
-                            <select
-                              name="courseId"
-                              id="courseId"
-                              value={formData.courseId}
-                              onChange={handleFormChange}
-                              className="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                              aria-label="Select course for announcement"
-                            >
-                              <option value="">General Announcement (All Courses)</option>
-                              {courses.map((course) => (
-                                <option key={course._id} value={course._id}>{course.title}</option>
-                              ))}
-                            </select>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              name="published"
-                              id="published"
-                              checked={formData.published}
-                              onChange={(e) => setFormData({...formData, published: e.target.checked})}
-                              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                            />
-                            <label htmlFor="published" className="ml-2 block text-sm text-gray-900">
-                              Publish immediately
-                            </label>
-                          </div>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-[#f5f7f2] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="submit"
-                  form="announcementForm"
-                  className="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                  {currentAnnouncement ? 'Save Changes' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-} 
