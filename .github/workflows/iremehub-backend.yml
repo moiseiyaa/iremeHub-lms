@@ -1,0 +1,36 @@
+name: iremehub+ backend validation
+
+on:
+  push:
+    branches: ["main", "fix/phase-3-ci-and-security"]
+    paths:
+      - "server/**"
+      - ".github/workflows/iremehub-backend.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "server/**"
+      - ".github/workflows/iremehub-backend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Install pinned dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Compile TypeScript without emitting files
+        run: npx tsc --noEmit

@@ -2,10 +2,12 @@ name: iremehub+ core policy checks
 
 on:
   push:
-    branches: ["rebuild/iremehub-plus"]
+    branches: ["main", "rebuild/iremehub-plus", "fix/phase-3-ci-and-security"]
     paths: ["packages/core/**", ".github/workflows/iremehub-core.yml"]
   pull_request:
+    branches: ["main"]
     paths: ["packages/core/**", ".github/workflows/iremehub-core.yml"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,14 +16,17 @@ jobs:
   core-policy:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: packages/core
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: packages/core/package-lock.json
       - name: Install isolated policy package
-        working-directory: packages/core
         run: npm ci --no-audit --no-fund
       - name: Compile and run authorization tests
-        working-directory: packages/core
         run: npm test
