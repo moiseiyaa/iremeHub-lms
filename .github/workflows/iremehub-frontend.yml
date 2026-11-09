@@ -1,0 +1,38 @@
+name: iremehub+ frontend validation
+
+on:
+  push:
+    branches: ["rebuild/iremehub-plus"]
+    paths:
+      - "client/**"
+      - ".github/workflows/iremehub-frontend.yml"
+  pull_request:
+    paths:
+      - "client/**"
+      - ".github/workflows/iremehub-frontend.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Install pinned dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck all frontend source
+        run: npm run typecheck
+      - name: Run ESLint
+        run: npm run lint
+      - name: Production bundle
+        run: npm run build
