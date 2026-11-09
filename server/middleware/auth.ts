@@ -40,20 +40,7 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
 
   try {
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'devmode_secret_key_for_testing') as jwt.JwtPayload;
-
-    // For development mode - allow test user without DB access
-    if (process.env.NODE_ENV === 'development' && decoded.id === '60d0fe4f5311236168a109ca') {
-      console.log('Development mode: Using test user bypass');
-      req.user = {
-        _id: '60d0fe4f5311236168a109ca',
-        id: '60d0fe4f5311236168a109ca',
-        name: 'Test User',
-        email: 'test@example.com',
-        role: 'admin'
-      };
-      return next();
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
 
     // Set user to req.user
     req.user = await User.findById(decoded.id);

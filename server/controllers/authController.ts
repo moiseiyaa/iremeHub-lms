@@ -40,52 +40,20 @@ interface UpdateFields {
 }
 
 // Mock user for development
-const createMockUser = (email: string, name: string, role: string = 'admin'): IUser => {
-  const now = new Date();
-  return {
-    _id: ('60d0fe4f5311236168a109ca' as unknown) as any,
-    name,
-    email,
-    role,
-    password: 'mockPasswordHash',
-    createdAt: now,
-    avatar: {
-      url: 'https://via.placeholder.com/150'
-    },
-    bio: 'This is a development test user',
-    enrolledCourses: [],
-    createdCourses: [],
-    resetPasswordToken: undefined,
-    resetPasswordExpire: undefined,
-    matchPassword: async () => true,
-    getSignedJwtToken() {
-      const secret = process.env.JWT_SECRET || 'devmode_secret_key_for_testing';
-      // @ts-ignore
-      return jwt.sign({ id: this._id }, secret, { expiresIn: process.env.JWT_EXPIRE || '30d' });
-    },
-    getResetPasswordToken() {
-      return 'mock-reset-token';
-    }
-  } as unknown as IUser;
-};
-
 // @desc    Register a user
 // @route   POST /api/v1/auth/register
 // @access  Public
 export const register = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
 
-  // Check if role is valid and enforce admin restrictions
-  if (role === 'admin' && req.user?.role !== 'admin') {
-    return next(new ErrorResponse('Admin role cannot be assigned during registration', 403));
-  }
+  // Public registration cannot assign privileged roles.
 
   // Create user
   const user = await User.create({
     name,
     email,
     password,
-    role: role || 'student' // Default to student if role not provided
+    role: 'student'
   });
 
   sendTokenResponse(user, 201, res);
@@ -100,22 +68,6 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
   // Validate email & password
   if (!email || !password) {
     return next(new ErrorResponse('Please provide an email and password', 400));
-  }
-
-  // DEVELOPMENT MODE: Allow test user login
-  if (process.env.NODE_ENV === 'development') {
-    // Default test credentials
-    const devTestEmail = 'test@example.com';
-    const devTestPassword = 'password123';
-    
-    if (email === devTestEmail && password === devTestPassword) {
-      console.log('👋 Development mode: Allowing test user login without database check');
-      
-      // Create mock user for development testing
-      const testUser = createMockUser(devTestEmail, 'Test User');
-      
-      return sendTokenResponse(testUser, 200, res);
-    }
   }
 
   try {
@@ -152,18 +104,6 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
     sendTokenResponse(user, 200, res);
   } catch (error: any) {
     console.error(`Database error during login: ${error.message}`);
-    
-    // DEVELOPMENT FALLBACK: If database error occurs in development, use test user
-    if (process.env.NODE_ENV === 'development' && 
-        email === 'test@example.com' && 
-        password === 'password123') {
-      
-      console.log('🚨 Database error occurred, using development fallback login');
-      
-      const fallbackUser = createMockUser('test@example.com', 'Test User (Fallback)');
-      
-      return sendTokenResponse(fallbackUser, 200, res);
-    }
     
     // For other users, return the error
     return next(new ErrorResponse('Login failed due to server error', 500));
@@ -316,49 +256,14 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response, next:
 // @desc    Forgot password
 // @route   POST /api/v1/auth/forgotpassword
 // @access  Public
-export const forgotPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const user = await User.findOne({ email: req.body.email });
-
-  if (!user) {
-    return next(new ErrorResponse('There is no user with that email', 404));
-  }
-
-  // Get reset token
-  const resetToken = user.getResetPasswordToken();
-
-  await user.save({ validateBeforeSave: false });
-
-  // Create reset url
-  const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
-
-  const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
-
-  try {
-    // In a real application, you would send an email here
-    // For now, we'll just log the token and URL for development purposes
-    console.log(`Reset token: ${resetToken}`);
-    console.log(`Reset URL: ${resetUrl}`);
-
-    // Simulate email sending (in production, use a proper email service)
-    console.log(`Email would be sent to: ${user.email}`);
-    console.log(`Email subject: Password Reset Request`);
-    console.log(`Email message: ${message}`);
-
-    res.status(200).json({
-      success: true,
-      message: 'Email sent',
-      resetToken, // Only for development purposes - remove in production
-      resetUrl // Only for development purposes - remove in production
-    });
-  } catch (err) {
-    console.log(err);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-
-    await user.save({ validateBeforeSave: false });
-
-    return next(new ErrorResponse('Email could not be sent', 500));
-  }
+export const forgotPassword = asyncHandler(async (_req: Request, res: Response) => {
+  // SECURITY HOLD: Old implementation exposed live reset tokens/URLs to callers.
+  // Re-enable only after configuring real outbound email, generic responses,
+  // single-use token redemption and endpoint rate limiting.
+  res.status(503).json({
+    success: false,
+    error: 'Password recovery is temporarily unavailable. Contact support.'
+  });
 });
 
 // @desc    Reset password
@@ -401,7 +306,7 @@ export const refreshToken = asyncHandler(async (req: UserRequest, res: Response,
   }
 
   try {
-    const secret = process.env.JWT_SECRET || 'devmode_secret_key_for_testing';
+    const secret = process.env.JWT_SECRET;
     // Verify existing token
     // @ts-ignore - Ignoring TypeScript error for jwt.verify
     const decoded = jwt.verify(token, secret) as TokenPayload;

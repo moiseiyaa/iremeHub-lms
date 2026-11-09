@@ -92,7 +92,7 @@ UserSchema.pre('save', async function(this: IUser, next) {
 // Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function(this: IUser): string {
   try {
-    const secret = process.env.JWT_SECRET || 'devmode_secret_key_for_testing';
+    const secret = process.env.JWT_SECRET;
     if (!secret) {
       console.error('JWT_SECRET is not defined. Please set it in your environment variables.');
       throw new Error('JWT_SECRET is not defined');
