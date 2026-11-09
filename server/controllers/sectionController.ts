@@ -15,11 +15,15 @@ interface UserRequest extends Request {
 // @desc    Get all sections for a course
 // @route   GET /api/v1/courses/:courseId/sections
 // @access  Private
-export const getSections = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const getSections = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   const course = await Course.findById(req.params.courseId);
+  if (!course) return next(new ErrorResponse('Course not found', 404));
 
-  if (!course) {
-    return next(new ErrorResponse(`Course not found with id of ${req.params.courseId}`, 404));
+  const actorId = req.user?.id;
+  const canManage = req.user?.role === 'admin' || course.instructor.toString() === actorId;
+  const enrolled = course.enrolledStudents.some(id => id.toString() === actorId);
+  if (!canManage && !enrolled) {
+    return next(new ErrorResponse('Not authorized to read this curriculum', 403));
   }
 
   const sections = await Section.find({ course: req.params.courseId }).sort('order');
@@ -34,11 +38,20 @@ export const getSections = asyncHandler(async (req: Request, res: Response, next
 // @desc    Get single section
 // @route   GET /api/v1/sections/:id
 // @access  Private
-export const getSection = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const getSection = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   const section = await Section.findById(req.params.id);
+  if (!section) return next(new ErrorResponse('Section not found', 404));
+  if (req.params.courseId && section.course.toString() !== req.params.courseId) {
+    return next(new ErrorResponse('Section does not belong to this course', 404));
+  }
+  const course = await Course.findById(section.course);
+  if (!course) return next(new ErrorResponse('Course not found', 404));
 
-  if (!section) {
-    return next(new ErrorResponse(`Section not found with id of ${req.params.id}`, 404));
+  const actorId = req.user?.id;
+  const canManage = req.user?.role === 'admin' || course.instructor.toString() === actorId;
+  const enrolled = course.enrolledStudents.some(id => id.toString() === actorId);
+  if (!canManage && !enrolled) {
+    return next(new ErrorResponse('Not authorized to read this curriculum', 403));
   }
 
   res.status(200).json({
@@ -51,8 +64,7 @@ export const getSection = asyncHandler(async (req: Request, res: Response, next:
 // @route   POST /api/v1/courses/:courseId/sections
 // @access  Private (Educator/Admin)
 export const createSection = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  req.body.course = req.params.courseId;
-
+  // Ownership and parent association are set on the server, not from client input.
   const course = await Course.findById(req.params.courseId);
 
   if (!course) {
@@ -66,9 +78,12 @@ export const createSection = asyncHandler(async (req: UserRequest, res: Response
 
   // Get the count of existing sections to set the order
   const sectionCount = await Section.countDocuments({ course: req.params.courseId });
-  req.body.order = req.body.order || sectionCount + 1;
-
-  const section = await Section.create(req.body);
+  const section = await Section.create({
+    course: course._id,
+    title: req.body.title,
+    description: req.body.description,
+    order: sectionCount + 1
+  });
   await Course.findByIdAndUpdate(course._id, { $addToSet: { sections: section._id } });
 
   res.status(201).json({
@@ -98,7 +113,12 @@ export const updateSection = asyncHandler(async (req: UserRequest, res: Response
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to update this section`, 401));
   }
 
-  section = await Section.findByIdAndUpdate(req.params.id, req.body, {
+  // Do not allow clients to move a section to a different course.
+  const updates: Record<string, unknown> = {};
+  if (typeof req.body.title === 'string') updates.title = req.body.title.trim();
+  if (typeof req.body.description === 'string') updates.description = req.body.description.trim();
+  if (Number.isInteger(req.body.order) && req.body.order > 0) updates.order = req.body.order;
+  section = await Section.findByIdAndUpdate(req.params.id, updates, {
     new: true,
     runValidators: true
   });
