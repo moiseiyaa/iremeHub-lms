@@ -8,21 +8,27 @@ import ErrorResponse from '../utils/errorResponse';
 const router = express.Router();
 
 // Student: request enrollment
-router.post('/courses/:id/request-enroll', protect, async (req, res, next) => {
+router.post('/courses/:id/request-enroll', protect, authorize('student'), async (req, res, next) => {
   try {
     const courseId = req.params.id;
-    const course = await Course.findById(courseId).select('instructor');
+    const course = await Course.findOne({ _id: courseId, isPublished: true }).select('instructor title price isPublished enrolledStudents');
     if (!course) {
       return next(new ErrorResponse('Course not found', 404));
     }
+    if (course.price > 0) return next(new ErrorResponse('Paid course access requires verified payment. Enrollment requests are disabled for paid courses.', 409));
+    if (course.enrolledStudents.some(id => id.toString() === req.user._id.toString())) return next(new ErrorResponse('Already enrolled in this course', 409));
     // Prevent instructor from requesting own course
     if (req.user && req.user._id.toString() === course.instructor.toString()) {
       return next(new ErrorResponse('Instructors cannot enroll in their own course', 400));
     }
 
+    const existing = await EnrollmentRequest.findOne({ courseId, studentId: req.user._id });
+    if (existing?.status === 'approved') return next(new ErrorResponse('Enrollment already approved', 409));
+    if (existing?.status === 'pending') return res.json({ success: true, data: existing });
+
     const doc = await EnrollmentRequest.findOneAndUpdate(
       { courseId, studentId: req.user._id },
-      { courseId, studentId: req.user._id, status: 'pending' },
+      { $set: { status: 'pending' }, $setOnInsert: { courseId, studentId: req.user._id } },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
@@ -30,7 +36,7 @@ router.post('/courses/:id/request-enroll', protect, async (req, res, next) => {
     await Notification.create({
       user: course.instructor,
       message: `${req.user.name || 'A student'} requested to enroll in ${course.title}.`,
-      link: `/educator/requests`
+      link: `/dashboard/educator/requests`
     });
 
     res.status(201).json({ success: true, data: doc });
@@ -101,7 +107,7 @@ router.patch('/educator/requests/:reqId', protect, authorize('educator'), async 
 });
 
 // Student: check if they have a pending enrollment
-router.get('/courses/:id/enrollment-request-status', protect, async (req, res, next) => {
+router.get('/courses/:id/enrollment-request-status', protect, authorize('student'), async (req, res, next) => {
   try {
     const courseId = req.params.id;
     const existing = await EnrollmentRequest.findOne({ courseId, studentId: req.user._id });
