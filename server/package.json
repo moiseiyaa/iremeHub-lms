@@ -13,7 +13,8 @@
     "build": "node build.js",
     "watch": "tsc --watch",
     "seed:mock": "ts-node server/scripts/seedMockCourse.ts",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "test:policy": "tsc --strict --target es2022 --module commonjs --skipLibCheck --outDir .policy-test-build utils/assessmentPolicy.ts && node --test test/assessmentPolicy.test.cjs"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.9",

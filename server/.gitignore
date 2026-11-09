@@ -55,3 +55,6 @@ config/credentials.js
 # Local MongoDB data
 data/ 
 .vercel
+
+# Compiled pure assessment policy tests
+.policy-test-build/
