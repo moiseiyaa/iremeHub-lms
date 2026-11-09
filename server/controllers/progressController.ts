@@ -10,6 +10,7 @@ import { IProgress } from '../models/Progress';
 import { ICertificate } from '../models/Certificate';
 import { ICourse } from '../models/Course';
 import { IUser } from '../models/User';
+import { hasCompleteAnswers, isExamSessionActive, remainingMinutes } from '../utils/assessmentPolicy';
 
 interface MulterFile {
   fieldname: string;
@@ -234,11 +235,7 @@ export const submitQuiz = asyncHandler(async (req: UserRequest, res: Response, n
   const { answers } = req.body;
 
   const quizQuestions = lesson.content.quizQuestions || [];
-  if (!Array.isArray(answers) || quizQuestions.length === 0 ||
-      answers.length !== quizQuestions.length ||
-      !answers.every((answer: unknown, index: number) =>
-        Number.isInteger(answer) && (answer as number) >= 0 &&
-        (answer as number) < quizQuestions[index].options.length)) {
+  if (!hasCompleteAnswers(answers, quizQuestions)) {
     return next(new ErrorResponse('Provide one valid answer for each quiz question', 400));
   }
 
@@ -465,7 +462,7 @@ export const startExam = asyncHandler(async (req: UserRequest, res: Response, ne
   const history = progress.examSessions.filter(session =>
     session.lesson.toString() === lesson._id.toString());
   const now = new Date();
-  let active = history.find(session => !session.submittedAt && session.expiresAt.getTime() > now.getTime());
+  let active = history.find(session => isExamSessionActive(session.startedAt, session.expiresAt, session.submittedAt, now.getTime()));
 
   // Re-opening the page cannot reset the timer; a learner gets at most
   // three server-issued attempts. Longer-term limits belong in policy settings.
@@ -495,7 +492,7 @@ export const startExam = asyncHandler(async (req: UserRequest, res: Response, ne
         points: q.points
       })),
       startedAt: active.startedAt,
-      timeLimit: Math.max(0, (active.expiresAt.getTime() - Date.now()) / 60_000),
+      timeLimit: remainingMinutes(active.expiresAt, Date.now()),
       passingScore: lesson.content.passingScore || 85
     }
   });
@@ -515,11 +512,7 @@ export const submitExam = asyncHandler(async (req: UserRequest, res: Response, n
 
   const questions = lesson.content.examQuestions || [];
   const { answers } = req.body;
-  if (!Array.isArray(answers) || questions.length === 0 ||
-      answers.length !== questions.length ||
-      !answers.every((answer: unknown, index: number) =>
-        Number.isInteger(answer) && (answer as number) >= 0 &&
-        (answer as number) < questions[index].options.length)) {
+  if (!hasCompleteAnswers(answers, questions)) {
     return next(new ErrorResponse('Provide one valid answer for every exam question', 400));
   }
 
@@ -529,9 +522,7 @@ export const submitExam = asyncHandler(async (req: UserRequest, res: Response, n
   const now = new Date();
   const session = progress.examSessions?.find(attempt =>
     attempt.lesson.toString() === lesson._id.toString() &&
-    !attempt.submittedAt &&
-    attempt.startedAt.getTime() <= now.getTime() &&
-    attempt.expiresAt.getTime() >= now.getTime());
+    isExamSessionActive(attempt.startedAt, attempt.expiresAt, attempt.submittedAt, now.getTime()));
   if (!session) return next(new ErrorResponse('Exam attempt expired or not started. Start a valid attempt first.', 409));
 
   let score = 0;
