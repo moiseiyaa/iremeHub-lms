@@ -250,7 +250,7 @@ export default function AdminBlogsPage() {
           {/* Header */}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Blog Management</h1>
+              <h1 className="text-2xl font-semibold text-gray-900 tracking-[-.045em]">Blog Management</h1>
               <p className="mt-1 text-sm text-gray-500">
                 Create, edit, and manage your blog posts
               </p>
@@ -258,7 +258,7 @@ export default function AdminBlogsPage() {
             <div className="mt-4 sm:mt-0">
               <Link 
                 href="/dashboard/admin/blogs/create" 
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-200"
               >
                 <PlusCircleIcon className="h-5 w-5 mr-2" />
                 Create New Blog
@@ -275,7 +275,7 @@ export default function AdminBlogsPage() {
                 </div>
                 <input
                   type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
                   placeholder="Search blogs by title, author, or tag..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -287,7 +287,7 @@ export default function AdminBlogsPage() {
                     <FunnelIcon className="h-5 w-5 text-gray-400" />
                   </div>
                   <select
-                    className="block w-full pl-10 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    className="block w-full pl-10 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-xl"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value as 'all' | 'draft' | 'published')}
                     aria-label="Filter blogs by status"
@@ -305,7 +305,7 @@ export default function AdminBlogsPage() {
                     setSearchQuery('');
                     setStatusFilter('all');
                   }}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                 >
                   <ArrowPathIcon className="h-5 w-5 mr-2 text-gray-500" />
                   Reset
@@ -318,7 +318,7 @@ export default function AdminBlogsPage() {
           <div className="bg-white shadow-sm rounded-lg overflow-hidden">
             {loading ? (
               <div className="py-20 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-4 text-gray-600">Loading blogs...</p>
               </div>
             ) : getCurrentPageBlogs().length === 0 ? (
@@ -333,7 +333,7 @@ export default function AdminBlogsPage() {
                 <div className="mt-6">
                   <Link 
                     href="/dashboard/admin/blogs/create" 
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-primary hover:bg-[#104a39]"
                   >
                     <PlusCircleIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
                     Create New Blog
@@ -344,7 +344,7 @@ export default function AdminBlogsPage() {
               <>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-[#f5f7f2]">
                       <tr>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Blog
@@ -368,10 +368,10 @@ export default function AdminBlogsPage() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {getCurrentPageBlogs().map((blog) => (
-                        <tr key={blog._id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={blog._id} className="hover:bg-[#f5f7f2] transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10 rounded-md overflow-hidden">
+                              <div className="flex-shrink-0 h-10 w-10 rounded-xl overflow-hidden">
                                 {blog.featuredImage?.url ? (
                                   <Image 
                                     src={blog.featuredImage.url} 
@@ -430,7 +430,7 @@ export default function AdminBlogsPage() {
                               <Link href={`/blog/${blog.slug}`} className="text-gray-500 hover:text-gray-700">
                                 <EyeIcon className="h-5 w-5" aria-label="View blog" />
                               </Link>
-                              <Link href={`/dashboard/admin/blogs/edit/${blog._id}`} className="text-blue-600 hover:text-blue-900">
+                              <Link href={`/dashboard/admin/blogs/edit/${blog._id}`} className="text-primary hover:text-blue-900">
                                 <PencilSquareIcon className="h-5 w-5" aria-label="Edit blog" />
                               </Link>
                               <button 
@@ -465,14 +465,14 @@ export default function AdminBlogsPage() {
                       </p>
                     </div>
                     <div>
-                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
                         <button
                           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                           disabled={currentPage === 1}
                           className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
                             currentPage === 1
                               ? 'text-gray-300 cursor-not-allowed'
-                              : 'text-gray-500 hover:bg-gray-50'
+                              : 'text-gray-500 hover:bg-[#f5f7f2]'
                           }`}
                         >
                           <span className="sr-only">Previous</span>
@@ -485,8 +485,8 @@ export default function AdminBlogsPage() {
                             onClick={() => setCurrentPage(i + 1)}
                             className={`relative inline-flex items-center px-4 py-2 border ${
                               currentPage === i + 1
-                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                ? 'z-10 bg-[#edf6ed] border-primary text-primary'
+                                : 'bg-white border-gray-300 text-gray-500 hover:bg-[#f5f7f2]'
                             } text-sm font-medium`}
                           >
                             {i + 1}
@@ -499,7 +499,7 @@ export default function AdminBlogsPage() {
                           className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
                             currentPage === totalPages
                               ? 'text-gray-300 cursor-not-allowed'
-                              : 'text-gray-500 hover:bg-gray-50'
+                              : 'text-gray-500 hover:bg-[#f5f7f2]'
                           }`}
                         >
                           <span className="sr-only">Next</span>

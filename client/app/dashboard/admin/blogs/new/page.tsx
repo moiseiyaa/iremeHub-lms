@@ -96,8 +96,8 @@ export default function NewBlogPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */} 
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-800">Create New Blog Post</h1>
-          <Link href="/dashboard/admin/blogs" className="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-800 tracking-[-.045em]">Create New Blog Post</h1>
+          <Link href="/dashboard/admin/blogs" className="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-xl text-slate-700 bg-white hover:bg-slate-50">
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             Back to Blogs
           </Link>
@@ -105,8 +105,8 @@ export default function NewBlogPage() {
 
         {/* Form */} 
         <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-xl shadow-lg space-y-6">
-          {error && <div className="p-3 bg-red-100 text-red-700 border border-red-300 rounded-md">{error}</div>}
-          {successMessage && <div className="p-3 bg-green-100 text-green-700 border border-green-300 rounded-md">{successMessage}</div>}
+          {error && <div className="p-3 bg-red-100 text-red-700 border border-red-300 rounded-xl">{error}</div>}
+          {successMessage && <div className="p-3 bg-green-100 text-green-700 border border-green-300 rounded-xl">{successMessage}</div>}
 
           {/* Title */} 
           <div>
@@ -118,7 +118,7 @@ export default function NewBlogPage() {
               value={formData.title}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
             />
           </div>
 
@@ -132,7 +132,7 @@ export default function NewBlogPage() {
               value={formData.content}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
               placeholder="Write your blog post content here..."
             ></textarea>
           </div>
@@ -146,7 +146,7 @@ export default function NewBlogPage() {
               id="category" 
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
               placeholder="e.g., Technology, Lifestyle"
             />
           </div>
@@ -160,7 +160,7 @@ export default function NewBlogPage() {
               id="tags" 
               value={formData.tags}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
               placeholder="e.g., react, javascript, webdev"
             />
           </div>
@@ -173,7 +173,7 @@ export default function NewBlogPage() {
               id="status" 
               value={formData.status}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:ring-primary focus:border-primary sm:text-sm bg-white"
             >
               <option value="draft">Draft</option>
               <option value="published">Published</option>
@@ -183,17 +183,17 @@ export default function NewBlogPage() {
           {/* Featured Image Upload */} 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Featured Image</label>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-md">
+            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl">
               <div className="space-y-1 text-center">
                 {imagePreview ? (
-                  <img src={imagePreview} alt="Featured image preview" className="mx-auto h-48 w-auto object-contain rounded-md" />
+                  <img src={imagePreview} alt="Featured image preview" className="mx-auto h-48 w-auto object-contain rounded-xl" />
                 ) : (
                   <PhotoIcon className="mx-auto h-12 w-12 text-slate-400" />
                 )}
                 <div className="flex text-sm text-slate-600">
                   <label 
                     htmlFor="featuredImage"
-                    className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                    className="relative cursor-pointer bg-white rounded-xl font-medium text-primary hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
                   >
                     <span>Upload a file</span>
                     <input id="featuredImage" name="featuredImage" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
@@ -225,7 +225,7 @@ export default function NewBlogPage() {
             <button 
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-slate-400 transition-colors"
+              className="w-full flex justify-center items-center px-6 py-3 border border-transparent rounded-xl shadow-sm text-base font-medium text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-slate-400 transition-colors"
             >
               {isSubmitting ? (
                 <>

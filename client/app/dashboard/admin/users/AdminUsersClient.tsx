@@ -109,7 +109,7 @@ export default function AdminUsersClient() {
       case 'admin':
         return 'bg-purple-100 text-purple-800';
       case 'educator':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-[#e3f0e5] text-[#246a4b]';
       default:
         return 'bg-green-100 text-green-800';
     }
@@ -127,23 +127,23 @@ export default function AdminUsersClient() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <p className="text-gray-600">Loading users…</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-8">
+    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Users Management</h1>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-[-.045em]">Users Management</h1>
             <p className="mt-1 text-gray-500">Manage all platform users</p>
           </div>
           <Link
             href="/dashboard/admin/users/create"
-            className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-white bg-primary hover:bg-[#104a39]"
           >
             <UserPlusIcon className="-ml-1 mr-2 h-5 w-5" /> Add User
           </Link>
@@ -160,7 +160,7 @@ export default function AdminUsersClient() {
               key={role}
               onClick={() => applyFilter(role)}
               className={`px-3 py-1 text-sm rounded-full ${
-                activeFilter === role ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                activeFilter === role ? 'bg-[#e3f0e5] text-[#246a4b]' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
               }`}
             >
               {role.charAt(0).toUpperCase() + role.slice(1)}
@@ -172,9 +172,9 @@ export default function AdminUsersClient() {
         </div>
 
         {/* Users table */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="bg-white shadow overflow-hidden sm:rounded-xl">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-[#f5f7f2]">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
@@ -184,7 +184,7 @@ export default function AdminUsersClient() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {users.map((u) => (
-                <tr key={u._id} className="hover:bg-gray-50">
+                <tr key={u._id} className="hover:bg-[#f5f7f2]">
                   <td className="px-6 py-4 whitespace-nowrap flex items-center space-x-3">
                     {u.profileImage ? (
                       <Image src={u.profileImage.url} alt={u.name} width={40} height={40} className="rounded-full" />
@@ -205,7 +205,7 @@ export default function AdminUsersClient() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(u.createdAt)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    <Link href={`/dashboard/admin/users/${u._id}/edit`} className="text-blue-600 hover:text-blue-900">
+                    <Link href={`/dashboard/admin/users/${u._id}/edit`} className="text-primary hover:text-blue-900">
                       <PencilSquareIcon className="h-5 w-5" title="Edit" />
                     </Link>
                     <button

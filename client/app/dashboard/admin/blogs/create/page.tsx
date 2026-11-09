@@ -158,7 +158,7 @@ export default function CreateBlogPage() {
             <div className="mt-3 sm:mt-0 sm:ml-4">
               <Link
                 href="/dashboard/admin/blogs"
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
                 <ArrowLeftIcon className="-ml-1 mr-2 h-5 w-5 text-gray-500" aria-hidden="true" />
                 Back to Blogs
@@ -168,7 +168,7 @@ export default function CreateBlogPage() {
           
           {/* Success message */}
           {submitted && (
-            <div className="mt-6 rounded-md bg-green-50 p-4">
+            <div className="mt-6 rounded-xl bg-green-50 p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <CheckCircleIcon className="h-5 w-5 text-green-400" aria-hidden="true" />
@@ -184,7 +184,7 @@ export default function CreateBlogPage() {
           
           {/* Error message */}
           {error && (
-            <div className="mt-6 rounded-md bg-red-50 p-4">
+            <div className="mt-6 rounded-xl bg-red-50 p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <XCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
@@ -219,7 +219,7 @@ export default function CreateBlogPage() {
                         required
                         value={formData.title}
                         onChange={handleChange}
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-xl"
                         placeholder="Enter blog title"
                       />
                     </div>
@@ -237,7 +237,7 @@ export default function CreateBlogPage() {
                         required
                         value={formData.slug}
                         onChange={handleChange}
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-xl"
                         placeholder="enter-blog-slug"
                       />
                     </div>
@@ -258,7 +258,7 @@ export default function CreateBlogPage() {
                         required
                         value={formData.excerpt}
                         onChange={handleChange}
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-xl"
                         placeholder="Brief summary of the blog post"
                       />
                     </div>
@@ -280,7 +280,7 @@ export default function CreateBlogPage() {
                     required
                     value={formData.content}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    className="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-xl"
                     placeholder="Write your blog content here..."
                   />
                   <p className="mt-2 text-sm text-gray-500">
@@ -296,14 +296,14 @@ export default function CreateBlogPage() {
                   Featured Image
                 </h3>
                 
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl">
                   <div className="space-y-1 text-center">
                     {previewUrl ? (
                       <div>
                         <img 
                           src={previewUrl} 
                           alt="Featured image preview" 
-                          className="mx-auto h-64 w-auto object-cover rounded-md" 
+                          className="mx-auto h-64 w-auto object-cover rounded-xl" 
                         />
                         <button
                           type="button"
@@ -311,7 +311,7 @@ export default function CreateBlogPage() {
                             setFormData({ ...formData, featuredImage: null });
                             setPreviewUrl(null);
                           }}
-                          className="mt-2 inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          className="mt-2 inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                         >
                           Remove image
                         </button>
@@ -322,7 +322,7 @@ export default function CreateBlogPage() {
                         <div className="flex text-sm text-gray-600">
                           <label
                             htmlFor="file-upload"
-                            className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                            className="relative cursor-pointer rounded-xl font-medium text-primary hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
                           >
                             <span>Upload a file</span>
                             <input
@@ -361,7 +361,7 @@ export default function CreateBlogPage() {
                         name="category"
                         value={formData.category}
                         onChange={handleChange}
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-xl"
                       >
                         {categories.map((category) => (
                           <option key={category} value={category}>
@@ -383,7 +383,7 @@ export default function CreateBlogPage() {
                         id="tags"
                         value={formData.tags}
                         onChange={handleChange}
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-xl"
                         placeholder="e.g. education, technology, tips"
                       />
                     </div>
@@ -407,7 +407,7 @@ export default function CreateBlogPage() {
                       value="draft"
                       checked={formData.status === 'draft'}
                       onChange={() => setFormData({ ...formData, status: 'draft' })}
-                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                      className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
                     />
                     <label htmlFor="status-draft" className="ml-3 block text-sm font-medium text-gray-700">
                       Save as Draft
@@ -421,7 +421,7 @@ export default function CreateBlogPage() {
                       value="published"
                       checked={formData.status === 'published'}
                       onChange={() => setFormData({ ...formData, status: 'published' })}
-                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                      className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
                     />
                     <label htmlFor="status-published" className="ml-3 block text-sm font-medium text-gray-700">
                       Publish Immediately
@@ -431,19 +431,19 @@ export default function CreateBlogPage() {
               </div>
               
               {/* Actions */}
-              <div className="px-4 py-3 bg-gray-50 text-right sm:px-6 flex justify-end space-x-3">
+              <div className="px-4 py-3 bg-[#f5f7f2] text-right sm:px-6 flex justify-end space-x-3">
                 <Link
                   href="/dashboard/admin/blogs"
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                 >
                   Cancel
                 </Link>
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                    loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white ${
+                    loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-primary hover:bg-[#104a39]'
+                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary`}
                 >
                   {loading ? (
                     <>
