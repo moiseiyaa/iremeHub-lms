@@ -19,10 +19,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      # Phase 1 prototype; replace with npm ci after committing lockfile.
       - name: Install isolated policy package
         working-directory: packages/core
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Compile and run authorization tests
         working-directory: packages/core
         run: npm test
