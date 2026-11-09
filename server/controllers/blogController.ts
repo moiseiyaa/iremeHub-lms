@@ -115,6 +115,36 @@ export const getBlogBySlug = asyncHandler(async (req: Request, res: Response, ne
   });
 });
 
+// List drafts and published posts to authenticated managers only.
+// Public /blogs remains published-only.
+export const getManagedBlogs = asyncHandler(async (req: UserRequest, res: Response) => {
+  const page = Math.max(1, Math.min(10000, Number.parseInt(String(req.query.page || '1'), 10) || 1));
+  const limit = Math.max(1, Math.min(50, Number.parseInt(String(req.query.limit || '20'), 10) || 20));
+  const status = String(req.query.status || '');
+  const filter: Record<string, unknown> = {};
+  if (req.user.role !== 'admin') filter.author = req.user.id;
+  if (['draft', 'published', 'archived'].includes(status)) filter.status = status;
+
+  const [total, blogs] = await Promise.all([
+    Blog.countDocuments(filter),
+    Blog.find(filter).select('-comments')
+      .populate('author', 'name avatar')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+  ]);
+  res.json({ success: true, data: blogs, total, page, pages: Math.ceil(total / limit) });
+});
+
+export const getManagedBlog = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
+  const blog = await Blog.findById(req.params.id);
+  if (!blog) return next(new ErrorResponse('Post not found', 404));
+  if (req.user.role !== 'admin' && blog.author.toString() !== req.user.id) {
+    return next(new ErrorResponse('Not authorized to access this post', 403));
+  }
+  res.json({ success: true, data: blog });
+});
+
 // @desc    Create new blog
 // @route   POST /api/v1/blogs
 // @access  Private (Admin)

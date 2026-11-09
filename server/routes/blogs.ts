@@ -2,7 +2,9 @@ import express from 'express';
 import {
   getBlogs, // Assuming you might have this for GET all
   getBlog,  // Assuming for GET single by ID
-  getBlogBySlug, // Assuming for GET single by slug
+  getBlogBySlug,
+  getManagedBlogs,
+  getManagedBlog,
   createBlog, 
   updateBlog, 
   deleteBlog,
@@ -12,6 +14,10 @@ import {
 import { protect, authorize } from '../middleware/auth';
 
 const router = express.Router();
+
+// Management routes must be registered before the public /:id matcher.
+router.get('/manage', protect, authorize('admin', 'educator'), getManagedBlogs);
+router.get('/manage/:id', protect, authorize('admin', 'educator'), getManagedBlog);
 
 // Public routes
 router.route('/').get(getBlogs); // Changed to use controller
