@@ -109,9 +109,9 @@ export default function CertificateDetailPage({ params }: { params: { id: string
   
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading certificate...</p>
         </div>
       </div>
@@ -120,15 +120,15 @@ export default function CertificateDetailPage({ params }: { params: { id: string
   
   if (error || !certificate) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
-        <div className="max-w-md w-full bg-white shadow-md rounded-lg p-8">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
+        <div className="max-w-md w-full bg-white shadow-sm rounded-lg p-8">
           <div className="text-center">
             <div className="text-red-500 text-3xl mb-4">😕</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Certificate Not Found</h2>
             <p className="text-gray-600 mb-6">{error || 'The certificate you are looking for does not exist or is no longer available.'}</p>
             <Link
               href="/certificates"
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#104a39]"
             >
               <ArrowLeftIcon className="h-4 w-4 mr-2" />
               Back to Certificates
@@ -140,12 +140,12 @@ export default function CertificateDetailPage({ params }: { params: { id: string
   }
   
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-12">
+    <div className="min-h-[calc(100vh-76px)] bg-[#f5f7f2] py-12">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Link
             href="/certificates"
-            className="inline-flex items-center text-indigo-600 hover:text-indigo-800"
+            className="inline-flex items-center text-primary hover:text-[#246a4b]"
           >
             <ArrowLeftIcon className="h-4 w-4 mr-1" />
             Back to Certificates
@@ -159,13 +159,13 @@ export default function CertificateDetailPage({ params }: { params: { id: string
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 h-48 flex items-center justify-center">
               <div className="text-center text-white px-4">
                 <AcademicCapIcon className="h-16 w-16 mx-auto mb-4" />
-                <h1 className="text-2xl font-bold">Certificate of Completion</h1>
+                <h1 className="text-2xl font-bold tracking-[-.045em]">Certificate of Completion</h1>
                 <p className="mt-1 text-white/80">ID: {certificate.certificateId}</p>
               </div>
             </div>
             
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2 border-4 border-indigo-100 shadow-md">
-              <div className="bg-indigo-500 rounded-full w-16 h-16 flex items-center justify-center">
+            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2 border-4 border-indigo-100 shadow-sm">
+              <div className="bg-[#edf6ed]0 rounded-full w-16 h-16 flex items-center justify-center">
                 <CheckBadgeIcon className="h-10 w-10 text-white" />
               </div>
             </div>
@@ -177,7 +177,7 @@ export default function CertificateDetailPage({ params }: { params: { id: string
               <h2 className="text-xl font-bold text-gray-900">
                 This is to certify that
               </h2>
-              <p className="mt-2 text-2xl font-bold text-indigo-600">
+              <p className="mt-2 text-2xl font-bold text-primary">
                 {certificate.user.name}
               </p>
               <p className="mt-2 text-gray-600">
@@ -222,7 +222,7 @@ export default function CertificateDetailPage({ params }: { params: { id: string
                   <div>
                     <h4 className="font-medium text-gray-900">Grade Achieved</h4>
                     <div className="flex items-center">
-                      <span className="text-lg font-semibold text-indigo-600 mr-2">
+                      <span className="text-lg font-semibold text-primary mr-2">
                         {certificate.metadata.grade}
                       </span>
                       <span className="text-gray-600">
@@ -271,7 +271,7 @@ export default function CertificateDetailPage({ params }: { params: { id: string
             </div>
             
             {/* Course Description */}
-            <div className="bg-indigo-50 p-4 rounded-md mb-8">
+            <div className="bg-[#edf6ed] p-4 rounded-xl mb-8">
               <h4 className="font-medium text-gray-900 mb-2">Course Description</h4>
               <p className="text-gray-600 text-sm">{certificate.course.description}</p>
             </div>
@@ -281,7 +281,7 @@ export default function CertificateDetailPage({ params }: { params: { id: string
               <button
                 onClick={verifyCertificate}
                 disabled={verificationStatus.isVerifying}
-                className="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-50 w-full sm:w-auto justify-center"
+                className="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-primary rounded-xl hover:bg-[#edf6ed] w-full sm:w-auto justify-center"
               >
                 {verificationStatus.isVerifying ? (
                   <>
@@ -301,7 +301,7 @@ export default function CertificateDetailPage({ params }: { params: { id: string
                   href={`/api/v1/certificates/${certificate.certificateId}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 w-full sm:w-auto justify-center"
+                  className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#104a39] w-full sm:w-auto justify-center"
                 >
                   <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
                   Download
@@ -309,7 +309,7 @@ export default function CertificateDetailPage({ params }: { params: { id: string
                 
                 <Link
                   href={`/courses/${certificate.course._id}`}
-                  className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 w-full sm:w-auto justify-center"
+                  className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-800 rounded-xl hover:bg-gray-200 w-full sm:w-auto justify-center"
                 >
                   View Course
                 </Link>
@@ -318,7 +318,7 @@ export default function CertificateDetailPage({ params }: { params: { id: string
             
             {/* Verification Results */}
             {verificationStatus.isValid !== undefined && (
-              <div className={`mt-6 p-4 rounded-md ${
+              <div className={`mt-6 p-4 rounded-xl ${
                 verificationStatus.isValid ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
               }`}>
                 <div className="flex">

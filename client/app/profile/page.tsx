@@ -216,7 +216,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0091ff] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading profile...</p>
@@ -226,9 +226,9 @@ export default function Profile() {
   }
 
   return (
-    <div className="bg-white min-h-[calc(100vh-64px)] py-10">
+    <div className="bg-white min-h-[calc(100vh-76px)] py-10">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
           <div className="bg-gradient-to-r from-[#0091ff]/90 to-blue-700/80 px-6 py-8 sm:p-10">
             <div className="flex flex-col sm:flex-row items-center justify-between">
               <div className="flex flex-col sm:flex-row items-center mb-4 sm:mb-0">
@@ -283,7 +283,7 @@ export default function Profile() {
                 {!isEditing && (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center px-4 py-2 bg-white text-[#0091ff] rounded-md hover:bg-gray-100"
+                    className="flex items-center px-4 py-2 bg-white text-[#0091ff] rounded-xl hover:bg-gray-100"
                   >
                     <PencilIcon className="h-4 w-4 mr-2" />
                     Edit Profile
@@ -291,7 +291,7 @@ export default function Profile() {
                 )}
                 <button
                   onClick={() => router.push('/dashboard')}
-                  className="flex items-center px-4 py-2 bg-white text-[#0091ff] rounded-md hover:bg-gray-100"
+                  className="flex items-center px-4 py-2 bg-white text-[#0091ff] rounded-xl hover:bg-gray-100"
                 >
                   <HomeIcon className="h-4 w-4 mr-2" />
                   Dashboard
@@ -326,7 +326,7 @@ export default function Profile() {
                       id="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#0091ff] focus:border-[#0091ff]"
+                      className="block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-[#0091ff] focus:border-[#0091ff]"
                     />
                   </div>
                   
@@ -340,7 +340,7 @@ export default function Profile() {
                       id="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#0091ff] focus:border-[#0091ff]"
+                      className="block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-[#0091ff] focus:border-[#0091ff]"
                     />
                   </div>
                   
@@ -354,7 +354,7 @@ export default function Profile() {
                       rows={4}
                       value={formData.bio}
                       onChange={handleChange}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#0091ff] focus:border-[#0091ff]"
+                      className="block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-[#0091ff] focus:border-[#0091ff]"
                     />
                   </div>
                   
@@ -362,14 +362,14 @@ export default function Profile() {
                     <button
                       type="button"
                       onClick={cancelEdit}
-                      className="flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                      className="flex items-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#f5f7f2]"
                     >
                       <XMarkIcon className="h-4 w-4 mr-2" />
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0091ff] hover:bg-blue-600"
+                      className="flex items-center px-4 py-2 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-[#0091ff] hover:bg-primary"
                     >
                       <CheckIcon className="h-4 w-4 mr-2" />
                       Save Changes
@@ -399,7 +399,7 @@ export default function Profile() {
                   <div className="mt-3 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
                     <a
                       href="/change-password"
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#f5f7f2]"
                     >
                       Change Password
                     </a>

@@ -394,7 +394,7 @@ export default function CoursePage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading course...</p>
@@ -405,9 +405,9 @@ export default function CoursePage() {
 
   if (error) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="text-red-500 text-2xl">😕</div>
+          <div className="text-red-500 text-2xl"></div>
           <h2 className="mt-2 text-xl font-semibold text-gray-900">Error Loading Course</h2>
           <p className="mt-1 text-gray-500">{error}</p>
           <Link href="/courses" className="btn-primary mt-4">
@@ -420,9 +420,9 @@ export default function CoursePage() {
 
   if (!course) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="text-gray-500 text-2xl">🔍</div>
+          <div className="text-gray-500 text-2xl"></div>
           <h2 className="mt-2 text-xl font-semibold text-gray-900">Course Not Found</h2>
           <p className="mt-1 text-gray-500">The course you&apos;re looking for does not exist.</p>
           <Link href="/courses" className="btn-primary mt-4">
@@ -434,12 +434,12 @@ export default function CoursePage() {
   }
 
   return (
-    <div className="bg-white min-h-[calc(100vh-64px)] py-10">
+    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Course Header */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-[-.045em]">{course.title}</h1>
             <p className="mt-4 text-gray-700 whitespace-pre-line">
               {course.description && course.description.trim().length > 0 ? (
                 course.description
@@ -501,7 +501,7 @@ export default function CoursePage() {
           </div>
           
           <div className="lg:col-span-1">
-            <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
+            <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
               <div className="h-48 relative">
                 {course && (
                   <Image
@@ -519,7 +519,7 @@ export default function CoursePage() {
                 
                 {isEnrolled ? (
                   <div className="space-y-4">
-                    <div className="bg-gray-100 rounded-md p-4">
+                    <div className="bg-gray-100 rounded-xl p-4">
                       <div className="text-sm text-gray-500 mb-1">Your progress</div>
                       <div className="flex items-center justify-between text-sm font-medium">
                         <span>{progress?.progressPercentage || 0}% Complete</span>
@@ -529,7 +529,7 @@ export default function CoursePage() {
                       </div>
                       <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
                         <div 
-                          className={`bg-indigo-600 h-2.5 rounded-full ${getProgressWidthClass(progress?.progressPercentage)}`}
+                          className={`bg-primary h-2.5 rounded-full ${getProgressWidthClass(progress?.progressPercentage)}`}
                         ></div>
                       </div>
                     </div>
@@ -545,7 +545,7 @@ export default function CoursePage() {
                   <button
                     onClick={enrollPending ? undefined : handleEnroll}
                     disabled={enrollmentLoading || enrollPending}
-                    className="mt-4 w-full bg-slate-800 text-white px-4 py-2 rounded-md hover:bg-slate-700 disabled:opacity-50"
+                    className="mt-4 w-full bg-slate-800 text-white px-4 py-2 rounded-xl hover:bg-slate-700 disabled:opacity-50"
                   >
                     {enrollPending ? 'Enroll Pending' : enrollmentLoading ? 'Processing...' : 'Enroll Now'}
                   </button>
@@ -574,13 +574,13 @@ export default function CoursePage() {
         <div className="mt-10">
           <div className="border-b border-gray-200 mb-6">
             <div className="-mb-px flex space-x-8">
-              <button className="border-indigo-500 text-indigo-600 py-4 px-1 border-b-2 font-medium text-sm">
+              <button className="border-primary text-primary py-4 px-1 border-b-2 font-medium text-sm">
                 Course Content
               </button>
             </div>
           </div>
           
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg font-medium text-gray-900">
                 Course Content
@@ -591,8 +591,8 @@ export default function CoursePage() {
               
               <div className="mt-4 space-y-4">
                 {Object.entries(lessonsBySection).map(([sectionId, sectionLessons]) => (
-                  <div key={sectionId} className="border border-gray-200 rounded-md overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-3 flex justify-between items-center">
+                  <div key={sectionId} className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="bg-[#f5f7f2] px-4 py-3 flex justify-between items-center">
                       <h4 className="font-medium text-gray-900">
                         {sectionId === 'uncategorized' ? 'Uncategorized Lessons' : sectionLessons[0].section?.title}
                       </h4>
@@ -605,7 +605,7 @@ export default function CoursePage() {
                         <div key={lesson._id} className="px-4 py-3 flex items-center justify-between">
                           <div className="flex items-center">
                             {isEnrolled || lesson.isPreview ? (
-                              <PlayIcon className="h-5 w-5 text-indigo-600 mr-3" />
+                              <PlayIcon className="h-5 w-5 text-primary mr-3" />
                             ) : (
                               <LockClosedIcon className="h-5 w-5 text-gray-400 mr-3" />
                             )}
@@ -631,7 +631,7 @@ export default function CoursePage() {
                           {(isEnrolled || lesson.isPreview) && (
                             <Link
                               href={`/courses/${courseId}/learn?lesson=${lesson._id}`}
-                              className="text-sm text-indigo-600 hover:text-indigo-500"
+                              className="text-sm text-primary hover:text-indigo-500"
                             >
                               {isLessonCompleted(lesson._id) ? 'Review' : 'Start'}
                             </Link>

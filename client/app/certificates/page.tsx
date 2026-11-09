@@ -61,9 +61,9 @@ export default function CertificatesPage() {
   
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading certificates...</p>
         </div>
       </div>
@@ -72,15 +72,15 @@ export default function CertificatesPage() {
   
   if (error) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
-        <div className="max-w-md w-full bg-white shadow-md rounded-lg p-8">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
+        <div className="max-w-md w-full bg-white shadow-sm rounded-lg p-8">
           <div className="text-center">
             <div className="text-red-500 text-3xl mb-4">😕</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
             <p className="text-gray-600 mb-6">{error}</p>
             <button
               onClick={fetchCertificates}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#104a39]"
             >
               Try Again
             </button>
@@ -91,17 +91,17 @@ export default function CertificatesPage() {
   }
   
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-12">
+    <div className="min-h-[calc(100vh-76px)] bg-[#f5f7f2] py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900">Your Certificates</h1>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-[-.045em]">Your Certificates</h1>
           <p className="mt-2 text-lg text-gray-600">
             Showcase your achievements and completed courses
           </p>
         </div>
         
         {certificates.length === 0 ? (
-          <div className="max-w-md mx-auto bg-white shadow-md rounded-lg p-8 text-center">
+          <div className="max-w-md mx-auto bg-white shadow-sm rounded-lg p-8 text-center">
             <AcademicCapIcon className="h-16 w-16 text-indigo-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No Certificates Yet</h2>
             <p className="text-gray-600 mb-6">
@@ -109,7 +109,7 @@ export default function CertificatesPage() {
             </p>
             <Link
               href="/courses"
-              className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              className="inline-block px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#104a39]"
             >
               Browse Courses
             </Link>
@@ -117,7 +117,7 @@ export default function CertificatesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {certificates.map((certificate) => (
-              <div key={certificate._id} className="bg-white shadow-md rounded-lg overflow-hidden">
+              <div key={certificate._id} className="bg-white shadow-sm rounded-lg overflow-hidden">
                 {/* Certificate header */}
                 <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8 text-white relative">
                   <div className="absolute top-4 right-4 bg-white/20 rounded-full p-2">
@@ -167,7 +167,7 @@ export default function CertificatesPage() {
                   <div className="flex justify-between items-center">
                     <Link
                       href={`/courses/${certificate.course._id}`}
-                      className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                      className="text-primary hover:text-[#246a4b] text-sm font-medium"
                     >
                       View Course
                     </Link>
@@ -175,7 +175,7 @@ export default function CertificatesPage() {
                       href={`/api/certificates/${certificate._id}/download`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center text-sm font-medium bg-indigo-50 text-indigo-700 px-3 py-2 rounded-md hover:bg-indigo-100"
+                      className="flex items-center text-sm font-medium bg-[#edf6ed] text-indigo-700 px-3 py-2 rounded-xl hover:bg-[#e3f0e5]"
                     >
                       <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
                       Download

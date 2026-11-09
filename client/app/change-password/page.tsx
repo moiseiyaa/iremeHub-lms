@@ -95,12 +95,12 @@ export default function ChangePassword() {
   };
 
   return (
-    <div className="bg-white min-h-[calc(100vh-64px)] py-10">
+    <div className="bg-white min-h-[calc(100vh-76px)] py-10">
       <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
           <div className="bg-gradient-to-r from-[#0091ff]/90 to-blue-700/80 px-6 py-8">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-white">Change Password</h1>
+              <h1 className="text-2xl font-bold text-white tracking-[-.045em]">Change Password</h1>
               <p className="mt-2 text-sm text-blue-100">
                 Update your password to keep your account secure
               </p>
@@ -122,7 +122,7 @@ export default function ChangePassword() {
             
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <div className="relative rounded-md shadow-sm">
+                <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                   </div>
@@ -133,14 +133,14 @@ export default function ChangePassword() {
                     required
                     value={currentPassword}
                     onChange={handleChange}
-                    className="block w-full pl-10 sm:text-sm border border-gray-300 rounded-md py-3 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent"
+                    className="block w-full pl-10 sm:text-sm border border-gray-300 rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent"
                     placeholder="Current Password"
                   />
                 </div>
               </div>
 
               <div>
-                <div className="relative rounded-md shadow-sm">
+                <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                   </div>
@@ -151,14 +151,14 @@ export default function ChangePassword() {
                     required
                     value={newPassword}
                     onChange={handleChange}
-                    className="block w-full pl-10 sm:text-sm border border-gray-300 rounded-md py-3 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent"
+                    className="block w-full pl-10 sm:text-sm border border-gray-300 rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent"
                     placeholder="New Password"
                   />
                 </div>
               </div>
 
               <div>
-                <div className="relative rounded-md shadow-sm">
+                <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                   </div>
@@ -169,7 +169,7 @@ export default function ChangePassword() {
                     required
                     value={confirmPassword}
                     onChange={handleChange}
-                    className="block w-full pl-10 sm:text-sm border border-gray-300 rounded-md py-3 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent"
+                    className="block w-full pl-10 sm:text-sm border border-gray-300 rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-[#0091ff] focus:border-transparent"
                     placeholder="Confirm New Password"
                   />
                 </div>
@@ -178,7 +178,7 @@ export default function ChangePassword() {
               <div className="flex items-center justify-between">
                 <Link
                   href="/profile"
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#f5f7f2]"
                 >
                   <ArrowLeftIcon className="h-4 w-4 mr-2" />
                   Back to Profile
@@ -187,7 +187,7 @@ export default function ChangePassword() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0091ff] hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0091ff] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center px-6 py-2 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-[#0091ff] hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0091ff] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Updating...' : 'Update Password'}
                 </button>
