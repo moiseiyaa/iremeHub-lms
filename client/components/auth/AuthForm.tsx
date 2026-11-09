@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EyeIcon, EyeSlashIcon, ArrowUpRightIcon } from '@heroicons/react/24/outline';
@@ -13,6 +13,7 @@ export default function AuthForm({ initialMode='login', onSuccess }: Props) {
   const router = useRouter();
   const {checkAuth} = useAuth();
   const [mode,setMode] = useState<Mode>(initialMode);
+  useEffect(()=>{setMode(initialMode);setError('');},[initialMode]);
   const [name,setName] = useState('');
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
