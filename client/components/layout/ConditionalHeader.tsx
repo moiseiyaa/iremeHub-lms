@@ -1,17 +1,12 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Header from './Header'; // Your existing main Header/Navbar
-import AdminNav from '../Nav/AdminNav'; // The new AdminNav
+import Header from './Header';
+import AdminNav from '../Nav/AdminNav';
 
 export default function ConditionalHeader() {
-  const pathname = usePathname();
-  // Ensure pathname is not null before calling startsWith
-  const isAdminRoute = typeof pathname === 'string' && pathname.startsWith('/dashboard/admin');
-
-  if (isAdminRoute) {
-    return <AdminNav />;
-  }
-
+  const path = usePathname() || '';
+  if (/^\/courses\/[^/]+\/learn(?:\/|$)/.test(path)) return null;
+  if (path.startsWith('/dashboard/admin')) return <AdminNav />;
   return <Header />;
-} 
+}
