@@ -13,6 +13,9 @@ import { protect, authorize } from '../middleware/auth';
 
 const router = express.Router({ mergeParams: true });
 
+// Protected authoring list must precede the generic /:id route.
+router.get('/educator/list', protect, authorize('educator', 'admin'), getEducatorAnnouncements);
+
 // Public routes
 router.get('/', getAnnouncements);
 router.get('/:id', getAnnouncement);
@@ -26,7 +29,5 @@ router.put('/:id', authorize('educator', 'admin'), updateAnnouncement);
 router.delete('/:id', authorize('educator', 'admin'), deleteAnnouncement);
 router.post('/:id/toggle-publish', authorize('educator', 'admin'), togglePublishStatus);
 
-// Educator-specific routes
-router.get('/educator/list', authorize('educator', 'admin'), getEducatorAnnouncements);
 
 export default router; 
