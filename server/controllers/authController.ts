@@ -213,7 +213,7 @@ export const getUser = asyncHandler(async (req: Request, res: Response, next: Ne
 // @desc    Update user role
 // @route   PUT /api/v1/auth/users/:id/role
 // @access  Private (Admin)
-export const updateUserRole = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const updateUserRole = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   // Check if role is valid
   if (!['student', 'educator', 'admin'].includes(req.body.role)) {
     return next(new ErrorResponse('Invalid role specified', 400));
@@ -249,7 +249,7 @@ export const updateUserRole = asyncHandler(async (req: Request, res: Response, n
 // @desc    Delete user
 // @route   DELETE /api/v1/auth/users/:id
 // @access  Private (Admin)
-export const deleteUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const deleteUser = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   const user = await User.findById(req.params.id);
 
   if (!user) {
