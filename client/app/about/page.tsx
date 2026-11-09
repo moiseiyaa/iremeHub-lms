@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowUpRightIcon, BookOpenIcon, GraduationCapIcon, BuildingOffice2Icon, ShieldCheckIcon, SparklesIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { ArrowUpRightIcon, BookOpenIcon, AcademicCapIcon, BuildingOffice2Icon, ShieldCheckIcon, SparklesIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 
 const pillars=[
 {icon:BookOpenIcon,title:'Better learning journeys',copy:'Put learning materials, lessons and milestones where people can find them.'},

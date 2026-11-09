@@ -2,244 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import fonts if needed */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.cdnfonts.com/css/arista-pro');
-
-/* Custom base styles */
+/* Shared legacy-compatible primitives. New design tokens live in iremehub.css. */
 @layer base {
-  :root {
-    --color-primary: #0091ff;
-    --color-secondary: #e0e0e0;
-    --color-light: #ffffff;
-    --color-dark: #333333;
-  }
-  
-  html {
-    scroll-behavior: smooth;
-    font-size: 16px;
-  }
-  
-  body {
-    background-color: white;
-    color: #333333;
-    font-family: 'Inter', system-ui, sans-serif;
-    @apply antialiased;
-    overflow-x: hidden;
-  }
-
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    @apply bg-gray-100;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-primary to-primary/70 rounded-full;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gradient-to-b from-primary/70 to-primary;
-  }
-
-  /* Selection styling */
-  ::selection {
-    @apply bg-primary/20 text-primary;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    line-height: 1.2;
-  }
-
-  p {
-    line-height: 1.6;
-  }
+  html { scroll-behavior: smooth; }
+  body { @apply antialiased; overflow-x: hidden; }
+  h1, h2, h3, h4, h5, h6 { line-height: 1.2; }
+  p { line-height: 1.65; }
 }
-
-/* Custom component styles */
 @layer components {
-  /* Buttons */
-  .btn-primary {
-    @apply relative px-4 py-2 md:px-6 md:py-3 bg-primary text-white font-semibold rounded-full
-           transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 
-           transform hover:-translate-y-1 active:translate-y-0 
-           focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-primary;
-  }
-  
-  .btn-secondary {
-    @apply relative px-4 py-2 md:px-6 md:py-3 border-2 border-secondary text-dark font-semibold rounded-full
-           hover:bg-secondary/50 transition-all duration-300
-           focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:ring-offset-2 focus:ring-offset-secondary;
-  }
-
-  .btn-outline {
-    @apply relative px-4 py-2 md:px-6 md:py-3 border border-secondary text-dark font-semibold rounded-full
-           hover:border-primary hover:text-primary transition-all duration-300;
-  }
-  
-  /* Cards */
-  .card {
-    @apply relative bg-white rounded-xl p-4 md:p-6 shadow-md border border-secondary/50 
-           hover:shadow-xl hover:border-primary/30 transition-all duration-300;
-  }
-  
-  .card-hover {
-    @apply relative bg-white rounded-xl p-4 md:p-6 shadow-md border border-secondary/50
-           transition-all duration-300 hover:animate-popHover hover:shadow-lg hover:shadow-primary/10 
-           hover:border-primary/30 transform hover:-translate-y-1;
-  }
-  
-  .card-gradient {
-    @apply relative rounded-xl p-4 md:p-6 shadow-lg overflow-hidden transition-all duration-300
-           before:absolute before:inset-0 before:bg-gradient-to-br before:from-light/20 before:to-secondary/20 
-           before:opacity-0 before:transition-opacity before:duration-300
-           hover:before:opacity-100 hover:shadow-lg hover:shadow-primary/10;
-  }
-  
-  /* Progress bar dynamic width */
-  .progress-bar {
-    width: var(--progress, 0%);
-  }
-
-  /* Container */
-  .container-custom {
-    @apply w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
-  /* Main content wrapper - ensures pages are pushed below fixed navbar */
-  .main-content {
-    /* Push content below fixed navbar */
-    @apply pt-[64px] md:pt-[72px];
-  }
-
-  /* Section Styles */
-  .section-padding {
-    @apply py-8 md:py-12 lg:py-16;
-  }
-  
-  /* Glassmorphism */
-  .glass {
-    @apply bg-white/10 backdrop-blur-lg;
-  }
-  
-  .glass-dark {
-    @apply bg-black/30 backdrop-blur-lg;
-  }
-  
-  /* Gradient texts */
-  .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70;
-  }
-  
-  /* Animations */
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
+  .container-custom { @apply w-full max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8; }
+  .main-content { @apply pt-16 md:pt-[76px]; }
+  .btn-primary { @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-white text-sm font-semibold transition-colors hover:bg-[#104a39] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#73b48a]; }
+  .btn-secondary, .btn-outline { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-secondary bg-white text-dark px-5 py-3 text-sm font-semibold transition-colors hover:bg-[#eff7ec]; }
+  .card, .card-hover, .course-card { @apply rounded-2xl border border-[#dfe7e0] bg-white shadow-sm transition-all duration-200 hover:shadow-lg; }
+  .card-gradient { @apply rounded-2xl border border-[#dfe7e0] p-6 bg-[#f0f5ed]; }
+  .section-padding { @apply py-12 md:py-16 lg:py-24; }
+  .glass { @apply bg-white/80 backdrop-blur-xl; }
+  .glass-dark { @apply bg-[#143e2f]/80 backdrop-blur-xl; }
+  .gradient-text { @apply text-[#297753]; }
+  .progress-bar { width: var(--progress, 0%); }
 }
-
-/* Custom Animations */
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* Auth Modal Animation */
-@keyframes popout {
-  0% {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  70% {
-    transform: scale(1.05);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Card Hover Animation */
-@keyframes popHover {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  }
-  100% {
-    transform: scale(1.03);
-    box-shadow: 0 10px 15px -3px rgba(0, 145, 255, 0.1);
-  }
-}
-
-/* Utility Styles */
 @layer utilities {
-  .text-shadow {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .text-shadow-lg {
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  /* Responsive text size utilities */
-  .text-responsive-sm {
-    @apply text-sm md:text-base;
-  }
-  
-  .text-responsive-base {
-    @apply text-base md:text-lg;
-  }
-  
-  .text-responsive-lg {
-    @apply text-lg md:text-xl lg:text-2xl;
-  }
-  
-  .text-responsive-xl {
-    @apply text-xl md:text-2xl lg:text-3xl;
-  }
-  
-  .text-responsive-2xl {
-    @apply text-2xl md:text-3xl lg:text-4xl;
-  }
-  
-  .text-responsive-3xl {
-    @apply text-3xl md:text-4xl lg:text-5xl xl:text-6xl;
-  }
-  
-  /* Spacing utilities */
-  .space-y-responsive-sm {
-    @apply space-y-2 md:space-y-3;
-  }
-  
-  .space-y-responsive-md {
-    @apply space-y-4 md:space-y-6;
-  }
-  
-  .space-y-responsive-lg {
-    @apply space-y-6 md:space-y-8 lg:space-y-10;
-  }
+  .text-responsive-sm { @apply text-sm md:text-base; }
+  .text-responsive-base { @apply text-base md:text-lg; }
+  .text-responsive-lg { @apply text-lg md:text-xl lg:text-2xl; }
+  .text-responsive-xl { @apply text-xl md:text-2xl lg:text-3xl; }
+  .text-responsive-2xl { @apply text-2xl md:text-3xl lg:text-4xl; }
+  .text-responsive-3xl { @apply text-3xl md:text-4xl lg:text-5xl xl:text-6xl; }
+  .space-y-responsive-sm { @apply space-y-2 md:space-y-3; }
+  .space-y-responsive-md { @apply space-y-4 md:space-y-6; }
+  .space-y-responsive-lg { @apply space-y-6 md:space-y-8 lg:space-y-10; }
+  .animate-float { animation: ih-float 6s ease-in-out infinite; }
 }
- 
+@keyframes ih-float { 50% { transform: translateY(-9px); } }
