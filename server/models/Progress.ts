@@ -81,6 +81,22 @@ export interface IProgress extends Document {
   progressPercentage: number; // Virtual
 }
 
+// Defense in depth: raw grading answers remain available for server-side
+// evaluation but are excluded from standard JSON and plain-object responses.
+const hideGradingAnswers = (_doc: unknown, value: Record<string, unknown>) => {
+  for (const field of ['quizResults', 'examResults']) {
+    const rows = value[field];
+    if (!Array.isArray(rows)) continue;
+    value[field] = rows.map(row => {
+      if (!row || typeof row !== 'object') return row;
+      const clone = { ...row };
+      delete clone.answers;
+      return clone;
+    });
+  }
+  return value;
+};
+
 const ProgressSchema: Schema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -194,8 +210,8 @@ const ProgressSchema: Schema = new mongoose.Schema({
     certificateUrl: String
   },
 }, {
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true },
+  toJSON: { virtuals: true, transform: hideGradingAnswers },
+  toObject: { virtuals: true, transform: hideGradingAnswers },
   timestamps: true
 });
 
