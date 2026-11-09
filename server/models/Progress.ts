@@ -48,6 +48,13 @@ interface IExamResult {
   timeSpent?: number; // in minutes
 }
 
+interface IExamSession {
+  lesson: mongoose.Types.ObjectId;
+  startedAt: Date;
+  expiresAt: Date;
+  submittedAt?: Date;
+}
+
 interface ICertificate {
   issued: boolean;
   issuedAt?: Date;
@@ -63,6 +70,7 @@ export interface IProgress extends Document {
   quizResults: IQuizResult[];
   assignmentSubmissions: IAssignmentSubmission[];
   examResults: IExamResult[];
+  examSessions: IExamSession[];
   totalPoints: number;
   lastAccessed: Date;
   completed: boolean;
@@ -156,6 +164,12 @@ const ProgressSchema: Schema = new mongoose.Schema({
       default: Date.now
     },
     timeSpent: Number // in minutes
+  }],
+  examSessions: [{
+    lesson: { type: mongoose.Schema.Types.ObjectId, ref: 'Lesson', required: true },
+    startedAt: { type: Date, required: true },
+    expiresAt: { type: Date, required: true },
+    submittedAt: Date
   }],
   totalPoints: {
     type: Number,
