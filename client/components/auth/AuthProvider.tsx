@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import AuthModal from './AuthModal';
-import { initActivityTracker, refreshToken } from '../../app/utils/auth';
+import { initActivityTracker } from '../../app/utils/auth';
 
 interface User {
   id: string;
@@ -68,203 +68,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // }, [pathname]);
 
   const checkAuth = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      console.log('Checking authentication status...');
-      
-      // Check for token in localStorage
-      const token = localStorage.getItem('token');
-      
+      // A token alone is not proof of authentication. Always verify with the API.
+      const token = window.localStorage.getItem('token');
       if (!token) {
-        console.log('No token found in localStorage');
-        setIsAuthenticated(false);
         setUser(null);
+        setIsAuthenticated(false);
         return;
       }
 
-      console.log('Token found, validating...');
-      
-      // Development mode handling - special case to ensure admin users can always access dashboard
-      if (process.env.NODE_ENV === 'development') {
-        try {
-          console.log('Development mode: checking if token is for test user');
-          
-          // Try to parse the token to see if it's our test user
-          const tokenParts = token.split('.');
-          if (tokenParts.length === 3) {
-            try {
-              const payload = JSON.parse(atob(tokenParts[1]));
-              
-              // If this is our test user ID, set up mock user data
-              if (payload.id === '60d0fe4f5311236168a109ca') {
-                console.log('Development mode: Using test user data');
-                
-                // Set up mock admin user
-                const testUser = {
-                  id: '60d0fe4f5311236168a109ca',
-                  _id: '60d0fe4f5311236168a109ca',
-                  name: 'Test User (Dev)',
-                  email: 'test@example.com',
-                  role: 'admin',
-                  avatar: {
-                    url: 'https://via.placeholder.com/150'
-                  },
-                  bio: 'Development test user',
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString()
-                };
-                
-                setUser(testUser);
-                setIsAuthenticated(true);
-                console.log('Development mode: Test admin user authenticated');
-                setLoading(false);
-                return;
-              }
-            } catch (parseError) {
-              console.log('Token parse error:', parseError);
-            }
-          }
-        } catch (devError) {
-          console.error('Error in development mode handling:', devError);
-          // Continue with regular auth checking if dev mode handling fails
+      const response = await fetch('/api/v1/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store'
+      });
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          window.localStorage.removeItem('token');
         }
-      }
-      
-      try {
-        // Refresh token if needed
-        await refreshToken();
-        
-        // Get user data
-        console.log('Fetching user data...');
-        const response = await fetch('/api/v1/auth/me', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          console.log('User data received:', userData);
-          
-          // Validate user data before setting it
-          if (userData.data && typeof userData.data === 'object') {
-            setUser(userData.data);
-            setIsAuthenticated(true);
-            console.log('User authenticated successfully');
-          } else {
-            console.error('Invalid user data format:', userData);
-            
-            // Development mode fallback when API returns invalid data
-            if (process.env.NODE_ENV === 'development') {
-              console.log('Development mode: Using fallback user data');
-              const fallbackUser = {
-                id: '60d0fe4f5311236168a109ca',
-                _id: '60d0fe4f5311236168a109ca',
-                name: 'Test User (Fallback)',
-                email: 'test@example.com',
-                role: 'admin',
-                avatar: {
-                  url: 'https://via.placeholder.com/150'
-                },
-                bio: 'Development fallback user',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              };
-              
-              setUser(fallbackUser);
-              setIsAuthenticated(true);
-              console.log('Development fallback user authenticated');
-            } else {
-              setIsAuthenticated(false);
-              setUser(null);
-            }
-          }
-        } else {
-          // If token is invalid, check for development mode
-          console.error('Invalid token response:', response.status);
-          
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Development mode: Creating fallback user despite invalid token');
-            const fallbackUser = {
-              id: '60d0fe4f5311236168a109ca',
-              _id: '60d0fe4f5311236168a109ca',
-              name: 'Test User (API Error)',
-              email: 'test@example.com',
-              role: 'admin',
-              avatar: {
-                url: 'https://via.placeholder.com/150'
-              },
-              bio: 'Development fallback user (API error)',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            };
-            
-            setUser(fallbackUser);
-            setIsAuthenticated(true);
-            console.log('Development fallback user authenticated (API error)');
-          } else {
-            // Regular handling for production - clear token and reset auth state
-            localStorage.removeItem('token');
-            setIsAuthenticated(false);
-            setUser(null);
-          }
-        }
-      } catch (fetchError) {
-        console.error('Error fetching user data:', fetchError);
-        
-        // Development mode fallback for fetch errors
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Development mode: Creating fallback user after fetch error');
-          const fallbackUser = {
-            id: '60d0fe4f5311236168a109ca',
-            _id: '60d0fe4f5311236168a109ca',
-            name: 'Test User (Fetch Error)',
-            email: 'test@example.com',
-            role: 'admin',
-            avatar: {
-              url: 'https://via.placeholder.com/150'
-            },
-            bio: 'Development fallback user (fetch error)',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          
-          setUser(fallbackUser);
-          setIsAuthenticated(true);
-          console.log('Development fallback user authenticated (fetch error)');
-        } else {
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      }
-    } catch (error) {
-      // Log the error but don't expose it to the client
-      console.error('Auth check failed:', error);
-      
-      // Development mode final fallback
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Development mode: Final fallback user after auth check failure');
-        const finalFallbackUser = {
-          id: '60d0fe4f5311236168a109ca',
-          _id: '60d0fe4f5311236168a109ca',
-          name: 'Test User (Error)',
-          email: 'test@example.com',
-          role: 'admin',
-          avatar: {
-            url: 'https://via.placeholder.com/150'
-          },
-          bio: 'Development final fallback user',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        
-        setUser(finalFallbackUser);
-        setIsAuthenticated(true);
-        console.log('Development final fallback user authenticated');
-      } else {
-        setIsAuthenticated(false);
         setUser(null);
+        setIsAuthenticated(false);
+        return;
       }
+
+      const payload = await response.json();
+      if (!payload?.data || typeof payload.data !== 'object') {
+        setUser(null);
+        setIsAuthenticated(false);
+        return;
+      }
+
+      setUser(payload.data as User);
+      setIsAuthenticated(true);
+    } catch {
+      // Network failures must not manufacture an authenticated user.
+      setUser(null);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
