@@ -18,22 +18,22 @@ interface UserRequest extends Request {
 // @desc    Get all lessons for a course
 // @route   GET /api/v1/courses/:courseId/lessons
 // @access  Private
-export const getLessons = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const getLessons = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   const course = await Course.findById(req.params.courseId);
-
-  if (!course) {
-    return next(new ErrorResponse(`Course not found with id of ${req.params.courseId}`, 404));
+  if (!course) return next(new ErrorResponse('Course not found', 404));
+  const userId = req.user?.id;
+  const canManage = req.user?.role === 'admin' || course.instructor.toString() === userId;
+  const enrolled = course.enrolledStudents.some(id => id.toString() === userId);
+  if (!canManage && !enrolled) {
+    return next(new ErrorResponse('Enrollment required to view course lessons', 403));
   }
-
-  const lessons = await Lesson.find({ course: req.params.courseId })
-    .sort('order')
-    .populate('section');
-
-  res.status(200).json({
-    success: true,
-    count: lessons.length,
-    data: lessons
-  });
+  const query = Lesson.find({ course: req.params.courseId }).sort('order').populate('section');
+  if (!canManage) {
+    // Quiz/exam keys are graded on the server; never expose them to learners.
+    query.select('-content.quizQuestions.correctAnswer -content.examQuestions.correctAnswer');
+  }
+  const lessons = await query;
+  res.status(200).json({ success: true, count: lessons.length, data: lessons });
 });
 
 // @desc    Get single lesson
@@ -74,9 +74,13 @@ export const getLesson = asyncHandler(async (req: UserRequest, res: Response, ne
     );
   }
 
+  const canManage = isInstructor || req.user?.role === 'admin';
+  const safeLesson = canManage ? lesson : await Lesson.findById(lesson._id)
+    .select('-content.quizQuestions.correctAnswer -content.examQuestions.correctAnswer')
+    .populate('section');
   res.status(200).json({
     success: true,
-    data: lesson
+    data: safeLesson
   });
 });
 

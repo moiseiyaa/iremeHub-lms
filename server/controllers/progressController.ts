@@ -298,18 +298,13 @@ export const submitQuiz = asyncHandler(async (req: UserRequest, res: Response, n
   // Update lastAccessed
   progress.lastAccessed = new Date();
 
-  // Add to completedLessons if not already there
-  const lessonIdString = lesson._id.toString();
-  const isCompleted = progress.completedLessons.some(id => id.toString() === lessonIdString);
-  
-  if (!isCompleted) {
+  // Mark the quiz complete only when the server-side passing threshold is met.
+  const percentageScore = totalPoints > 0 ? (score / totalPoints * 100).toFixed(2) : '0';
+  const passed = totalPoints > 0 && score / totalPoints >= 0.7;
+  if (passed && !progress.completedLessons.some(id => id.toString() === lesson._id.toString())) {
     progress.completedLessons.push(lesson._id);
   }
-
   await progress.save();
-
-  // Calculate percentage score
-  const percentageScore = totalPoints > 0 ? (score / totalPoints * 100).toFixed(2) : 0;
 
   res.status(200).json({
     success: true,

@@ -782,7 +782,8 @@ export const getCourseWithProgress = asyncHandler(async (req: UserRequest, res: 
     if (progress && progress.completedLessons.length < totalLessons) {
       for (const lesson of lessons) {
         if (!progress.completedLessons.some(id => id.toString() === lesson._id.toString())) {
-          nextLesson = lesson;
+          // Only expose a navigation reference, never the full assessment answer key.
+          nextLesson = { _id: lesson._id, title: lesson.title } as any;
           break;
         }
       }
