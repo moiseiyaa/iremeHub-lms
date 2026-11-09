@@ -67,7 +67,7 @@ const EducatorSidebar: React.FC<Props> = ({ activeTab, setActiveTab, sidebarOpen
                 setActiveTab(item.id);
                 setSidebarOpen(false);
               }}
-              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-slate-700 hover:text-white transition-colors ${
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl hover:bg-slate-700 hover:text-white transition-colors ${
                 item.current ? 'bg-slate-900 text-white shadow' : 'text-slate-200'
               }`}
             >

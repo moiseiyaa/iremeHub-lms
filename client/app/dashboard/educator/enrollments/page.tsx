@@ -240,7 +240,7 @@ export default function EnrollmentsPage() {
   
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading enrollments...</p>
@@ -250,10 +250,10 @@ export default function EnrollmentsPage() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-8">
+    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Enrollments Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-[-.045em]">Enrollments Management</h1>
           <p className="mt-1 text-gray-500">
             Manage student enrollments across your courses
           </p>
@@ -274,7 +274,7 @@ export default function EnrollmentsPage() {
             </div>
             <div className="space-x-2">
               <button
-                className={`px-3 py-1 text-sm rounded-full ${!statusFilter ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+                className={`px-3 py-1 text-sm rounded-full ${!statusFilter ? 'bg-[#e3f0e5] text-[#246a4b]' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
                 onClick={() => setStatusFilter(null)}
                 aria-label="Show all enrollments"
               >
@@ -310,7 +310,7 @@ export default function EnrollmentsPage() {
               <span className="text-sm font-medium text-gray-500">Filter by course:</span>
             </div>
             <select
-              className="block w-auto rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-auto rounded-xl border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               value={courseFilter || ''}
               onChange={(e) => setCourseFilter(e.target.value || null)}
               aria-label="Select course filter"
@@ -324,13 +324,13 @@ export default function EnrollmentsPage() {
             </select>
             
             <div className="flex-1 min-w-[300px]">
-              <div className="relative rounded-md shadow-sm">
+              <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                 </div>
                 <input
                   type="text"
-                  className="block w-full pl-10 pr-12 py-2 sm:text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full pl-10 pr-12 py-2 sm:text-sm border-gray-300 rounded-xl focus:ring-primary focus:border-primary"
                   placeholder="Search by student name or email"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -350,9 +350,9 @@ export default function EnrollmentsPage() {
         </div>
         
         {/* Enrollments Table */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="bg-white shadow overflow-hidden sm:rounded-xl">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-[#f5f7f2]">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Student
@@ -377,7 +377,7 @@ export default function EnrollmentsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {enrollments.length > 0 ? (
                 enrollments.map((enrollment) => (
-                  <tr key={enrollment._id} className="hover:bg-gray-50">
+                  <tr key={enrollment._id} className="hover:bg-[#f5f7f2]">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
@@ -413,7 +413,7 @@ export default function EnrollmentsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="w-32 bg-gray-200 rounded-full h-2.5">
                         <div 
-                          className="bg-blue-600 h-2.5 rounded-full" 
+                          className="bg-primary h-2.5 rounded-full" 
                           style={{ width: `${enrollment.progress}%` }}
                         ></div>
                       </div>
@@ -429,14 +429,14 @@ export default function EnrollmentsPage() {
                         <div className="flex justify-end space-x-2">
                           <button
                             onClick={() => handleEnrollmentAction(enrollment._id, 'approve')}
-                            className="text-green-600 hover:text-green-900 px-2 py-1 bg-green-50 rounded-md"
+                            className="text-green-600 hover:text-green-900 px-2 py-1 bg-green-50 rounded-xl"
                             aria-label={`Approve enrollment for ${enrollment.user.name}`}
                           >
                             Approve
                           </button>
                           <button
                             onClick={() => handleEnrollmentAction(enrollment._id, 'reject')}
-                            className="text-red-600 hover:text-red-900 px-2 py-1 bg-red-50 rounded-md"
+                            className="text-red-600 hover:text-red-900 px-2 py-1 bg-red-50 rounded-xl"
                             aria-label={`Reject enrollment for ${enrollment.user.name}`}
                           >
                             Reject
@@ -445,7 +445,7 @@ export default function EnrollmentsPage() {
                       ) : (
                         <Link
                           href={`/dashboard/educator/students/${enrollment.user._id}`}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-primary hover:text-blue-900"
                           aria-label={`View student profile for ${enrollment.user.name}`}
                         >
                           View Student
@@ -462,7 +462,7 @@ export default function EnrollmentsPage() {
                         <p className="text-lg">No enrollments match your filters</p>
                         <button
                           onClick={resetFilters}
-                          className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                          className="mt-2 text-sm text-primary hover:text-[#246a4b]"
                         >
                           Reset filters
                         </button>

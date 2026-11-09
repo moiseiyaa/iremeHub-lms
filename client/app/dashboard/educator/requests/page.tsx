@@ -57,13 +57,13 @@ const RequestsPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Enrollment Requests</h1>
+      <h1 className="text-2xl font-semibold mb-4 tracking-[-.045em]">Enrollment Requests</h1>
       {requests.length === 0 ? (
         <p>No pending requests.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-[#f5f7f2]">
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Student
@@ -103,13 +103,13 @@ const RequestsPage: React.FC = () => {
                   <td className="px-4 py-2 space-x-2">
                     <button
                       onClick={() => handleDecision(req._id, 'approved')}
-                      className="bg-green-600 text-white px-3 py-1 rounded-md text-sm hover:bg-green-500"
+                      className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm hover:bg-green-500"
                     >
                       Approve
                     </button>
                     <button
                       onClick={() => handleDecision(req._id, 'rejected')}
-                      className="bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-500"
+                      className="bg-red-600 text-white px-3 py-1 rounded-xl text-sm hover:bg-red-500"
                     >
                       Reject
                     </button>

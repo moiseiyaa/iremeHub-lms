@@ -166,17 +166,17 @@ export default function StudentsManagement() {
 
   const getProgressColor = (progress: number) => {
     if (progress >= 80) return 'bg-green-500';
-    if (progress >= 50) return 'bg-blue-500';
+    if (progress >= 50) return 'bg-[#edf6ed]0';
     if (progress >= 30) return 'bg-yellow-500';
     return 'bg-red-500';
   };
 
   return (
-    <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-8">
+    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Students</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-[-.045em]">Students</h1>
             <p className="mt-1 text-sm text-gray-500">
               View and manage students enrolled in your courses
             </p>
@@ -184,7 +184,7 @@ export default function StudentsManagement() {
           <div className="mt-4 sm:mt-0">
             <button
               onClick={exportStudentData}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
               Export Data
@@ -208,7 +208,7 @@ export default function StudentsManagement() {
                 </div>
                 <input
                   type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -221,7 +221,7 @@ export default function StudentsManagement() {
                   <select
                     value={activeFilters.courseId || ''}
                     onChange={(e) => handleFilterChange({ courseId: e.target.value || undefined })}
-                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-md shadow-sm text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
                     aria-label="Filter by course"
                   >
                     <option value="">All Courses</option>
@@ -234,7 +234,7 @@ export default function StudentsManagement() {
                   <select
                     value={activeFilters.sortBy}
                     onChange={(e) => handleFilterChange({ sortBy: e.target.value })}
-                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-md shadow-sm text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
                     aria-label="Sort students"
                   >
                     <option value="joinedAt_desc">Newest First</option>
@@ -272,7 +272,7 @@ export default function StudentsManagement() {
             <>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-[#f5f7f2]">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Student
@@ -296,7 +296,7 @@ export default function StudentsManagement() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {students.map((student) => (
-                      <tr key={student._id} className="hover:bg-gray-50">
+                      <tr key={student._id} className="hover:bg-[#f5f7f2]">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10 relative">
@@ -309,8 +309,8 @@ export default function StudentsManagement() {
                                   className="rounded-full object-cover"
                                 />
                               ) : (
-                                <div className="bg-blue-100 rounded-full flex items-center justify-center h-10 w-10">
-                                  <span className="text-blue-600 font-medium text-sm">
+                                <div className="bg-[#e3f0e5] rounded-full flex items-center justify-center h-10 w-10">
+                                  <span className="text-primary font-medium text-sm">
                                     {student.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                                   </span>
                                 </div>
@@ -347,13 +347,13 @@ export default function StudentsManagement() {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                           <Link
                             href={`/dashboard/educator/students/${student._id}`}
-                            className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md inline-flex items-center"
+                            className="text-primary hover:text-blue-900 bg-[#edf6ed] hover:bg-[#e3f0e5] px-3 py-1.5 rounded-xl inline-flex items-center"
                           >
                             View Details
                           </Link>
                           <a
                             href={`mailto:${student.email}`}
-                            className="text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-1.5 rounded-md inline-flex items-center"
+                            className="text-gray-600 hover:text-gray-900 bg-[#f5f7f2] hover:bg-gray-100 p-1.5 rounded-xl inline-flex items-center"
                             title="Send email"
                           >
                             <EnvelopeIcon className="h-4 w-4" />
@@ -375,12 +375,12 @@ export default function StudentsManagement() {
                     </p>
                   </div>
                   <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
                       <button
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
                         className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                          currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+                          currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-[#f5f7f2]'
                         }`}
                       >
                         <span className="sr-only">Previous</span>
@@ -394,8 +394,8 @@ export default function StudentsManagement() {
                           onClick={() => setCurrentPage(i + 1)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                             currentPage === i + 1
-                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              ? 'z-10 bg-[#edf6ed] border-primary text-primary'
+                              : 'bg-white border-gray-300 text-gray-500 hover:bg-[#f5f7f2]'
                           }`}
                         >
                           {i + 1}
@@ -406,7 +406,7 @@ export default function StudentsManagement() {
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
                         className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                          currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+                          currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-[#f5f7f2]'
                         }`}
                       >
                         <span className="sr-only">Next</span>

@@ -81,7 +81,7 @@ export default function StudentDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-gray-50">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-[#f5f7f2]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading student details...</p>
@@ -92,12 +92,12 @@ export default function StudentDetailPage() {
 
   if (error) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center bg-gray-50 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-md text-center">
+      <div className="min-h-[calc(100vh-76px)] flex flex-col items-center justify-center bg-[#f5f7f2] p-4">
+        <div className="bg-white p-8 rounded-lg shadow-sm text-center">
           <XCircleIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">Error</h2>
           <p className="text-red-600 mb-6">{error}</p>
-          <Link href="/dashboard/educator/enrollments" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center mx-auto w-fit">
+          <Link href="/dashboard/educator/enrollments" className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#104a39] transition-colors flex items-center justify-center mx-auto w-fit">
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             Back to Enrollments
           </Link>
@@ -108,12 +108,12 @@ export default function StudentDetailPage() {
 
   if (!studentData) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center bg-gray-50 p-4">
-         <div className="bg-white p-8 rounded-lg shadow-md text-center">
+      <div className="min-h-[calc(100vh-76px)] flex flex-col items-center justify-center bg-[#f5f7f2] p-4">
+         <div className="bg-white p-8 rounded-lg shadow-sm text-center">
           <UserIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">Student Not Found</h2>
           <p className="text-gray-600 mb-6">The details for this student could not be retrieved.</p>
-          <Link href="/dashboard/educator/enrollments" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center mx-auto w-fit">
+          <Link href="/dashboard/educator/enrollments" className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#104a39] transition-colors flex items-center justify-center mx-auto w-fit">
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             Back to Enrollments
           </Link>
@@ -125,15 +125,15 @@ export default function StudentDetailPage() {
   const { student, courses } = studentData;
 
   return (
-    <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-8 px-4 sm:px-6 lg:px-8">
+    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header and Back Button */}
         <div className="mb-6">
-          <Link href="/dashboard/educator/enrollments" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mb-4">
+          <Link href="/dashboard/educator/enrollments" className="inline-flex items-center text-sm text-primary hover:text-[#246a4b] mb-4">
             <ArrowLeftIcon className="h-5 w-5 mr-1" />
             Back to Enrollments
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Student Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-[-.045em]">Student Profile</h1>
         </div>
 
         {/* Student Information Card */}
@@ -165,17 +165,17 @@ export default function StudentDetailPage() {
         {/* Enrolled Courses Section */}
         <div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
-            <AcademicCapIcon className="h-7 w-7 mr-2 text-blue-600" />
+            <AcademicCapIcon className="h-7 w-7 mr-2 text-primary" />
             Enrolled Courses
           </h2>
           {courses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {courses.map((course) => (
-                <div key={course._id} className="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow">
+                <div key={course._id} className="bg-white shadow-sm rounded-lg p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-center mb-3">
                     <BookOpenIcon className="h-6 w-6 text-blue-500 mr-3 flex-shrink-0" />
                     <h3 className="text-lg font-semibold text-gray-800 truncate" title={course.title}>
-                      <Link href={`/courses/${course.courseId}`} className="hover:text-blue-600">
+                      <Link href={`/courses/${course.courseId}`} className="hover:text-primary">
                         {course.title}
                       </Link>
                     </h3>
@@ -192,7 +192,7 @@ export default function StudentDetailPage() {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div 
-                        className="bg-blue-600 h-2.5 rounded-full" 
+                        className="bg-primary h-2.5 rounded-full" 
                         style={{ width: `${course.progress}%` }}
                       ></div>
                     </div>
@@ -209,7 +209,7 @@ export default function StudentDetailPage() {
               ))}
             </div>
           ) : (
-            <div className="bg-white shadow-md rounded-lg p-8 text-center">
+            <div className="bg-white shadow-sm rounded-lg p-8 text-center">
               <AcademicCapIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">This student is not currently enrolled in any of your courses.</p>
             </div>
