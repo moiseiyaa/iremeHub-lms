@@ -434,165 +434,126 @@ export const submitAssignment = asyncHandler(async (req: UserRequest, res: Respo
 // @access  Private
 export const startExam = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   const lesson = await Lesson.findById(req.params.id);
-
-  if (!lesson) {
-    return next(new ErrorResponse(`Lesson not found with id of ${req.params.id}`, 404));
-  }
-
-  // Check if the lesson is an exam
-  if (lesson.contentType !== 'exam') {
-    return next(new ErrorResponse(`Lesson is not an exam`, 400));
-  }
-
+  if (!lesson) return next(new ErrorResponse('Lesson not found', 404));
+  if (lesson.contentType !== 'exam') return next(new ErrorResponse('Lesson is not an exam', 400));
   const course = await Course.findById(lesson.course);
-
-  if (!course) {
-    return next(new ErrorResponse(`Course not found with id of ${lesson.course}`, 404));
+  if (!course) return next(new ErrorResponse('Course not found', 404));
+  if (!course.enrolledStudents.some(id => id.toString() === req.user.id)) {
+    return next(new ErrorResponse('Enrollment required to take this exam', 403));
   }
 
-  // Check if user is enrolled in the course
-  const enrolledStudents = course.enrolledStudents || [];
-  if (!enrolledStudents.some(student => student.toString() === req.user.id)) {
-    return next(new ErrorResponse('You must be enrolled to take exams', 401));
-  }
-
-  // Find or create progress record
-  let progress = await Progress.findOne({
-    user: req.user.id,
-    course: lesson.course
-  });
-
-  if (!progress) {
-    progress = await Progress.create({
-      user: req.user.id,
-      course: lesson.course
-    });
-  }
-
-  // Check if exam has already been completed and passed
-  const existingExamResult = progress.examResults 
-    ? progress.examResults.find(
-        exam => exam.lesson.toString() === lesson._id.toString() && exam.passed === true
-      )
-    : null;
-
-  if (existingExamResult) {
-    return res.status(200).json({
+  let progress = await Progress.findOne({ user: req.user.id, course: lesson.course });
+  if (!progress) progress = await Progress.create({ user: req.user.id, course: lesson.course });
+  const previousPass = progress.examResults?.find(result =>
+    result.lesson.toString() === lesson._id.toString() && result.passed);
+  if (previousPass) {
+    return res.json({
       success: true,
-      message: 'Exam already completed and passed',
-      data: existingExamResult
+      data: {
+        message: 'Exam already completed and passed',
+        data: {
+          score: previousPass.score,
+          totalPoints: previousPass.totalPoints,
+          percentageScore: previousPass.percentageScore,
+          passingScore: lesson.content.passingScore || 85
+        }
+      }
     });
   }
 
-  // Start a new exam attempt
-  const startedAt = new Date();
-  
-  // Return exam questions and start time
+  if (!progress.examSessions) progress.examSessions = [];
+  const history = progress.examSessions.filter(session =>
+    session.lesson.toString() === lesson._id.toString());
+  const now = new Date();
+  let active = history.find(session => !session.submittedAt && session.expiresAt.getTime() > now.getTime());
+
+  // Re-opening the page cannot reset the timer; a learner gets at most
+  // three server-issued attempts. Longer-term limits belong in policy settings.
+  if (!active) {
+    if (history.length >= 3) {
+      return next(new ErrorResponse('Maximum exam attempts reached. Contact your educator.', 429));
+    }
+    const durationMinutes = Math.min(240, Math.max(1, Number(lesson.content.examDuration) || 60));
+    const fresh = {
+      lesson: lesson._id,
+      startedAt: now,
+      expiresAt: new Date(now.getTime() + durationMinutes * 60_000)
+    };
+    progress.examSessions.push(fresh);
+    await progress.save();
+    active = progress.examSessions[progress.examSessions.length - 1];
+  }
+
   const examQuestions = lesson.content.examQuestions || [];
-  
-  res.status(200).json({
+  if (!examQuestions.length) return next(new ErrorResponse('Exam has no questions', 409));
+  return res.json({
     success: true,
     data: {
       examQuestions: examQuestions.map(q => ({
         question: q.question,
         options: q.options,
         points: q.points
-      })), // Send questions without answers
-      startedAt,
-      timeLimit: lesson.content.examDuration,
+      })),
+      startedAt: active.startedAt,
+      timeLimit: Math.max(0, (active.expiresAt.getTime() - Date.now()) / 60_000),
       passingScore: lesson.content.passingScore || 85
     }
   });
 });
 
-// @desc    Submit exam
-// @route   POST /api/v1/lessons/:id/exam/submit
-// @access  Private
+// @desc    Grade a full exam submission against a server-issued attempt.
 export const submitExam = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   const lesson = await Lesson.findById(req.params.id);
-
-  if (!lesson) {
-    return next(new ErrorResponse(`Lesson not found with id of ${req.params.id}`, 404));
-  }
-
-  // Check if the lesson is an exam
-  if (lesson.contentType !== 'exam') {
-    return next(new ErrorResponse(`Lesson is not an exam`, 400));
-  }
+  if (!lesson) return next(new ErrorResponse('Lesson not found', 404));
+  if (lesson.contentType !== 'exam') return next(new ErrorResponse('Lesson is not an exam', 400));
 
   const course = await Course.findById(lesson.course);
-
-  if (!course) {
-    return next(new ErrorResponse(`Course not found with id of ${lesson.course}`, 404));
+  if (!course) return next(new ErrorResponse('Course not found', 404));
+  if (!course.enrolledStudents.some(id => id.toString() === req.user.id)) {
+    return next(new ErrorResponse('Enrollment required to submit exams', 403));
   }
 
-  // Check if user is enrolled in the course
-  const enrolledStudents = course.enrolledStudents || [];
-  if (!enrolledStudents.some(student => student.toString() === req.user.id)) {
-    return next(new ErrorResponse('You must be enrolled to submit exams', 401));
+  const questions = lesson.content.examQuestions || [];
+  const { answers } = req.body;
+  if (!Array.isArray(answers) || questions.length === 0 ||
+      answers.length !== questions.length ||
+      !answers.every((answer: unknown, index: number) =>
+        Number.isInteger(answer) && (answer as number) >= 0 &&
+        (answer as number) < questions[index].options.length)) {
+    return next(new ErrorResponse('Provide one valid answer for every exam question', 400));
   }
 
-  // Get user answers and start time from request
-  const { answers, startedAt } = req.body;
+  const progress = await Progress.findOne({ user: req.user.id, course: lesson.course });
+  if (!progress) return next(new ErrorResponse('Start the exam before submitting answers', 409));
 
-  if (!answers || !Array.isArray(answers) || !startedAt) {
-    return next(new ErrorResponse('Please provide answers array and start time', 400));
-  }
-
-  // Check if time limit exceeded
   const now = new Date();
-  const startTime = new Date(startedAt);
-  const timeSpentMinutes = (now.getTime() - startTime.getTime()) / 60000;
-  
-  if (timeSpentMinutes > (lesson.content.examDuration || 60)) {
-    return next(new ErrorResponse('Time limit exceeded for this exam', 400));
-  }
+  const session = progress.examSessions?.find(attempt =>
+    attempt.lesson.toString() === lesson._id.toString() &&
+    !attempt.submittedAt &&
+    attempt.startedAt.getTime() <= now.getTime() &&
+    attempt.expiresAt.getTime() >= now.getTime());
+  if (!session) return next(new ErrorResponse('Exam attempt expired or not started. Start a valid attempt first.', 409));
 
-  // Find or create progress record
-  let progress = await Progress.findOne({
-    user: req.user.id,
-    course: lesson.course
-  });
-
-  if (!progress) {
-    progress = await Progress.create({
-      user: req.user.id,
-      course: lesson.course
-    });
-  }
-
-  // Grade the exam
-  const examQuestions = lesson.content.examQuestions || [];
   let score = 0;
   let totalPoints = 0;
   const gradedAnswers: GradedAnswer[] = [];
-
   answers.forEach((answer: number, index: number) => {
-    if (index < examQuestions.length) {
-      const question = examQuestions[index];
-      const isCorrect = answer === question.correctAnswer;
-      const points = isCorrect ? (question.points || 1) : 0;
-      
-      score += points;
-      totalPoints += (question.points || 1);
-      
-      gradedAnswers.push({
-        questionIndex: index,
-        selectedOption: answer,
-        isCorrect,
-        points
-      });
-    }
+    const question = questions[index];
+    const value = Number(question.points) > 0 ? Number(question.points) : 1;
+    const isCorrect = answer === question.correctAnswer;
+    totalPoints += value;
+    if (isCorrect) score += value;
+    gradedAnswers.push({
+      questionIndex: index,
+      selectedOption: answer,
+      isCorrect,
+      points: isCorrect ? value : 0
+    });
   });
 
-  // Calculate percentage score
-  const percentageScore = totalPoints > 0 ? (score / totalPoints * 100) : 0;
-  
-  // Check if passing score achieved
-  const passingScore = lesson.content.passingScore || 85;
-  const passed = percentageScore >= passingScore;
-
-  // Create exam result
+  const percentageScore = totalPoints > 0 ? (score / totalPoints) * 100 : 0;
+  const requiredPassingScore = lesson.content.passingScore || 85;
+  const passed = percentageScore >= requiredPassingScore;
   const examResult: ExamResult = {
     lesson: lesson._id,
     score,
@@ -600,39 +561,36 @@ export const submitExam = asyncHandler(async (req: UserRequest, res: Response, n
     percentageScore,
     passed,
     answers: gradedAnswers,
-    startedAt: startTime,
+    startedAt: session.startedAt,
     completedAt: now,
-    timeSpent: timeSpentMinutes
+    timeSpent: (now.getTime() - session.startedAt.getTime()) / 60_000
   };
 
-  // Ensure examResults array exists
-  if (!progress.examResults) {
-    progress.examResults = [];
-  }
-
-  // Add exam result to progress
+  if (!progress.examResults) progress.examResults = [];
   progress.examResults.push(examResult);
-
-  // Mark lesson as completed if passed
-  if (passed) {
-    const lessonIdString = lesson._id.toString();
-    const isCompleted = progress.completedLessons.some(id => id.toString() === lessonIdString);
-    
-    if (!isCompleted) {
-      progress.completedLessons.push(lesson._id);
-    }
+  session.submittedAt = now;
+  if (passed && !progress.completedLessons.some(id => id.toString() === lesson._id.toString())) {
+    progress.completedLessons.push(lesson._id);
   }
-
-  progress.lastAccessed = new Date();
+  progress.lastAccessed = now;
   await progress.save();
 
-  res.status(200).json({
+  return res.json({
     success: true,
     data: {
-      examResult,
+      // Answer-by-answer grading is private; return score and pass/fail only.
+      examResult: {
+        lesson: examResult.lesson,
+        score,
+        totalPoints,
+        percentageScore,
+        passed,
+        startedAt: examResult.startedAt,
+        completedAt: examResult.completedAt
+      },
       passed,
       percentageScore,
-      requiredPassingScore: passingScore
+      requiredPassingScore
     }
   });
 });
