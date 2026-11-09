@@ -635,11 +635,11 @@ export default function CourseLearnPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f5f0]">
+    <div className="min-h-screen bg-[#f5f7f2]">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link href={`/courses/${courseId}`} className="text-primary hover:text-indigo-800 flex items-center">
+      <div className="bg-white border-b border-[#e0e9df] sticky top-0 z-30">
+        <div className="ih-container py-4 flex items-center justify-between gap-4">
+          <Link href={`/courses/${courseId}`} className="text-[#277651] hover:text-[#164b35] font-semibold text-sm inline-flex items-center">
             <ChevronLeftIcon className="h-5 w-5 mr-1" />
             Back to Course
           </Link>
@@ -651,7 +651,7 @@ export default function CourseLearnPage() {
             
             <div className="relative h-2 bg-gray-200 rounded-full w-32 sm:w-48">
               <div
-                className="absolute h-2 bg-indigo-500 rounded-full"
+                className="absolute h-2 bg-[#439366] rounded-full"
                 style={{ width: `${progress?.progressPercentage ?? 0}%` }}
               ></div>
             </div>
@@ -660,16 +660,18 @@ export default function CourseLearnPage() {
       </div>
       
       {/* Main content */}
-      <div className="grid lg:grid-cols-[260px_1fr] min-h-[calc(100vh-65px)]">
-        {/* Sidebar */}
-        <div
-          className={`bg-white border-r w-64 lg:w-full overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 fixed inset-y-0 mt-[65px] z-20 lg:static ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+      <div className="grid lg:grid-cols-[285px_minmax(0,1fr)] min-h-[calc(100vh-65px)]">
+        {showSidebar && <button type="button" aria-label="Close lesson navigation" onClick={() => setShowSidebar(false)}
+          className="fixed inset-0 top-[65px] z-20 bg-[#0b281b]/60 lg:hidden" />}
+        {/* Responsive lesson navigation */}
+        <aside aria-label="Course lesson navigation"
+          className={`bg-white border-r border-[#e3ede4] w-[min(86vw,330px)] lg:w-full overflow-y-auto transition-transform duration-300 ease-in-out fixed top-[65px] bottom-0 left-0 z-30 lg:static lg:translate-x-0 lg:max-h-[calc(100vh-65px)] ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
         >
           <div className="p-4 border-b flex items-center justify-between">
             <h2 className="font-bold text-gray-900">{course.title}</h2>
             <button
               onClick={() => setShowSidebar(false)}
-              className="p-1 rounded-full hover:bg-[#f1f5f0] sm:hidden"
+              className="p-2 rounded-xl hover:bg-[#f1f5f0] lg:hidden"
               aria-label="Close sidebar"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -693,7 +695,7 @@ export default function CourseLearnPage() {
                     {sectionLessons.map((lesson) => {
                       // Determine content type label
                       let contentTypeLabel = 'Lesson';
-                      let typeClass = 'bg-blue-100 text-blue-800';
+                      let typeClass = 'bg-[#e4f0e5] text-[#2c7750]';
                       
                       if (lesson.contentType === 'quiz' || shouldBeQuiz(lesson)) {
                         contentTypeLabel = 'Quiz';
@@ -710,8 +712,9 @@ export default function CourseLearnPage() {
                         <Link
                           key={lesson._id}
                           href={`/courses/${courseId}/learn?lesson=${lesson._id}`}
-                          className={`flex items-start p-2 rounded-xl hover:bg-gray-50 ${
-                            currentLesson?._id === lesson._id ? 'bg-indigo-50' : ''
+                          onClick={() => setShowSidebar(false)}
+                          className={`flex items-start p-2 rounded-xl hover:bg-[#f0f8f0] ${
+                            currentLesson?._id === lesson._id ? 'bg-[#e8f3e8]' : ''
                           }`}
                         >
                           <div className="flex-shrink-0 mt-0.5">
@@ -742,29 +745,29 @@ export default function CourseLearnPage() {
               );
             })}
           </div>
-        </div>
+        </aside>
         
         {/* Mobile menu button */}
         <button
           onClick={() => setShowSidebar(true)}
-          className="fixed bottom-4 left-4 z-20 p-3 bg-primary text-white rounded-full shadow-lg sm:hidden"
-          aria-label="Open sidebar menu"
+          className="fixed bottom-5 left-5 z-30 px-4 py-3 inline-flex items-center gap-2 bg-[#19654e] text-white rounded-xl shadow-xl lg:hidden"
+          aria-label="Open lesson navigation"
         >
-          <Bars3Icon className="h-6 w-6" />
+          <Bars3Icon className="h-5 w-5" /> <span className="text-sm font-semibold">Lessons</span>
         </button>
         
         {/* Main lesson content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <section aria-label="Current lesson" className="flex-1 overflow-y-auto p-4 sm:p-7 lg:p-10">
           {lessonLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
             </div>
           ) : currentLesson ? (
-            <div className="max-w-3xl mx-auto">
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="max-w-[900px] mx-auto">
+              <div className="ih-card overflow-hidden">
                 {/* Lesson content */}
                 <div className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">{currentLesson.title}</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-[-.045em] text-[#183b2b] mb-6">{currentLesson.title}</h2>
                   
                   {/* Video content */}
                   {currentLesson.contentType === 'video' && currentLesson.content?.videoUrl && (
@@ -780,7 +783,7 @@ export default function CourseLearnPage() {
                   
                   {/* YouTube content */}
                   {currentLesson.contentType === 'youtube' && currentLesson.content?.youtubeVideoId && (
-                    <div className="relative w-full aspect-video mb-6 bg-black rounded-lg overflow-hidden">
+                    <div className="relative w-full aspect-video mb-7 bg-black rounded-2xl overflow-hidden">
                       <ReactPlayer
                         url={`https://www.youtube.com/watch?v=${currentLesson.content.youtubeVideoId}`}
                         controls
@@ -793,7 +796,7 @@ export default function CourseLearnPage() {
                   
                   {/* Text content */}
                   {currentLesson.contentType === 'text' && currentLesson.content?.textContent && (
-                    <div className="prose prose-indigo max-w-none mb-6">
+                    <div className="max-w-none mb-7 text-[#395544] leading-8">
                       <div className="whitespace-pre-wrap leading-8 text-[#355440]">{currentLesson.content.textContent}</div>
                     </div>
                   )}
@@ -867,7 +870,7 @@ export default function CourseLearnPage() {
                     <div className="mb-6">
                       <div className="mb-4 text-lg font-medium text-gray-900">Assignment</div>
                       
-                      <div className="prose prose-indigo max-w-none mb-6">
+                      <div className="max-w-none mb-7 text-[#395544] leading-8">
                         {currentLesson.content?.assignmentInstructions && (
                           <div className="whitespace-pre-wrap leading-8 text-[#355440]">{currentLesson.content.assignmentInstructions}</div>
                         )}
@@ -1145,7 +1148,7 @@ export default function CourseLearnPage() {
               <p className="mt-1 text-gray-500">Choose a lesson from the menu to start learning.</p>
             </div>
           )}
-        </main>
+        </section>
       </div>
     </div>
   );
