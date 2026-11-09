@@ -29,11 +29,13 @@ import { protect, authorize } from '../middleware/auth';
 
 // Include other resource routers
 import lessonRouter from './lessons';
+import sectionRouter from './sections';
 
 const router = express.Router();
 
 // Re-route into other resource routers
 router.use('/:courseId/lessons', lessonRouter);
+router.use('/:courseId/sections', sectionRouter);
 
 // Public routes
 router.get('/', getCourses);

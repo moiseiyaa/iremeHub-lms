@@ -69,6 +69,7 @@ export const createSection = asyncHandler(async (req: UserRequest, res: Response
   req.body.order = req.body.order || sectionCount + 1;
 
   const section = await Section.create(req.body);
+  await Course.findByIdAndUpdate(course._id, { $addToSet: { sections: section._id } });
 
   res.status(201).json({
     success: true,
@@ -129,7 +130,10 @@ export const deleteSection = asyncHandler(async (req: UserRequest, res: Response
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to delete this section`, 401));
   }
 
+  // Remove lessons belonging to the deleted section from the outline.
+  // Preserve lesson records; instructors can reassign them from the curriculum editor.
   await Section.deleteOne({ _id: section._id });
+  await Course.findByIdAndUpdate(course._id, { $pull: { sections: section._id } });
 
   // Reorder the remaining sections
   const sections = await Section.find({ course: section.course })
