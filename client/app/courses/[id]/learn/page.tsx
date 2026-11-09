@@ -583,7 +583,7 @@ export default function CourseLearnPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-[#f1f5f0]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading course...</p>
@@ -594,9 +594,9 @@ export default function CourseLearnPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-md">
-          <div className="text-red-500 text-2xl">😕</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#f1f5f0]">
+        <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-sm">
+          <div className="text-red-500 text-2xl"></div>
           <h2 className="mt-2 text-xl font-semibold text-gray-900">Error</h2>
           <p className="mt-1 text-gray-500">{error}</p>
           <Link href={`/courses/${courseId}`} className="btn-primary mt-4 inline-block">
@@ -609,9 +609,9 @@ export default function CourseLearnPage() {
 
   if (!course) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-md">
-          <div className="text-gray-500 text-2xl">🔍</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#f1f5f0]">
+        <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-sm">
+          <div className="text-gray-500 text-2xl"></div>
           <h2 className="mt-2 text-xl font-semibold text-gray-900">Course Not Found</h2>
           <p className="mt-1 text-gray-500">The course you&apos;re looking for does not exist.</p>
           <Link href="/courses" className="btn-primary mt-4 inline-block">
@@ -630,11 +630,11 @@ export default function CourseLearnPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#f1f5f0]">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link href={`/courses/${courseId}`} className="text-indigo-600 hover:text-indigo-800 flex items-center">
+          <Link href={`/courses/${courseId}`} className="text-primary hover:text-indigo-800 flex items-center">
             <ChevronLeftIcon className="h-5 w-5 mr-1" />
             Back to Course
           </Link>
@@ -664,7 +664,7 @@ export default function CourseLearnPage() {
             <h2 className="font-bold text-gray-900">{course.title}</h2>
             <button
               onClick={() => setShowSidebar(false)}
-              className="p-1 rounded-full hover:bg-gray-100 sm:hidden"
+              className="p-1 rounded-full hover:bg-[#f1f5f0] sm:hidden"
               aria-label="Close sidebar"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -705,7 +705,7 @@ export default function CourseLearnPage() {
                         <Link
                           key={lesson._id}
                           href={`/courses/${courseId}/learn?lesson=${lesson._id}`}
-                          className={`flex items-start p-2 rounded-md hover:bg-gray-50 ${
+                          className={`flex items-start p-2 rounded-xl hover:bg-gray-50 ${
                             currentLesson?._id === lesson._id ? 'bg-indigo-50' : ''
                           }`}
                         >
@@ -742,7 +742,7 @@ export default function CourseLearnPage() {
         {/* Mobile menu button */}
         <button
           onClick={() => setShowSidebar(true)}
-          className="fixed bottom-4 left-4 z-20 p-3 bg-indigo-600 text-white rounded-full shadow-lg sm:hidden"
+          className="fixed bottom-4 left-4 z-20 p-3 bg-primary text-white rounded-full shadow-lg sm:hidden"
           aria-label="Open sidebar menu"
         >
           <Bars3Icon className="h-6 w-6" />
@@ -756,7 +756,7 @@ export default function CourseLearnPage() {
             </div>
           ) : currentLesson ? (
             <div className="max-w-3xl mx-auto">
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 {/* Lesson content */}
                 <div className="p-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">{currentLesson.title}</h2>
@@ -799,7 +799,7 @@ export default function CourseLearnPage() {
                       <div className="mb-4 text-lg font-medium text-gray-900">Quiz</div>
                       
                       {quizSubmitted && quizResults ? (
-                        <div className={`p-4 rounded-md mb-4 ${
+                        <div className={`p-4 rounded-xl mb-4 ${
                           quizResults.correct ? 'bg-green-50 text-green-800' : 'bg-yellow-50 text-yellow-800'
                         }`}>
                           <div className="font-medium">
@@ -815,7 +815,7 @@ export default function CourseLearnPage() {
                       ) : (
                         <div className="space-y-6">
                           {currentLesson.content.quizQuestions.map((question, qIndex) => (
-                            <div key={qIndex} className="border border-gray-200 rounded-md p-4">
+                            <div key={qIndex} className="border border-gray-200 rounded-xl p-4">
                               <div className="font-medium mb-3">{question.question}</div>
                               <div className="space-y-2">
                                 {question.options.map((option, oIndex) => (
@@ -824,7 +824,7 @@ export default function CourseLearnPage() {
                                       type="radio"
                                       id={`q${qIndex}-o${oIndex}`}
                                       name={`question-${qIndex}`}
-                                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
                                       checked={quizAnswers[qIndex] === oIndex}
                                       onChange={() => handleQuizAnswerSelect(qIndex, oIndex)}
                                     />
@@ -870,7 +870,7 @@ export default function CourseLearnPage() {
                       
                       {/* Check if assignment already submitted */}
                       {getAssignmentSubmission(currentLesson._id) ? (
-                        <div className="p-4 rounded-md mb-4 bg-green-50 text-green-800">
+                        <div className="p-4 rounded-xl mb-4 bg-green-50 text-green-800">
                           <div className="font-medium">Assignment Submitted</div>
                           <div className="mt-1">
                             {getAssignmentSubmission(currentLesson._id)?.graded 
@@ -881,19 +881,19 @@ export default function CourseLearnPage() {
                       ) : (
                         <>
                           {assignmentSubmitted ? (
-                            <div className="p-4 rounded-md mb-4 bg-green-50 text-green-800">
+                            <div className="p-4 rounded-xl mb-4 bg-green-50 text-green-800">
                               <div className="font-medium">Assignment Submitted Successfully</div>
                             </div>
                           ) : (
                             <div className="space-y-4">
-                              <div className="border border-gray-200 rounded-md p-4">
+                              <div className="border border-gray-200 rounded-xl p-4">
                                 <label htmlFor="assignment-submission" className="block font-medium text-gray-700 mb-2">
                                   Your Solution
                                 </label>
                                 <textarea
                                   id="assignment-submission"
                                   rows={6}
-                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                  className="block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-primary"
                                   placeholder="Enter your assignment solution here..."
                                   value={assignmentText}
                                   onChange={(e) => setAssignmentText(e.target.value)}
@@ -941,14 +941,14 @@ export default function CourseLearnPage() {
                       
                       {/* Check if exam already taken and passed */}
                       {getExamResult(currentLesson._id) && getExamResult(currentLesson._id)?.passed ? (
-                        <div className="p-4 rounded-md mb-4 bg-green-50 text-green-800">
+                        <div className="p-4 rounded-xl mb-4 bg-green-50 text-green-800">
                           <div className="font-medium">Exam Passed</div>
                           <div className="mt-1">
                             Score: {getExamResult(currentLesson._id)?.percentageScore.toFixed(2)}%
                           </div>
                         </div>
                       ) : examSubmitted && examResults ? (
-                        <div className={`p-4 rounded-md mb-4 ${
+                        <div className={`p-4 rounded-xl mb-4 ${
                           examResults.passed ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
                         }`}>
                           <div className="font-medium">
@@ -982,7 +982,7 @@ export default function CourseLearnPage() {
                       ) : examMode && currentLesson.content?.examQuestions ? (
                         <div className="space-y-6">
                           {currentLesson.content.examQuestions.map((question, qIndex) => (
-                            <div key={qIndex} className="border border-gray-200 rounded-md p-4">
+                            <div key={qIndex} className="border border-gray-200 rounded-xl p-4">
                               <div className="font-medium mb-3">{question.question}</div>
                               <div className="space-y-2">
                                 {question.options.map((option, oIndex) => (
@@ -991,7 +991,7 @@ export default function CourseLearnPage() {
                                       type="radio"
                                       id={`exam-q${qIndex}-o${oIndex}`}
                                       name={`exam-question-${qIndex}`}
-                                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
                                       checked={examAnswers[qIndex] === oIndex}
                                       onChange={() => {
                                         const newAnswers = [...examAnswers];
@@ -1025,7 +1025,7 @@ export default function CourseLearnPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="text-center p-8 border border-gray-200 rounded-md">
+                        <div className="text-center p-8 border border-gray-200 rounded-xl">
                           <h3 className="text-lg font-medium text-gray-900 mb-2">Ready to Take the Final Exam?</h3>
                           <p className="text-gray-500 mb-6">
                             This is a timed exam with a duration of {currentLesson.content?.examDuration || 60} minutes.
@@ -1114,7 +1114,7 @@ export default function CourseLearnPage() {
                         <p className="font-semibold text-green-700">Certificate Generated!</p>
                         <Link
                           href={`/certificates/${certificate.certificateId}`} // Assuming a page to view the certificate
-                          className="text-indigo-600 hover:underline mt-2 inline-block"
+                          className="text-primary hover:underline mt-2 inline-block"
                         >
                           View Your Certificate
                         </Link>
@@ -1134,7 +1134,7 @@ export default function CourseLearnPage() {
               </div>
             </div>
           ) : (
-            <div className="text-center max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+            <div className="text-center max-w-md mx-auto p-6 bg-white rounded-lg shadow-sm">
               <div className="text-gray-500 text-2xl">🎓</div>
               <h2 className="mt-2 text-xl font-semibold text-gray-900">Select a Lesson</h2>
               <p className="mt-1 text-gray-500">Choose a lesson from the menu to start learning.</p>

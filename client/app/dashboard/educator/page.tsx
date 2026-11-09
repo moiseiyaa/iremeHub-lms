@@ -89,37 +89,7 @@ export default function EducatorDashboard() {
           }
         } catch (statsErr) {
           console.error('Stats fetch error:', statsErr);
-          // Use dummy data for now
-          setStats({
-            totalCourses: 5,
-            totalStudents: 128,
-            totalLessons: 42,
-            activeEnrollments: 87,
-            completionRate: 68,
-            recentCoursesCreated: [
-              {
-                _id: '1',
-                title: 'Introduction to Web Development',
-                enrollmentCount: 45,
-                completion: 72,
-                createdAt: '2023-04-15T00:00:00.000Z'
-              },
-              {
-                _id: '2',
-                title: 'Advanced JavaScript Concepts',
-                enrollmentCount: 31,
-                completion: 65,
-                createdAt: '2023-05-20T00:00:00.000Z'
-              },
-              {
-                _id: '3',
-                title: 'React Framework Deep Dive',
-                enrollmentCount: 28,
-                completion: 58,
-                createdAt: '2023-06-10T00:00:00.000Z'
-              }
-            ]
-          });
+          setError('Could not load educator statistics. Please try again.');
         }
       } catch (err) {
         console.error('Dashboard error:', err);
@@ -367,7 +337,13 @@ export default function EducatorDashboard() {
 
           {/* Report Generation */}
           <div className="mb-6 flex justify-end">
-            <ReportGenerationButton />
+            <ReportGenerationButton filename="iremehub-educator-overview.csv" rows={[
+  { Metric: 'Courses', Value: stats.totalCourses },
+  { Metric: 'Students', Value: stats.totalStudents },
+  { Metric: 'Lessons', Value: stats.totalLessons },
+  { Metric: 'Active enrollments', Value: stats.activeEnrollments },
+  { Metric: 'Completion rate (%)', Value: stats.completionRate }
+]} />
           </div>
 
           {/* Quick Links */}

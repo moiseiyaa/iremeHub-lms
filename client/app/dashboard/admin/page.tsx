@@ -221,7 +221,13 @@ export default function AdminDashboard() {
           {activeTab === 'dashboard' && (
             <>
               <div className="flex justify-end mb-4">
-                <ReportGenerationButton />
+                <ReportGenerationButton filename="iremehub-admin-overview.csv" rows={[
+  { Metric: 'Total users', Value: stats.totalUsers },
+  { Metric: 'Students', Value: stats.totalStudents },
+  { Metric: 'Educators', Value: stats.totalEducators },
+  { Metric: 'Courses', Value: stats.totalCourses },
+  { Metric: 'Blog posts', Value: stats.totalBlogs }
+]} />
               </div>
               <h1 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 hidden md:block">Admin Dashboard</h1>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
