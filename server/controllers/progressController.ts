@@ -226,8 +226,13 @@ export const submitQuiz = asyncHandler(async (req: UserRequest, res: Response, n
   // Get user answers from request
   const { answers } = req.body;
 
-  if (!answers || !Array.isArray(answers)) {
-    return next(new ErrorResponse('Please provide answers as an array', 400));
+  const quizQuestions = lesson.content.quizQuestions || [];
+  if (!Array.isArray(answers) || quizQuestions.length === 0 ||
+      answers.length !== quizQuestions.length ||
+      !answers.every((answer: unknown, index: number) =>
+        Number.isInteger(answer) && (answer as number) >= 0 &&
+        (answer as number) < quizQuestions[index].options.length)) {
+    return next(new ErrorResponse('Provide one valid answer for each quiz question', 400));
   }
 
   // Find or create progress record
@@ -243,14 +248,12 @@ export const submitQuiz = asyncHandler(async (req: UserRequest, res: Response, n
     });
   }
 
-  // Grade the quiz
-  const quizQuestions = lesson.content.quizQuestions || [];
+  // Grade the complete, validated quiz on the server.
   let score = 0;
   let totalPoints = 0;
   const gradedAnswers: GradedAnswer[] = [];
 
   answers.forEach((answer: number, index: number) => {
-    if (index < quizQuestions.length) {
       const question = quizQuestions[index];
       const isCorrect = answer === question.correctAnswer;
       const points = isCorrect ? (question.points || 1) : 0;
@@ -264,7 +267,6 @@ export const submitQuiz = asyncHandler(async (req: UserRequest, res: Response, n
         isCorrect,
         points
       });
-    }
   });
 
   // Find existing quiz result to update attempts count
