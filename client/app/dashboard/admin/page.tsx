@@ -88,22 +88,11 @@ export default function AdminDashboard() {
             return;
           }
           setUser(userData);
-        } else if (process.env.NODE_ENV === 'development' && !userResponse.success) {
-          console.warn('Dev mode: Using mock admin user for dashboard as /auth/me failed.');
-          setUser({
-            _id: 'mockadminid_dev',
-            name: 'Dev Admin User',
-            email: 'admin-dev@example.com',
-            role: 'admin',
-            avatar: { url: 'https://i.pravatar.cc/150?u=devadmin' },
-            createdAt: new Date().toISOString(),
-          });
         } else {
           throw new Error(userResponse.error || 'Failed to fetch user data or user is not admin.');
         }
 
-        if ((userResponse.data && userResponse.data.role === 'admin') || 
-            (process.env.NODE_ENV === 'development' && user?.role === 'admin')) {
+        if (userResponse.data?.role === 'admin') {
           const statsResponse = await apiGet<AdminStats>('/admin/dashboard-stats', true);
           if (statsResponse.success && statsResponse.data) {
             const statsData = statsResponse.data;
@@ -171,7 +160,7 @@ export default function AdminDashboard() {
     .map(item => ({ ...item, current: activeTab === item.id }));
 
   return (
-    <div className="flex h-screen bg-slate-100 overflow-hidden -mt-[64px] md:-mt-[72px]">
+    <div className="flex min-h-[calc(100vh-70px)] bg-[#f5f7f2] overflow-hidden">
       <div className={`fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-300 ease-in-out w-64 bg-slate-800 text-slate-100 flex flex-col shadow-lg z-30`}>
         <div className="text-center py-5 border-b border-slate-700">
           <Image 

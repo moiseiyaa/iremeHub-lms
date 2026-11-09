@@ -1,0 +1,46 @@
+/* iremehub+ application workspace and course reader */
+.ih-workspace { min-height: calc(100vh - 76px); background: #f5f7f2; color: #193b2d; }
+.ih-workspace h1 { letter-spacing: -.05em; font-weight: 760; color: #16382b; }
+.ih-workspace h2, .ih-workspace h3 { letter-spacing: -.025em; }
+.ih-workspace :is(.bg-slate-50, .bg-gray-50, .bg-slate-100, .bg-gray-100) { background-color: #f5f7f2; }
+.ih-workspace :is(.bg-slate-800, .bg-gray-800, .bg-blue-900) { background-color: #153d30; }
+.ih-workspace :is(.bg-blue-600, .bg-indigo-600, .bg-gray-600) { background-color: #19654e; }
+.ih-workspace :is(.hover\:bg-blue-700:hover, .hover\:bg-indigo-700:hover, .hover\:bg-gray-700:hover) { background-color: #104a39; }
+.ih-workspace :is(.text-blue-600, .text-indigo-600, .text-gray-600) { color: #286a50; }
+.ih-workspace :is(.border-gray-200, .border-slate-200) { border-color: #e1e9e2; }
+.ih-workspace :is(.shadow, .shadow-sm, .shadow-md) { box-shadow: 0 10px 30px rgba(16, 57, 37, .055); }
+.ih-workspace :is(.rounded-lg, .rounded-xl) { border-radius: 17px; }
+.ih-workspace :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea) { border-radius: 11px; min-height: 42px; border-color: #cedbd0; background: white; color: #214334; }
+.ih-workspace input:focus, .ih-workspace textarea:focus, .ih-workspace select:focus { outline-color: #438f66; }
+.ih-workspace button, .ih-workspace a { transition: background-color .18s, color .18s, box-shadow .18s, border-color .18s; }
+.ih-workspace table { border-collapse: separate; border-spacing: 0; }
+.ih-workspace thead { background: #f0f5ee; }
+.ih-workspace th { color: #506b58; font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; }
+.ih-workspace tbody tr:hover { background: #fbfdf9; }
+.ih-workspace :is(.bg-white.shadow-md, .bg-white.shadow, .bg-white.rounded-lg, .bg-white.rounded-xl) { border: 1px solid #e2eae1; }
+.ih-workspace :is(.text-slate-800, .text-gray-900) { color: #18392c; }
+.ih-workspace :is(.text-gray-500, .text-slate-500) { color: #728777; }
+.ih-workspace :is(.bg-blue-100, .bg-indigo-100) { background: #e4f0e6; }
+.ih-workspace :is(.text-blue-800, .text-indigo-800) { color: #246948; }
+.ih-workspace .bg-slate-800 .text-slate-100 { color: #e4f0e6; }
+.ih-workspace .bg-white { background-color: #fff; }
+.ih-course-detail { background: #f5f7f2; color: #19382b; }
+.ih-course-detail h1 { letter-spacing: -.055em; line-height: 1.12; font-weight: 800; }
+.ih-course-detail :is(.bg-white.shadow-md, .bg-white.shadow-lg) { border: 1px solid #e1e9e1; box-shadow: 0 16px 44px rgba(25, 72, 46, .07); border-radius: 20px; }
+.ih-course-detail :is(.bg-blue-600, .bg-indigo-600, .bg-gray-800) { background: #19654e; }
+.ih-course-detail :is(.text-blue-600, .text-indigo-600) { color: #227b51; }
+.ih-course-detail .rounded-lg { border-radius: 17px; }
+.ih-classroom { background: #f1f5f0; color: #19392c; min-height: 100vh; }
+.ih-classroom .bg-gray-100 { background: #f1f5f0; }
+.ih-classroom :is(.bg-blue-600, .bg-indigo-600) { background: #19654e; }
+.ih-classroom :is(.text-blue-600, .text-indigo-600) { color: #237b53; }
+.ih-classroom .rounded-lg { border-radius: 16px; }
+.ih-classroom :is(.bg-white.shadow-md, .bg-white.shadow-lg) { border-radius: 18px; border: 1px solid #dce7df; }
+.ih-classroom input:focus, .ih-classroom textarea:focus { outline: 2px solid #438f66; }
+.ih-account-surface { background: #f5f7f2; }
+.ih-account-surface .bg-white { border-radius: 17px; }
+.ih-account-surface :is(.bg-blue-600, .bg-indigo-600) { background-color: #19654e; }
+.ih-account-surface :is(.text-blue-600, .text-indigo-600) { color: #236f4f; }
+.ih-account-surface :is(.shadow, .shadow-md, .shadow-lg) { box-shadow: var(--ih-shadow); }
+.ih-account-surface input, .ih-account-surface textarea, .ih-account-surface select { border-radius: 11px; }
+@media(max-width:768px){.ih-workspace .overflow-x-auto { -webkit-overflow-scrolling: touch; } .ih-workspace table { min-width: 630px; } }

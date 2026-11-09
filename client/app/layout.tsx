@@ -3,6 +3,7 @@ import './globals.css';
 import './styles/components.css';
 import './styles/auth.css';
 import './styles/iremehub.css';
+import './styles/workspace.css';
 import ConditionalHeader from '../components/layout/ConditionalHeader';
 import ConditionalFooter from '../components/layout/ConditionalFooter';
 import ScrollToTop from '../components/ScrollToTop';
