@@ -124,6 +124,7 @@ export const createLesson = asyncHandler(async (req: UserRequest, res: Response,
   req.body.order = req.body.order || lessonCount + 1;
 
   const lesson = await Lesson.create(req.body);
+  await Course.findByIdAndUpdate(course._id, { $addToSet: { lessons: lesson._id } });
 
   res.status(201).json({
     success: true,
@@ -208,6 +209,7 @@ export const deleteLesson = asyncHandler(async (req: UserRequest, res: Response,
   }
 
   await Lesson.deleteOne({ _id: lesson._id });
+  await Course.findByIdAndUpdate(course._id, { $pull: { lessons: lesson._id } });
 
   // Reorder the remaining lessons
   const lessons = await Lesson.find({ course: lesson.course })

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { Section, Course } from '../models';
+import { Section, Course, Lesson } from '../models';
 import asyncHandler from '../middleware/asyncHandler';
 import ErrorResponse from '../utils/errorResponse';
 import mongoose from 'mongoose';
@@ -130,8 +130,10 @@ export const deleteSection = asyncHandler(async (req: UserRequest, res: Response
     return next(new ErrorResponse(`User ${req.user.id} is not authorized to delete this section`, 401));
   }
 
-  // Remove lessons belonging to the deleted section from the outline.
-  // Preserve lesson records; instructors can reassign them from the curriculum editor.
+  // A section with lessons cannot be removed: make an explicit curriculum decision first.
+  if (await Lesson.exists({ section: section._id })) {
+    return next(new ErrorResponse('Move or delete lessons before removing this section', 409));
+  }
   await Section.deleteOne({ _id: section._id });
   await Course.findByIdAndUpdate(course._id, { $pull: { sections: section._id } });
 
