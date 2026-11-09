@@ -81,11 +81,12 @@ export default function EducatorDashboard() {
         
         // Fetch educator dashboard stats
         try {
-          // This endpoint will need to be implemented in your backend
           const statsResponse = await apiGet<DashboardStats>('/educator/dashboard-stats', true);
           if (statsResponse.success && statsResponse.data) {
             const statsData = statsResponse.data;
             setStats(statsData);
+          } else {
+            setError(statsResponse.error || 'Could not load educator statistics.');
           }
         } catch (statsErr) {
           console.error('Stats fetch error:', statsErr);

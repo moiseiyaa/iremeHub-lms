@@ -3,7 +3,7 @@ import { ArrowUpRightIcon, BookOpenIcon, AcademicCapIcon, BuildingOffice2Icon, S
 
 const pillars=[
 {icon:BookOpenIcon,title:'Better learning journeys',copy:'Put learning materials, lessons and milestones where people can find them.'},
-{icon:GraduationCapIcon,title:'Clearer teaching workflows',copy:'Give educators room to focus on teaching, feedback and outcomes.'},
+{icon:AcademicCapIcon,title:'Clearer teaching workflows',copy:'Give educators room to focus on teaching, feedback and outcomes.'},
 {icon:BuildingOffice2Icon,title:'Organized institutions',copy:'Help teams administer digital learning programs from one thoughtful workspace.'},
 ];
 const principles=[
