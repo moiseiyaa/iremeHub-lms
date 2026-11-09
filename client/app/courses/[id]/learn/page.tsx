@@ -155,6 +155,8 @@ export default function CourseLearnPage() {
   const [examMode, setExamMode] = useState(false);
   const [examStartTime, setExamStartTime] = useState<Date | null>(null);
   const [examTimeRemaining, setExamTimeRemaining] = useState<number>(0);
+  const [examDeadline, setExamDeadline] = useState<number | null>(null);
+  const [submittingExam, setSubmittingExam] = useState(false);
   const [examSubmitted, setExamSubmitted] = useState<boolean>(false);
   const [examResults, setExamResults] = useState<{
     passed: boolean;
@@ -164,6 +166,14 @@ export default function CourseLearnPage() {
     requiredPassingScore: number;
   } | null>(null);
   
+  useEffect(() => {
+    if (!examMode || !examDeadline) return;
+    const tick = () => setExamTimeRemaining(Math.max(0, Math.ceil((examDeadline - Date.now()) / 1000)));
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [examMode, examDeadline]);
+
   // Certificate state
   const [generatingCertificate, setGeneratingCertificate] = useState(false);
   const [certificate, setCertificate] = useState<{ _id: string; certificateId: string } | null>(null);
@@ -400,6 +410,18 @@ export default function CourseLearnPage() {
     }
   };
 
+  // Submission endpoints record assessment completion; never use the
+  // generic completion route for quizzes, exams or assignments.
+  const completeFromSubmission = () => {
+    if (!currentLesson) return;
+    setProgress(prev => {
+      if (!prev || prev.completedLessons.includes(currentLesson._id)) return prev;
+      const completedLessons = [...prev.completedLessons, currentLesson._id];
+      return { ...prev, completedLessons,
+        progressPercentage: prev.totalLessons > 0 ? Math.min(100, completedLessons.length / prev.totalLessons * 100) : 0 };
+    });
+  };
+
   // Handle quiz answer selection
   const handleQuizAnswerSelect = (questionIndex: number, answerIndex: number) => {
     const newAnswers = [...quizAnswers];
@@ -461,7 +483,9 @@ export default function CourseLearnPage() {
       
       if (response.success) {
         setAssignmentSubmitted(true);
-        await markLessonComplete();
+        completeFromSubmission();
+      } else {
+        setError(response.error || 'Assignment submission failed.');
       }
     } catch (err) {
       console.error('Error submitting assignment:', err);
@@ -512,11 +536,14 @@ export default function CourseLearnPage() {
         setExamMode(true);
         setExamStartTime(new Date(examData.startedAt ?? new Date()));
         setExamTimeRemaining((examData.timeLimit ?? 0) * 60);
+        setExamDeadline(Date.now() + (examData.timeLimit ?? 0) * 60_000);
         
         // Initialize empty answers array
         if (currentLesson.content.examQuestions) {
           setExamAnswers(new Array(currentLesson.content.examQuestions.length).fill(undefined));
         }
+      } else {
+        setError(response.error || 'Could not start the exam.');
       }
     } catch (err) {
       console.error('Error starting exam:', err);
@@ -525,8 +552,8 @@ export default function CourseLearnPage() {
 
   // Submit exam
   const handleExamSubmit = async () => {
-    if (!currentLesson || !examStartTime) return;
-    
+    if (!currentLesson || !examStartTime || submittingExam) return;
+    setSubmittingExam(true);
     try {
       interface ExamSubmitRes {
   passed: boolean;
@@ -561,13 +588,15 @@ export default function CourseLearnPage() {
         setExamSubmitted(true);
         setExamMode(false);
         
-        // If passed, mark lesson as complete
-        if (result?.passed) {
-          await markLessonComplete();
-        }
+        if (result?.passed) completeFromSubmission();
+      } else {
+        setError(response.error || 'Exam submission failed.');
       }
     } catch (err) {
       console.error('Error submitting exam:', err);
+      setError(err instanceof Error ? err.message : 'Exam submission failed.');
+    } finally {
+      setSubmittingExam(false);
     }
   };
 
@@ -1023,7 +1052,7 @@ export default function CourseLearnPage() {
                           <div className="flex justify-end">
                             <button
                               onClick={handleExamSubmit}
-                              disabled={examAnswers.length !== currentLesson.content.examQuestions.length || 
+                              disabled={submittingExam || examTimeRemaining <= 0 || examAnswers.length !== currentLesson.content.examQuestions.length || 
                                 examAnswers.some(a => a === undefined)}
                               className={`btn-primary ${
                                 examAnswers.length !== currentLesson.content.examQuestions.length || 
@@ -1032,7 +1061,7 @@ export default function CourseLearnPage() {
                                   : ''
                               }`}
                             >
-                              Submit Exam
+                              {submittingExam ? 'Submitting...' : 'Submit Exam'}
                             </button>
                           </div>
                         </div>
@@ -1071,7 +1100,7 @@ export default function CourseLearnPage() {
                     </Link>
                   )}
                   
-                  {!isLessonCompleted(currentLesson._id) && !examMode && (
+                  {!isLessonCompleted(currentLesson._id) && !examMode && !['quiz','assignment','exam'].includes(currentLesson.contentType) && (
                     <button
                       onClick={markLessonComplete}
                       disabled={completingLesson || 
