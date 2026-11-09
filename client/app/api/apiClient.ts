@@ -1,152 +1,123 @@
-// import { redirect } from 'next/navigation';
-
+/**
+ * Canonical frontend API client.
+ * All browser requests use the same-origin /api/v1 proxy configured by Next.js.
+ * This avoids accidental double /api/v1 prefixes and cross-origin token leakage.
+ * Temporary bearer tokens remain for legacy compatibility until server sessions ship.
+ */
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data: T | null;
   error?: string;
+  status?: number;
+  message?: string;
+  count?: number;
+  total?: number;
+  totalPages?: number;
+  pages?: number;
+  isValid?: boolean;
 }
 
-export type JsonResponse<T> = T | { success?: boolean; data?: T; error?: string };
+const API_BASE_URL = '/api/v1';
+const UNAUTHORIZED_EVENT = 'iremehub:auth-changed';
 
-// If deploying the front-end separately (e.g. Vercel) provide the absolute URL of
-// the backend in NEXT_PUBLIC_API_BASE_URL – e.g. "https://lms-backend.vercel.app/api/v1"
-// Otherwise fall back to relative path for local dev / same-origin deployments.
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api/v1').replace(/\/$/, '');
+type Payload<T> = {
+  success?: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+  count?: number;
+  total?: number;
+  totalPages?: number;
+  pages?: number;
+  isValid?: boolean;
+};
 
-const handleAuthError = (endpoint: string) => {
-  // Only clear token and redirect for specific protected endpoints
-  // Preserve token for course viewing which should be accessible to any authenticated user
-  
-  // For dashboard, profile, or account-specific endpoints - clear token and redirect
-  const protectedEndpoints = [
-    '/dashboard',
-    '/profile',
-    '/settings',
-    '/account',
-    '/auth/me',
-  ];
-  
-  // Check if the current endpoint is a strictly protected one
-  const isStrictlyProtected = protectedEndpoints.some(path => endpoint.includes(path));
-  
-  // If it's a course endpoint, don't clear the token (students should be able to view courses)
-  const isCourseEndpoint = endpoint.includes('/courses/');
-  
-  if (isStrictlyProtected || !isCourseEndpoint) {
-    // Clear the expired token
-    localStorage.removeItem('token');
-    
-    // Get the current path to redirect back after login
-    const currentPath = window.location.pathname;
-    const redirectPath = encodeURIComponent(currentPath);
-    
-    // Redirect to login with return URL
-    window.location.href = `/login?redirect=${redirectPath}`;
+const toError = (value: unknown, fallback: string): string => {
+  if (typeof value === 'string' && value.trim()) return value;
+  return fallback;
+};
+
+const parseResponse = (text: string): unknown => {
+  if (!text.trim()) return {};
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    throw new Error('The API returned an invalid response. Please try again.');
   }
 };
 
-const apiRequest = async <T>(
+export async function apiRequest<T = unknown>(
   endpoint: string,
   options: RequestInit = {},
   requiresAuth = false
-): Promise<ApiResponse<T>> => {
-  const url = `${API_BASE_URL}${endpoint}`;
-  
+): Promise<ApiResponse<T>> {
+  if (!endpoint.startsWith('/') || endpoint.startsWith('//')) {
+    return {success: false, data: null, error: 'Invalid API endpoint.'};
+  }
+
+  const headers = new Headers(options.headers);
+  const hasBody = options.body !== undefined && options.body !== null;
+  if (hasBody && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  if (requiresAuth) {
+    if (typeof window === 'undefined') {
+      return {success: false, data: null, error: 'Authentication is required.'};
+    }
+    const token = window.localStorage.getItem('token');
+    if (!token) return {success: false, data: null, error: 'Please sign in to continue.', status: 401};
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
   try {
-    // Add auth header if required
-    if (requiresAuth) {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        handleAuthError(endpoint);
-        throw new Error('Authentication required');
-      }
-      
-      options.headers = {
-        ...options.headers,
-        'Authorization': `Bearer ${token}`
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      ...options,
+      headers
+    });
+    const decoded = parseResponse(await response.text());
+    const envelope = decoded && typeof decoded === 'object' ? decoded as Payload<T> : {};
+    if (response.status === 401 && requiresAuth && typeof window !== 'undefined') {
+      window.localStorage.removeItem('token');
+      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    }
+    if (!response.ok || envelope.success === false) {
+      return {
+        success: false,
+        data: null,
+        status: response.status,
+        error: toError(envelope.error || envelope.message, response.status === 403 ? 'You do not have permission to perform this action.' : 'The request could not be completed.')
       };
     }
-
-    const response = await fetch(url, {
-      cache: 'no-store',
-      ...options,
-      headers: {
-        'Cache-Control': 'no-store',
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-
-    // Attempt to parse JSON – but if the server returned HTML (often an error page)
-    // we throw a descriptive error so the UI can surface it.
-    const text = await response.text();
-    let data: JsonResponse<T>;
-    try {
-      data = JSON.parse(text) as JsonResponse<T>;
-    } catch { // text was not valid JSON
-      throw new Error('Server returned HTML instead of JSON. The API server might be unavailable or misconfigured.');
-    }
-
-    if (!response.ok) {
-      // Handle authentication errors
-      if (response.status === 401) {
-        handleAuthError(endpoint);
-      }
-      
-      const envelopeError = (typeof data === 'object' && data && 'error' in data) ? (data as { error?: string }).error : undefined;
-      throw new Error(envelopeError || 'API request failed');
-    }
-
     return {
       success: true,
-      data: (typeof data === 'object' && data && 'data' in data) ? (data as { data: T }).data : (data as T),
+      data: 'data' in envelope ? (envelope.data ?? null) : decoded as T,
+      status: response.status,
+      message: envelope.message,
+      count: envelope.count,
+      total: envelope.total,
+      totalPages: envelope.totalPages,
+      pages: envelope.pages,
+      isValid: envelope.isValid
     };
-  } catch (error) {
-    // If it's an auth error, we've already handled it
-    if (error instanceof Error && error.message !== 'Authentication required') {
-      console.error('API Error:', error);
-    }
-    
-    return {
-      success: false,
-      data: null,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    };
+  } catch (err) {
+    return {success: false, data: null, error: err instanceof Error ? err.message : 'Network request failed.'};
   }
-};
+}
 
-export const apiGet = <T>(endpoint: string, requiresAuth = false) => 
-  apiRequest<T>(endpoint, { method: 'GET' }, requiresAuth);
+export const apiGet = <T = unknown>(endpoint: string, requiresAuth = false) =>
+  apiRequest<T>(endpoint, {method: 'GET'}, requiresAuth);
 
-export const apiPost = <T>(endpoint: string, body: Record<string, unknown>, requiresAuth = false) =>
-  apiRequest<T>(
-    endpoint,
-    {
-      method: 'POST',
-      body: JSON.stringify(body)
-    },
-    requiresAuth
-  );
+export const apiPost = <T = unknown>(endpoint: string, body: Record<string, unknown> | FormData, requiresAuth = false) =>
+  apiRequest<T>(endpoint, {method: 'POST', body: body instanceof FormData ? body : JSON.stringify(body)}, requiresAuth);
 
-export const apiPatch = <T>(endpoint: string, body: Record<string, unknown>, requiresAuth = false) =>
-  apiRequest<T>(
-    endpoint,
-    {
-      method: 'PATCH',
-      body: JSON.stringify(body)
-    },
-    requiresAuth
-  );
+export const apiPut = <T = unknown>(endpoint: string, body: Record<string, unknown> | FormData, requiresAuth = false) =>
+  apiRequest<T>(endpoint, {method: 'PUT', body: body instanceof FormData ? body : JSON.stringify(body)}, requiresAuth);
 
-export const apiPut = <T>(endpoint: string, body: Record<string, unknown>, requiresAuth = false) =>
-  apiRequest<T>(
-    endpoint,
-    {
-      method: 'PUT',
-      body: JSON.stringify(body)
-    },
-    requiresAuth
-  );
+export const apiPatch = <T = unknown>(endpoint: string, body: Record<string, unknown> | FormData, requiresAuth = false) =>
+  apiRequest<T>(endpoint, {method: 'PATCH', body: body instanceof FormData ? body : JSON.stringify(body)}, requiresAuth);
 
-export const apiDelete = <T>(endpoint: string, requiresAuth = false) =>
-  apiRequest<T>(endpoint, { method: 'DELETE' }, requiresAuth); 
+export const apiDelete = <T = unknown>(endpoint: string, requiresAuth = false) =>
+  apiRequest<T>(endpoint, {method: 'DELETE'}, requiresAuth);
