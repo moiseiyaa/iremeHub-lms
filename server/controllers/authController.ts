@@ -219,15 +219,26 @@ export const updateUserRole = asyncHandler(async (req: Request, res: Response, n
     return next(new ErrorResponse('Invalid role specified', 400));
   }
 
+  const target = await User.findById(req.params.id);
+  if (!target) {
+    return next(new ErrorResponse('User not found', 404));
+  }
+  // Avoid accidental loss of the administrator's own access.
+  if (req.user?.id === target.id && req.body.role !== 'admin') {
+    return next(new ErrorResponse('Cannot change your own administrator role', 403));
+  }
+  if (target.role === 'admin' && req.body.role !== 'admin') {
+    const adminCount = await User.countDocuments({ role: 'admin' });
+    if (adminCount <= 1) {
+      return next(new ErrorResponse('Cannot demote the last administrator', 409));
+    }
+  }
   const user = await User.findByIdAndUpdate(
     req.params.id,
     { role: req.body.role },
     { new: true, runValidators: true }
   ).select('-password');
-
-  if (!user) {
-    return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
-  }
+  if (!user) return next(new ErrorResponse('User not found', 404));
 
   res.status(200).json({
     success: true,
@@ -242,7 +253,13 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response, next:
   const user = await User.findById(req.params.id);
 
   if (!user) {
-    return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+    return next(new ErrorResponse('User not found', 404));
+  }
+  if (req.user?.id === user.id) {
+    return next(new ErrorResponse('Cannot delete your own administrator account', 403));
+  }
+  if (user.role === 'admin' && await User.countDocuments({ role: 'admin' }) <= 1) {
+    return next(new ErrorResponse('Cannot delete the last administrator', 409));
   }
 
   await user.deleteOne();
