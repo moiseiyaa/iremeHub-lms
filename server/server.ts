@@ -22,8 +22,7 @@ import enrollmentRequestRoutes from './routes/enrollmentRequestRoutes';
 // Load environment variables
 dotenv.config();
 
-// Connect to database
-connectDB();
+// Database and signing-key readiness are checked before listening.
 
 // Initialize Express
 const app: Express = express();
@@ -77,17 +76,34 @@ app.get('/', (req: Request, res: Response) => {
 // Error handler
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-});
+// Start only after critical configuration and database availability are verified.
+const PORT = Number(process.env.PORT) || 5000;
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err: Error, promise) => {
-  console.log(`Error: ${err.message}`);
-  // Close server & exit process
-  server.close(() => process.exit(1));
-});
+const startServer = async (): Promise<void> => {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    throw new Error('JWT_SECRET must be configured with at least 32 characters.');
+  }
+  if (!(await connectDB())) {
+    throw new Error('Database connection unavailable; refusing to accept requests.');
+  }
 
-export default server; 
+  const server = app.listen(PORT, () => {
+    console.log(`iremehub+ API listening on port ${PORT}`);
+  });
+
+  process.on('unhandledRejection', (err: Error) => {
+    console.error('Unhandled rejection:', err?.message || 'Unknown failure');
+    server.close(() => { process.exitCode = 1; });
+  });
+};
+
+// Importing the app for tests does not open a listening socket.
+if (require.main === module) {
+  void startServer().catch(error => {
+    console.error('Startup aborted:', error instanceof Error ? error.message : 'Unknown error');
+    process.exitCode = 1;
+  });
+}
+
+export { startServer };
+export default app; 
