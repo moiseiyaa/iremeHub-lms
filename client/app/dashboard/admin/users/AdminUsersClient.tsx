@@ -1,228 +1,64 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import {
-  UserIcon,
-  PencilSquareIcon,
-  TrashIcon,
-  UserPlusIcon,
-  FunnelIcon,
-  ArrowPathIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from '@heroicons/react/24/outline';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { UserGroupIcon, MagnifyingGlassIcon, ArrowPathIcon, ShieldCheckIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { apiGet, apiPut, apiDelete } from '../../../api/apiClient';
 
-interface UserData {
-  _id: string;
-  name: string;
-  email: string;
-  role: string;
-  profileImage?: {
-    url: string;
+type Role = 'admin'|'educator'|'student';
+interface Account { _id:string;id?:string;name:string;email:string;role:Role;createdAt?:string }
+
+export default function AdminUsersClient(){
+  const router=useRouter();const params=useSearchParams();
+  const initial=params?.get('role')||'all';
+  const [users,setUsers]=useState<Account[]>([]);
+  const [selfId,setSelfId]=useState('');
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState('');
+  const [query,setQuery]=useState('');
+  const [filter,setFilter]=useState(initial);
+  const [working,setWorking]=useState<string|null>(null);
+  const [page,setPage]=useState(1);
+  const perPage=10;
+  const load=async()=>{
+    setLoading(true);setError('');
+    const [response,me]=await Promise.all([apiGet<Account[]>('/auth/users',true),apiGet<Account>('/auth/me',true)]);
+    if(response.success&&Array.isArray(response.data))setUsers(response.data);
+    else setError(response.error||'Could not load accounts.');
+    if(me.success && me.data)setSelfId(me.data._id || me.data.id || '');
+    setLoading(false);
   };
-  createdAt: string;
-}
-
-export default function AdminUsersClient() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const roleFilter = searchParams?.get('role') ?? null;
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [users, setUsers] = useState<UserData[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [activeFilter, setActiveFilter] = useState<string | null>(roleFilter);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      try {
-        // TODO: replace mock with real API call
-        const mockUsers: UserData[] = [
-          {
-            _id: '1',
-            name: 'Admin User',
-            email: 'admin@example.com',
-            role: 'admin',
-            createdAt: new Date().toISOString(),
-            profileImage: { url: 'https://randomuser.me/api/portraits/men/1.jpg' },
-          },
-          {
-            _id: '2',
-            name: 'Educator Smith',
-            email: 'educator@example.com',
-            role: 'educator',
-            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            _id: '3',
-            name: 'John Student',
-            email: 'student1@example.com',
-            role: 'student',
-            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            _id: '4',
-            name: 'Jane Student',
-            email: 'student2@example.com',
-            role: 'student',
-            createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-            profileImage: { url: 'https://randomuser.me/api/portraits/women/2.jpg' },
-          },
-          {
-            _id: '5',
-            name: 'Michael Educator',
-            email: 'educator2@example.com',
-            role: 'educator',
-            createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-        ];
-
-        const filtered = activeFilter ? mockUsers.filter((u) => u.role === activeFilter) : mockUsers;
-        setUsers(filtered);
-        setTotalPages(1);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load users');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [activeFilter, currentPage]);
-
-  useEffect(() => {
-    setActiveFilter(roleFilter);
-  }, [roleFilter]);
-
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-purple-100 text-purple-800';
-      case 'educator':
-        return 'bg-[#e3f0e5] text-[#246a4b]';
-      default:
-        return 'bg-green-100 text-green-800';
-    }
+  useEffect(()=>{void load()},[]);
+  useEffect(()=>{setFilter(params?.get('role')||'all');setPage(1)},[params]);
+  const filtered=useMemo(()=>users.filter(user=>(filter==='all'||user.role===filter)&&[user.name,user.email].join(' ').toLowerCase().includes(query.toLowerCase())),[users,filter,query]);
+  const pages=Math.max(1,Math.ceil(filtered.length/perPage));
+  const visible=filtered.slice((page-1)*perPage,page*perPage);
+  const counts={all:users.length,admin:users.filter(u=>u.role==='admin').length,educator:users.filter(u=>u.role==='educator').length,student:users.filter(u=>u.role==='student').length};
+  const updateRole=async(user:Account,role:Role)=>{
+    if(role===user.role)return;
+    if(user._id===selfId){setError('You cannot change your own administrator role here.');return;}
+    setWorking(user._id);setError('');
+    const result=await apiPut<Account>(`/auth/users/${encodeURIComponent(user._id)}/role`,{role},true);
+    if(result.success)setUsers(prev=>prev.map(item=>item._id===user._id?{...item,role}:item));
+    else setError(result.error||'Role update failed.');
+    setWorking(null);
   };
-
-  const handlePageChange = (p: number) => {
-    if (p >= 1 && p <= totalPages) setCurrentPage(p);
+  const deleteUser=async(user:Account)=>{
+    if(user._id===selfId){setError('You cannot delete your own account here.');return;}
+    if(!window.confirm(`Remove account for ${user.name}? This action cannot be undone.`))return;
+    setWorking(user._id);setError('');
+    const result=await apiDelete(`/auth/users/${encodeURIComponent(user._id)}`,true);
+    if(result.success)setUsers(prev=>prev.filter(item=>item._id!==user._id));
+    else setError(result.error||'Could not remove the account.');
+    setWorking(null);
   };
-
-  const applyFilter = (role: string | null) => {
-    router.push(role ? `/dashboard/admin/users?role=${role}` : '/dashboard/admin/users');
-    setActiveFilter(role);
-    setCurrentPage(1);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
-        <p className="text-gray-600">Loading users…</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-[-.045em]">Users Management</h1>
-            <p className="mt-1 text-gray-500">Manage all platform users</p>
-          </div>
-          <Link
-            href="/dashboard/admin/users/create"
-            className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-white bg-primary hover:bg-[#104a39]"
-          >
-            <UserPlusIcon className="-ml-1 mr-2 h-5 w-5" /> Add User
-          </Link>
-        </div>
-
-        {error && <div className="mb-6 p-4 bg-red-100 text-red-700 rounded">{error}</div>}
-
-        {/* Filters */}
-        <div className="mb-6 bg-white p-4 rounded-lg shadow flex items-center space-x-4">
-          <FunnelIcon className="h-5 w-5 text-gray-400" />
-          <span className="text-sm font-medium text-gray-500">Filter by:</span>
-          {['admin', 'educator', 'student'].map((role) => (
-            <button
-              key={role}
-              onClick={() => applyFilter(role)}
-              className={`px-3 py-1 text-sm rounded-full ${
-                activeFilter === role ? 'bg-[#e3f0e5] text-[#246a4b]' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-              }`}
-            >
-              {role.charAt(0).toUpperCase() + role.slice(1)}
-            </button>
-          ))}
-          <button className="ml-auto text-sm text-gray-600 hover:text-gray-900" onClick={() => applyFilter(null)}>
-            <ArrowPathIcon className="h-4 w-4 mr-1 inline" /> Reset
-          </button>
-        </div>
-
-        {/* Users table */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-xl">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-[#f5f7f2]">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((u) => (
-                <tr key={u._id} className="hover:bg-[#f5f7f2]">
-                  <td className="px-6 py-4 whitespace-nowrap flex items-center space-x-3">
-                    {u.profileImage ? (
-                      <Image src={u.profileImage.url} alt={u.name} width={40} height={40} className="rounded-full" />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <UserIcon className="h-6 w-6 text-gray-500" />
-                      </div>
-                    )}
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{u.name}</div>
-                      <div className="text-sm text-gray-500">{u.email}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(u.role)}`}>{
-                      u.role
-                    }</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(u.createdAt)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    <Link href={`/dashboard/admin/users/${u._id}/edit`} className="text-primary hover:text-blue-900">
-                      <PencilSquareIcon className="h-5 w-5" title="Edit" />
-                    </Link>
-                    <button
-                      onClick={() => alert(`Delete user ${u.name}`)}
-                      className="text-red-600 hover:text-red-900"
-                      title={`Delete user ${u.name}`}
-                      aria-label={`Delete user ${u.name}`}
-                    >
-                      <TrashIcon className="h-5 w-5" aria-hidden="true" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="bg-[#f5f7f2] min-h-screen py-9"><div className="ih-container">
+    <div className="flex flex-wrap justify-between items-end gap-6 mb-8"><div><span className="ih-eyebrow">People & access</span><h1 className="mt-4 text-3xl sm:text-4xl tracking-[-.055em] font-extrabold">User management</h1><p className="mt-3 text-[#738677] text-sm">Review registered accounts, roles and access permissions.</p></div><button type="button" onClick={()=>void load()} className="ih-btn ih-btn-neutral"><ArrowPathIcon className="w-5 h-5"/> Refresh accounts</button></div>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">{(['all','student','educator','admin'] as const).map(key=><button key={key} type="button" onClick={()=>{router.push(key==='all'?'/dashboard/admin/users':`/dashboard/admin/users?role=${key}`);setFilter(key);setPage(1)}} className={`ih-card !text-left px-5 py-5 transition-colors ${filter===key?'!bg-[#e7f3e7] !border-[#8bb69b]':''}`}><p className="text-xs text-[#6f8775] capitalize font-semibold">{key==='all'?'Total users':key+'s'}</p><p className="text-3xl font-extrabold mt-2 tracking-tight">{counts[key]}</p></button>)}</div>
+    <div className="ih-card overflow-hidden"><div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5 border-b border-[#e4ece3]"><div><h2 className="font-bold text-lg inline-flex items-center gap-2"><UserGroupIcon className="w-5 h-5 text-[#398b5e]"/> Accounts</h2><p className="text-xs ih-muted mt-1">{filtered.length} accounts matching filters</p></div><div className="relative w-full sm:w-[280px]"><MagnifyingGlassIcon className="w-5 h-5 absolute top-1/2 left-3 -translate-y-1/2 text-[#70917a]"/><input type="search" aria-label="Search users" className="ih-input !pl-10" placeholder="Search name or email..." value={query} onChange={e=>{setQuery(e.target.value);setPage(1)}}/></div></div>
+      {error&&<p role="alert" className="mx-6 mt-5 text-sm text-red-700 bg-red-50 border border-red-200 p-4 rounded-xl">{error}</p>}
+      {loading?<div className="p-7 space-y-4">{[1,2,3,4].map(i=><div key={i} className="ih-skeleton h-12"/>)}</div>:visible.length===0?<div className="ih-empty !border-0"><ShieldCheckIcon className="w-10 h-10 text-[#4f9367]"/><h3 className="text-lg font-bold mt-4">No users to display</h3><p className="text-sm ih-muted mt-2">Change the search or filter to see other accounts.</p></div>:<div className="overflow-x-auto"><table className="w-full text-left min-w-[750px]"><thead className="bg-[#f2f7ef]"><tr>{['Name','Role','Joined','Actions'].map(h=><th key={h} className="px-6 py-4 font-bold uppercase tracking-wider text-xs text-[#677c6c]">{h}</th>)}</tr></thead><tbody className="divide-y divide-[#e9efe9]">{visible.map(user=><tr key={user._id} className="hover:bg-[#fbfdf9]"><td className="px-6 py-5"><p className="font-semibold text-sm">{user.name}{user._id===selfId?' (you)':''}</p><p className="text-xs text-[#718678] mt-1">{user.email}</p></td><td className="px-6 py-5"><label className="sr-only" htmlFor={`role-${user._id}`}>Role for {user.name}</label><select id={`role-${user._id}`} className="ih-input !w-[145px] !min-h-[38px] capitalize !text-xs" value={user.role} disabled={working===user._id||user._id===selfId} onChange={e=>void updateRole(user,e.target.value as Role)}><option value="student">Student</option><option value="educator">Educator</option><option value="admin">Admin</option></select></td><td className="px-6 py-5 text-xs text-[#7d9081]">{user.createdAt?new Date(user.createdAt).toLocaleDateString():'—'}</td><td className="px-6 py-5"><button type="button" disabled={working===user._id||user._id===selfId} onClick={()=>void deleteUser(user)} className="inline-flex items-center gap-1 text-red-700 hover:underline text-xs font-semibold disabled:opacity-30"><TrashIcon className="w-4 h-4"/> Delete</button></td></tr>)}</tbody></table></div>}
+      <div className="flex items-center justify-between gap-4 border-t border-[#e5ece4] px-6 py-4"><span className="text-xs ih-muted">Page {page} of {pages}</span><div className="flex gap-2"><button type="button" className="ih-btn ih-btn-neutral !min-h-[34px] !p-2 !text-xs" disabled={page<=1} onClick={()=>setPage(x=>Math.max(1,x-1))}>Previous</button><button type="button" className="ih-btn ih-btn-neutral !min-h-[34px] !p-2 !text-xs" disabled={page>=pages} onClick={()=>setPage(x=>Math.min(pages,x+1))}>Next</button></div></div>
+    </div><p className="text-xs ih-muted mt-5">Invitation and provisioning workflows will be introduced with institutional membership management.</p>
+  </div></div>;
 }
