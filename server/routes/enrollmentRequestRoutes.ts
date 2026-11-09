@@ -2,6 +2,8 @@ import express from 'express';
 import { protect, authorize } from '../middleware/auth';
 import EnrollmentRequest from '../models/EnrollmentRequest';
 import Course from '../models/Course';
+import User from '../models/User';
+import Progress from '../models/Progress';
 import { Notification } from '../models/Notification';
 import ErrorResponse from '../utils/errorResponse';
 
@@ -46,7 +48,7 @@ router.post('/courses/:id/request-enroll', protect, authorize('student'), async 
 });
 
 // Educator: get pending requests for their courses
-router.get('/educator/requests', protect, authorize('educator'), async (req, res, next) => {
+router.get('/educator/requests', protect, authorize('educator', 'admin'), async (req, res, next) => {
   try {
     // find courses owned by educator
     let courses = await Course.find({ instructor: req.user._id }).select('_id');
@@ -67,7 +69,7 @@ router.get('/educator/requests', protect, authorize('educator'), async (req, res
 });
 
 // Educator: approve or reject
-router.patch('/educator/requests/:reqId', protect, authorize('educator'), async (req, res, next) => {
+router.patch('/educator/requests/:reqId', protect, authorize('educator', 'admin'), async (req, res, next) => {
   try {
     const { reqId } = req.params;
     const { status } = req.body; // approved or rejected
@@ -75,32 +77,53 @@ router.patch('/educator/requests/:reqId', protect, authorize('educator'), async 
       return next(new ErrorResponse('Invalid status', 400));
     }
 
-    const request = await EnrollmentRequest.findById(reqId).populate('courseId');
+    const request = await EnrollmentRequest.findById(reqId);
     if (!request) return next(new ErrorResponse('Request not found', 404));
 
-    // ensure educator owns the course
-    if (request.courseId && request.courseId.instructor.toString() !== req.user._id.toString()) {
-      return next(new ErrorResponse('Not authorized', 403));
+    const course = await Course.findById(request.courseId);
+    if (!course) return next(new ErrorResponse('Course not found', 404));
+    if (course.instructor.toString() !== req.user._id.toString()) {
+      return next(new ErrorResponse('Not authorized to approve enrollments for this course', 403));
     }
+    if (request.status !== 'pending') return next(new ErrorResponse('Enrollment request has already been decided', 409));
 
-    request.status = status as any;
-    await request.save();
-
-    // If approved, add student to course enrollment list
     if (status === 'approved') {
-      await Course.findByIdAndUpdate((request.courseId as any)._id || request.courseId, {
-        $addToSet: { enrolledStudents: request.studentId }
-      });
+      if (!course.isPublished || course.price > 0) {
+        return next(new ErrorResponse('Approval requires a published, free course. Paid access must be verified through billing.', 409));
+      }
+      const student = await User.findById(request.studentId).select('role');
+      if (!student || student.role !== 'student') {
+        return next(new ErrorResponse('Valid student account required', 409));
+      }
+      // Idempotent writes; a cross-document transaction is a Phase 4 requirement.
+      await Course.findByIdAndUpdate(course._id, { $addToSet: { enrolledStudents: request.studentId } });
+      await User.findByIdAndUpdate(request.studentId, { $addToSet: { enrolledCourses: course._id } });
+      await Progress.findOneAndUpdate(
+        { user: request.studentId, course: course._id },
+        { $setOnInsert: { status: 'active', completedLessons: [], completed: false } },
+        { upsert: true, setDefaultsOnInsert: true }
+      );
     }
 
-    // Create notification for the student
-    await Notification.create({
-      user: request.studentId,
-      message: `Your enrollment request for ${request.courseId.title} was ${status}.`,
-      link: `/courses/${request.courseId._id}/learn`
-    });
+    const updated = await EnrollmentRequest.findOneAndUpdate(
+      { _id: request._id, status: 'pending' },
+      { $set: { status } },
+      { new: true }
+    );
+    if (!updated) return next(new ErrorResponse('Request was already decided by another action', 409));
 
-    res.json({ success: true, data: request });
+    // A notification outage must not turn a successful enrollment into a false failure.
+    try {
+      await Notification.create({
+        user: request.studentId,
+        message: `Your enrollment request for ${course.title} was ${status}.`,
+        link: `/courses/${course._id}/learn`
+      });
+    } catch (notificationError) {
+      console.error('Enrollment notification could not be delivered');
+    }
+
+    res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
   }
