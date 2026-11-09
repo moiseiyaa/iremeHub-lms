@@ -17,11 +17,12 @@
 - Certificate list and details/verification/download.
 - Admin: users, courses, blog management, blog creation and blog editing.
 - Educator enrollment approval queue.
+- Educator course list, learner details, learner enrollments, announcements and a shared course studio with live section, lesson, quiz, exam, YouTube and assignment authoring.
 
 ## Adapted pages (visual system applied; UX follow-up required)
-- Educator dashboard, course list/create/edit, student list/detail, enrollment listing, announcements.
+- Educator dashboard analytics and remaining administrative subflows; verify server response contracts end-to-end.
 - Other role-based management and coursework routes.
-- Existing course lesson-player page retains legacy learning logic with scoped design-system styling and control improvements.
+- Existing lesson player retains parts of its legacy learning logic, but has a responsive mobile sidebar, visible activity feedback, server-graded quizzes and safe plaintext lesson display. It needs full browser QA.
 
 ## Data integrity / design guardrails
 - Do not invent student metrics, published courses, ratings, posts or certificate completion.
@@ -29,6 +30,9 @@
 - Prevent unauthorized self-provisioned admin access; learners need backend-verified enrollment.
 - Blog creation and admin tables now call backend APIs rather than fake-data demos.
 - Certificates download genuine PDFs from a protected endpoint.
+- Course authoring now uses actual persisted model fields and an authenticated editing endpoint, rather than forms that silently drop unmodeled fields.
+- Browser API requests use the single same-origin /api/v1 proxy, configured by API_PROXY_TARGET for deployment.
+- Lesson reads require enrollment/instructor/admin access; student responses omit quiz/exam answer keys. Quiz grading and assessment completion are server-enforced, pending end-to-end tests.
 
 ## Explicit unfinished work / blockers
 - `client` must pass a real TypeScript/ESLint/Next.js build and browser E2E tests; no green remote CI result has been recorded. GitHub Actions has reported no-step failures requiring diagnosis.
@@ -36,7 +40,9 @@
 - Contact service is not connected; the UI returns an honest failure when unconfigured.
 - Secure, revocable sessions, tenant-aware backend authorization, payment flows and subscription UI have not yet been implemented.
 - Course authoring and progress/assessment flows need a verified end-to-end regression suite.
-- Existing legacy `next.config.js` currently suppresses build errors; remove those settings only after code fixes and a passing quality gate.
+- Next.js TypeScript and lint error suppression was removed; builds are now expected to fail until outstanding validation problems are resolved.
+- GitHub Actions jobs currently fail without any recorded step summaries. Job-log retrieval returns BlobNotFound, so the specific runner/validation failure is not yet confirmed.
+- Browser navigation, course studio media uploads, quiz/exam submissions and certificate PDF downloads require tests against running frontend/backend and an isolated test database.
 - No browser/device screenshot-based visual QA has been completed in this session.
 
 ## Local commands
