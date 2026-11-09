@@ -1,293 +1,119 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  AcademicCapIcon,
-  ClockIcon,
-  UserGroupIcon,
-  ShieldCheckIcon,
-  ArrowRightIcon
-} from '@heroicons/react/24/outline';
-import TechIconsMarquee from '../components/TechIconsMarquee';
-import LiveCourseCard from '../components/LiveCourseCard';
+import { ArrowUpRightIcon, BookOpenIcon, BuildingOffice2Icon, ChartBarSquareIcon, PlayCircleIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { apiGet } from './api/apiClient';
+import LiveCourseCard from '../components/LiveCourseCard';
 
-// Course images for fallback
-const COURSE_IMAGES = [
-  "https://placehold.co/600x400/gray/white?text=Web+Development",
-  "https://placehold.co/600x400/gray/white?text=Data+Science",
-  "https://placehold.co/600x400/gray/white?text=Mobile+Development",
-  "https://placehold.co/600x400/gray/white?text=UI/UX+Design",
-  "https://placehold.co/600x400/gray/white?text=Cloud+Computing",
-  "https://placehold.co/600x400/gray/white?text=Cybersecurity"
-];
-
-interface Course {
+interface FeaturedCourse {
   _id: string;
   title: string;
-  description: string;
-  thumbnail: {
-    url: string;
-  };
-  price: number;
-  level: string;
-  category: string;
-  ratings?: {
-    average: number;
-    count: number;
-  };
+  description?: string;
+  thumbnail?: { url?: string };
+  price?: number;
+  level?: string;
+  category?: string;
 }
 
+const roles = [
+  { icon: BuildingOffice2Icon, title: 'For institutions', description: 'Bring your learning programs, educators and learners together in one organized space.', detail: 'Organize learning' },
+  { icon: BookOpenIcon, title: 'For educators', description: 'Create structured courses, guide learners and understand how learning progresses.', detail: 'Create with clarity' },
+  { icon: UserGroupIcon, title: 'For learners', description: 'Find your next lesson, stay on track and turn every milestone into progress.', detail: 'Keep moving' },
+];
+
 export default function Home() {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<FeaturedCourse[]>([]);
   const [loading, setLoading] = useState(true);
-  
+  const [error, setError] = useState(false);
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const response = await apiGet<{success: boolean; data: Course[]; count?: number; pagination?: unknown}>('/courses');
-        if (response.success && Array.isArray(response.data)) {
-          setCourses(response.data.slice(0, 6)); // Get first 6 courses
-        } else {
-          console.warn('Failed to fetch courses or data is not an array:', response);
-          setCourses([]); // Fallback to empty or placeholder
-        }
-      } catch (error) {
-        console.error('Error fetching courses:', error);
-        setCourses([]); // Fallback to empty or placeholder
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchCourses();
+    let active = true;
+    (async () => {
+      const response = await apiGet<FeaturedCourse[]>('/courses');
+      if (!active) return;
+      setCourses(response.success && Array.isArray(response.data) ? response.data.slice(0, 3) : []);
+      setError(!response.success);
+      setLoading(false);
+    })();
+    return () => { active = false; };
   }, []);
-  
-  // Default placeholder courses in case the API doesn't return any
-  const placeholderCourses: Course[] = [
-    {
-      _id: 'web-dev',
-      title: 'Web Development',
-      description: 'Learn to build modern, responsive websites with HTML, CSS, JavaScript and more.',
-      thumbnail: { url: COURSE_IMAGES[0] },
-      price: 299,
-      level: 'Intermediate',
-      category: 'Development',
-      ratings: { average: 4.9, count: 245 }
-    },
-    {
-      _id: 'data-science',
-      title: 'Data Science',
-      description: 'Master data analysis, machine learning and statistics',
-      thumbnail: { url: COURSE_IMAGES[1] },
-      price: 249,
-      level: 'Advanced',
-      category: 'Data',
-      ratings: { average: 4.7, count: 182 }
-    },
-    {
-      _id: 'mobile-dev',
-      title: 'Mobile Development',
-      description: 'Build iOS and Android apps with React Native',
-      thumbnail: { url: COURSE_IMAGES[2] },
-      price: 249,
-      level: 'Intermediate',
-      category: 'Development',
-      ratings: { average: 4.8, count: 156 }
-    },
-    {
-      _id: 'ui-ux',
-      title: 'UI/UX Design',
-      description: 'Create beautiful, user-friendly digital experiences',
-      thumbnail: { url: COURSE_IMAGES[3] },
-      price: 199,
-      level: 'Beginner',
-      category: 'Design',
-      ratings: { average: 4.6, count: 120 }
-    },
-    {
-      _id: 'cloud',
-      title: 'Cloud Computing',
-      description: 'Deploy and manage applications in the cloud',
-      thumbnail: { url: COURSE_IMAGES[4] },
-      price: 249,
-      level: 'Advanced',
-      category: 'IT & Software',
-      ratings: { average: 4.5, count: 95 }
-    },
-    {
-      _id: 'cybersecurity',
-      title: 'Cybersecurity',
-      description: 'Protect systems from digital threats and vulnerabilities',
-      thumbnail: { url: COURSE_IMAGES[5] },
-      price: 299,
-      level: 'Intermediate',
-      category: 'IT & Software',
-      ratings: { average: 4.7, count: 136 }
-    }
-  ];
-  
-  // Use actual courses if available, otherwise fall back to placeholders
-  const displayCourses = courses.length > 0 ? courses : placeholderCourses;
-  
+
   return (
-    <div className="bg-white">
-      {/* Hero Section */}
-      <div className="relative min-h-[90vh] xs:min-h-[80vh] pt-16 pb-12 md:pt-20 md:pb-16 flex items-center">
-        {/* Background Wave Pattern */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-full w-full">
-            <svg className="absolute top-0 left-0 w-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 800" preserveAspectRatio="none">
-              <path fill="#ffffff" fillOpacity="0.5" d="M0,0 C400,150 800,30 1440,160 L1440,0 L0,0 Z" />
-            </svg>
-            <svg className="absolute bottom-0 right-0 w-full rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 800" preserveAspectRatio="none">
-              <path fill="#ffffff" fillOpacity="0.3" d="M0,160 C300,30 800,300 1440,0 L1440,160 L0,160 Z" />
-            </svg>
+    <div className="overflow-hidden">
+      <section className="relative bg-[#f5f7f2] pt-14 pb-20 lg:pt-20 lg:pb-28">
+        <div className="ih-container grid lg:grid-cols-[.97fr_1.03fr] items-center gap-12 xl:gap-20">
+          <div className="relative z-10">
+            <span className="ih-eyebrow">A new way to make learning matter</span>
+            <h1 className="ih-display mt-7 max-w-[730px] text-[#133a2c]">Your world of learning, <span className="text-[#3c8965]">connected.</span></h1>
+            <p className="ih-lead mt-7">A thoughtful digital learning space for institutions, educators and learners. Build the next chapter with the tools, clarity and support that great learning deserves.</p>
+            <div className="flex flex-wrap gap-3 mt-9">
+              <Link href="/courses" className="ih-btn ih-btn-primary">Explore courses <ArrowUpRightIcon className="w-5 h-5" /></Link>
+              <Link href="/about" className="ih-btn ih-btn-neutral">Discover the platform</Link>
+            </div>
+            <div className="mt-12 pt-6 border-t border-[#d8e4d8] flex flex-wrap items-center gap-4">
+              <div className="flex -space-x-3" aria-hidden="true">{['S', 'E', 'I'].map((label, index) => <div key={label} className={`grid h-11 w-11 place-items-center rounded-full border-2 border-[#f5f7f2] text-sm font-bold ${index === 0 ? 'bg-[#d8f59d]' : index === 1 ? 'bg-[#cfe4db]' : 'bg-[#e9ded2]'}`}>{label}</div>)}</div>
+              <p className="text-sm text-[#5d7367]">One experience for <strong className="text-[#193a2d]">students, educators and institutions</strong></p>
+            </div>
           </div>
-        </div>
-        
-        <div className="container-custom relative z-10 w-full">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="text-left">
-              <h5 className="text-gray-500 text-sm md:text-base mb-2">
-                Anywhere Access Easy Learning
-              </h5>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 tracking-tight leading-tight">
-                Empower Your Future with <span className="text-primary font-bold">In-Demand</span> Skills
-            </h1>
-              
-              <h2 className="text-xl md:text-2xl font-semibold mb-4 text-gray-700">
-                Certified Online Courses for Career-Ready Learning
-              </h2>
-            
-              <p className="text-base md:text-lg text-gray-600 mb-6 max-w-xl">
-                Gain the skills employers value most—anytime, anywhere. Learn at your pace through expert-led, flexible courses that prepare you for real-world success. Start Learning Today.
-            </p>
-            
-              <div className="flex flex-wrap gap-3 md:gap-4 mt-8">
-                <div className="hover:scale-105 active:scale-95 transition-transform">
-                  <Link href="/register" className="bg-primary text-white text-sm md:text-base font-medium px-6 py-2 md:px-8 md:py-3 rounded-full hover:bg-primary/90 transition-all duration-300">
-                Get Started
-              </Link>
+          <div className="ih-hero-visual relative p-5 sm:p-7 lg:p-9" aria-label="Illustrative learning workspace preview">
+            <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-[#d8f59d] opacity-70 blur-[3px]" aria-hidden="true" />
+            <div className="relative rounded-2xl overflow-hidden border border-white/15 bg-[#fbfcf8] text-[#19382c] shadow-2xl">
+              <div className="flex items-center justify-between border-b border-[#e6ece4] px-5 py-4">
+                <div className="flex items-center gap-2 font-extrabold tracking-[-.06em] text-lg"><span className="inline-grid h-7 w-7 place-items-center rounded-lg bg-[#1a674e] text-white text-sm">i+</span> iremehub<span className="text-[#329266]">+</span></div>
+                <span className="text-[10px] font-semibold tracking-[.12em] uppercase text-[#799187]">Workspace concept</span>
+              </div>
+              <div className="grid grid-cols-[68px_1fr] sm:grid-cols-[104px_1fr] min-h-[365px]">
+                <div className="bg-[#f0f4ee] p-3 sm:p-4 flex flex-col gap-5 border-r border-[#e0e9de]">
+                  {['▦','◈','▤','◷'].map((symbol,index)=><span key={index} className={`h-9 rounded-lg grid place-items-center ${index===0?'bg-[#d4ebd8] text-[#226c4f]':'text-[#a0b3a6]'}`} aria-hidden="true">{symbol}</span>)}
                 </div>
-                <div className="hover:scale-105 active:scale-95 transition-transform">
-                  <Link href="/courses" className="border border-gray-300 text-gray-700 text-sm md:text-base font-medium px-6 py-2 md:px-8 md:py-3 rounded-full hover:border-primary hover:text-primary transition-all duration-300">
-                    Explore Courses
-              </Link>
+                <div className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold tracking-[.14em] uppercase text-[#759084]">Learning overview</p><h2 className="mt-1 font-bold text-lg sm:text-xl tracking-tight">Keep your momentum.</h2></div><span className="h-9 w-9 grid place-items-center rounded-full bg-[#d8f59d] text-sm font-bold">L</span></div>
+                  <div className="mt-5 grid grid-cols-2 gap-2 sm:gap-3">
+                    <div className="rounded-xl bg-[#e5f1e6] p-3 sm:p-4"><BookOpenIcon className="w-5 h-5 text-[#2b7152]" /><p className="mt-4 text-xs text-[#52745e]">Your courses</p><p className="text-sm font-bold">In one place</p></div>
+                    <div className="rounded-xl bg-[#f4eedd] p-3 sm:p-4"><ChartBarSquareIcon className="w-5 h-5 text-[#957e47]" /><p className="mt-4 text-xs text-[#7b7055]">Learning goals</p><p className="text-sm font-bold">Track progress</p></div>
+                  </div>
+                  <div className="mt-5 rounded-xl border border-[#e0e8df] bg-white px-4 py-4">
+                    <p className="text-xs text-[#73897a]">Continue where you left off</p>
+                    <div className="mt-3 flex items-center gap-3"><div className="h-11 w-11 rounded-lg grid place-items-center bg-[#d9e8da]"><PlayCircleIcon className="w-6 h-6 text-[#2a7455]" /></div><div className="flex-1 min-w-0"><p className="font-semibold text-sm truncate">Your next lesson</p><p className="text-xs text-[#81928a]">Your learning path</p></div><span className="text-[#2a7455]" aria-hidden="true">↗</span></div>
+                    <div className="h-1.5 mt-4 bg-[#e9efe7] rounded-full"><div className="w-[58%] bg-[#6caf80] h-full rounded-full" /></div>
+                  </div>
+                  <p className="mt-3 text-[10px] text-[#87968c]">Illustrative interface · Not live learner data</p>
                 </div>
               </div>
-              
-              {/* Social Media Icons */}
-              <div className="flex items-center space-x-4 mt-8">
-                {/* Other social icons... */}
-              </div>
             </div>
-
-            <div className="relative flex items-center justify-center">
-              <motion.div
-                whileHover={{ scale: 1.05, rotate: 2 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                className="relative w-[300px] h-[300px] md:w-[450px] md:h-[450px] lg:w-[500px] lg:h-[500px]"
-              >
-                <Image 
-                  src="/images/ireme.png"
-                  alt="Ireme"
-                  fill
-                  style={{ objectFit: 'contain' }}
-                  priority
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="drop-shadow-2xl"
-                />
-              </motion.div>
-            </div>
+            <div className="relative mt-6 text-xs text-[#a9c6b6] flex justify-between gap-4"><span>Built around people.</span><span>Designed for progress. ✳</span></div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Feature Icons Section */}
-      <div className="py-6 md:py-10 lg:py-12 bg-white">
-        <div className="container-custom">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
-            <div className="flex flex-col items-center text-center hover:-translate-y-2 transition-all duration-300">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary flex items-center justify-center rounded-xl mb-3 hover:scale-110 transition-transform">
-                <AcademicCapIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-              </div>
-              <h3 className="text-xs sm:text-sm font-semibold">Certified Courses</h3>
-            </div>
-            
-            <div className="flex flex-col items-center text-center hover:-translate-y-2 transition-all duration-300">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary flex items-center justify-center rounded-xl mb-3 hover:scale-110 transition-transform">
-                <UserGroupIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-              </div>
-              <h3 className="text-xs sm:text-sm font-semibold">Lifetime Access</h3>
-              </div>
-                
-            <div className="flex flex-col items-center text-center hover:-translate-y-2 transition-all duration-300">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary flex items-center justify-center rounded-xl mb-3 hover:scale-110 transition-transform">
-                <ClockIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-              </div>
-              <h3 className="text-xs sm:text-sm font-semibold">24/7 Support</h3>
-            </div>
-            
-            <div className="flex flex-col items-center text-center hover:-translate-y-2 transition-all duration-300">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary flex items-center justify-center rounded-xl mb-3 hover:scale-110 transition-transform">
-                <ShieldCheckIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-              </div>
-              <h3 className="text-xs sm:text-sm font-semibold">Hands-On Projects</h3>
-            </div>
+      <section className="ih-section bg-white">
+        <div className="ih-container">
+          <div className="flex flex-wrap justify-between items-end gap-7 mb-11">
+            <div><span className="ih-eyebrow">Made for every role</span><h2 className="ih-heading mt-5 max-w-2xl">A better experience for everyone involved.</h2></div>
+            <p className="ih-lead !text-base max-w-sm">Simple where it should be. Powerful where it matters.</p>
           </div>
+          <div className="grid md:grid-cols-3 gap-5">{roles.map((item,index)=><article key={item.title} className={`rounded-[24px] p-7 sm:p-8 min-h-[290px] flex flex-col ${index===0?'bg-[#e8f2e9]':index===1?'bg-[#f0f3e9]':'bg-[#f8f4ec]'}`}><div className="h-13 w-13 rounded-2xl bg-white/80 inline-flex items-center justify-center p-3 w-fit"><item.icon className="w-7 h-7 text-[#1b6a4f]"/></div><h3 className="mt-9 text-2xl font-bold tracking-[-.04em]">{item.title}</h3><p className="text-[#607369] leading-7 text-sm mt-3 flex-1">{item.description}</p><span className="mt-7 font-semibold text-sm text-[#216c50]">{item.detail}</span></article>)}</div>
         </div>
-      </div>
+      </section>
 
-      {/* Tech Icons Section */}
-      <div className="py-6 md:py-10 lg:py-12 bg-white">
-        <div className="container-custom">
-          <TechIconsMarquee />
+      <section className="ih-section bg-[#f5f7f2]">
+        <div className="ih-container">
+          <div className="flex items-end justify-between gap-6 flex-wrap mb-10">
+            <div><span className="ih-eyebrow">Explore what is available</span><h2 className="ih-heading mt-5">Explore courses.</h2><p className="ih-lead !text-base mt-3">Discover published courses directly from our catalog.</p></div>
+            <Link href="/courses" className="ih-btn ih-btn-neutral">View catalog <ArrowUpRightIcon className="w-5 h-5"/></Link>
+          </div>
+          {loading ? <div className="grid gap-6 md:grid-cols-3" aria-label="Loading courses">{[0,1,2].map(i=><div key={i} className="ih-skeleton h-[340px]"/>)}</div> :
+            courses.length > 0 ? <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">{courses.map((course,index)=><LiveCourseCard key={course._id} course={course} featured={index===0}/>)}</div> :
+            <div className="ih-empty"><BookOpenIcon className="h-10 w-10 text-[#55936e]"/><h3 className="text-xl font-bold mt-5">Courses are on their way</h3><p className="ih-muted text-sm mt-2 max-w-md">{error?'The catalog is temporarily unavailable. Please check again later.':'No published courses are available at the moment.'}</p><Link className="ih-btn ih-btn-neutral mt-6" href="/about">Learn about iremehub+</Link></div>}
         </div>
-      </div>
+      </section>
 
-      {/* Our Courses Section */}
-      <div className="py-8 md:py-12 lg:py-16 bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-6 md:mb-8">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
-              Our Courses
-            </h2>
-            <p className="text-gray-600 mt-3 md:mt-4 max-w-3xl mx-auto text-sm md:text-base">
-              Explore our wide range of courses designed to help you master in-demand skills and advance your career
-            </p>
-          </div>
-          
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayCourses.map((course, index) => (
-                <LiveCourseCard 
-                  key={course._id} 
-                  course={course} 
-                  featured={index === 0} 
-                />
-              ))}
-            </div>
-          )}
-          
-          <div className="mt-10 text-center">
-            <Link 
-              href="/courses" 
-              className="inline-flex items-center bg-white border-2 border-primary text-primary px-8 py-3 rounded-full font-medium hover:bg-primary hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 transform hover:-translate-y-1"
-            >
-              Browse All Courses
-              <ArrowRightIcon className="ml-2 h-5 w-5" />
-            </Link>
-          </div>
+      <section className="bg-[#113d2f] text-white py-16 lg:py-24">
+        <div className="ih-container grid lg:grid-cols-[1.3fr_auto] items-center gap-8">
+          <div><span className="text-xs uppercase tracking-[.16em] text-[#b6d7bc] font-bold">Build what comes next</span><h2 className="mt-5 text-3xl sm:text-5xl max-w-3xl font-bold tracking-[-.05em] leading-tight">Learning that grows with your ambitions.</h2><p className="mt-4 text-[#b7d0c0] max-w-xl leading-7">Explore how iremehub+ is evolving to support learning communities of every size.</p></div>
+          <div><Link href="/contact" className="ih-btn ih-btn-lime">Get in touch <ArrowUpRightIcon className="h-5 w-5"/></Link></div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
