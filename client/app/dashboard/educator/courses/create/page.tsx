@@ -237,7 +237,7 @@ export default function CreateCourse() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-8">
+    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
@@ -249,7 +249,7 @@ export default function CreateCourse() {
               <ArrowLeftIcon className="mr-1 h-4 w-4" />
               Back to Courses
             </Link>
-            <h1 className="mt-2 text-2xl font-bold text-gray-900">Create New Course</h1>
+            <h1 className="mt-2 text-2xl font-bold text-gray-900 tracking-[-.045em]">Create New Course</h1>
           </div>
         </div>
         
@@ -269,7 +269,7 @@ export default function CreateCourse() {
         )}
         
         {/* Course creation form */}
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg overflow-hidden">
+        <form onSubmit={handleSubmit} className="bg-white shadow-sm rounded-lg overflow-hidden">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-lg font-medium text-gray-900">Basic Information</h2>
             <p className="mt-1 text-sm text-gray-500">
@@ -289,7 +289,7 @@ export default function CreateCourse() {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border ${errors.title ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border ${errors.title ? 'border-red-300' : 'border-gray-300'} rounded-xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm`}
                 placeholder="e.g. Advanced JavaScript for Web Developers"
               />
               {errors.title && (
@@ -308,7 +308,7 @@ export default function CreateCourse() {
                 name="shortDescription"
                 value={formData.shortDescription}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border ${errors.shortDescription ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border ${errors.shortDescription ? 'border-red-300' : 'border-gray-300'} rounded-xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm`}
                 placeholder="A brief description that appears in course cards"
                 maxLength={200}
               />
@@ -331,7 +331,7 @@ export default function CreateCourse() {
                 rows={6}
                 value={formData.description}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border ${errors.description ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border ${errors.description ? 'border-red-300' : 'border-gray-300'} rounded-xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm`}
                 placeholder="Provide a detailed description of your course"
               />
               {errors.description && (
@@ -350,7 +350,7 @@ export default function CreateCourse() {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className={`mt-1 block w-full px-3 py-2 border ${errors.category ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  className={`mt-1 block w-full px-3 py-2 border ${errors.category ? 'border-red-300' : 'border-gray-300'} rounded-xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm`}
                   aria-label="Course category"
                 >
                   <option value="">Select a category</option>
@@ -372,7 +372,7 @@ export default function CreateCourse() {
                   name="level"
                   value={formData.level}
                   onChange={handleChange}
-                  className={`mt-1 block w-full px-3 py-2 border ${errors.level ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  className={`mt-1 block w-full px-3 py-2 border ${errors.level ? 'border-red-300' : 'border-gray-300'} rounded-xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm`}
                   aria-label="Course difficulty level"
                 >
                   <option value="">Select a level</option>
@@ -391,7 +391,7 @@ export default function CreateCourse() {
               <label htmlFor="price" className="block text-sm font-medium text-gray-700">
                 Price (USD) <span className="text-red-500">*</span>
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="mt-1 relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <span className="text-gray-500 sm:text-sm">$</span>
                 </div>
@@ -401,7 +401,7 @@ export default function CreateCourse() {
                   name="price"
                   value={formData.price}
                   onChange={handleChange}
-                  className={`block w-full pl-7 pr-12 py-2 border ${errors.price ? 'border-red-300' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  className={`block w-full pl-7 pr-12 py-2 border ${errors.price ? 'border-red-300' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-primary focus:border-primary sm:text-sm`}
                   placeholder="0.00"
                   aria-describedby="price-currency"
                 />
@@ -425,11 +425,11 @@ export default function CreateCourse() {
                 Course Thumbnail
               </label>
               <div className="mt-1 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
-                <div className={`flex justify-center items-center px-6 pt-5 pb-6 border-2 ${errors.thumbnail ? 'border-red-300' : 'border-gray-300'} border-dashed rounded-md w-full sm:w-1/3`}>
+                <div className={`flex justify-center items-center px-6 pt-5 pb-6 border-2 ${errors.thumbnail ? 'border-red-300' : 'border-gray-300'} border-dashed rounded-xl w-full sm:w-1/3`}>
                   <div className="space-y-1 text-center">
                     <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
                     <div className="flex text-sm text-gray-600">
-                      <label htmlFor="thumbnail" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                      <label htmlFor="thumbnail" className="relative cursor-pointer bg-white rounded-xl font-medium text-primary hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
                         <span>Upload a file</span>
                         <input 
                           id="thumbnail" 
@@ -453,7 +453,7 @@ export default function CreateCourse() {
                     <img 
                       src={thumbnailPreview} 
                       alt="Thumbnail preview" 
-                      className="rounded-md object-cover h-32 w-full" 
+                      className="rounded-xl object-cover h-32 w-full" 
                     />
                     <button
                       type="button"
@@ -486,7 +486,7 @@ export default function CreateCourse() {
                     type="text"
                     value={prereq}
                     onChange={(e) => handleArrayItemChange(e, index, 'prerequisites')}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     placeholder={`Prerequisite ${index + 1}`}
                   />
                   <button
@@ -502,7 +502,7 @@ export default function CreateCourse() {
               <button
                 type="button"
                 onClick={() => addArrayItem('prerequisites')}
-                className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-xl text-gray-700 bg-white hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
                 Add Prerequisite
               </button>
@@ -527,7 +527,7 @@ export default function CreateCourse() {
                     type="text"
                     value={outcome}
                     onChange={(e) => handleArrayItemChange(e, index, 'outcomes')}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     placeholder={`Learning outcome ${index + 1}`}
                   />
                   <button
@@ -543,7 +543,7 @@ export default function CreateCourse() {
               <button
                 type="button"
                 onClick={() => addArrayItem('outcomes')}
-                className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-xl text-gray-700 bg-white hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
                 Add Learning Outcome
               </button>
@@ -571,7 +571,7 @@ export default function CreateCourse() {
                     value="draft"
                     checked={formData.status === 'draft'}
                     onChange={handleChange}
-                    className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                    className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
                   />
                   <label htmlFor="status-draft" className="ml-3 block text-sm font-medium text-gray-700">
                     Draft (hidden from students)
@@ -585,7 +585,7 @@ export default function CreateCourse() {
                     value="published"
                     checked={formData.status === 'published'}
                     onChange={handleChange}
-                    className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                    className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
                   />
                   <label htmlFor="status-published" className="ml-3 block text-sm font-medium text-gray-700">
                     Published (visible to students)
@@ -599,14 +599,14 @@ export default function CreateCourse() {
           <div className="p-6 flex justify-end space-x-3">
             <Link
               href="/dashboard/educator/courses"
-              className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={loading || submitSuccess}
-              className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${(loading || submitSuccess) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${(loading || submitSuccess) ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {loading ? 'Creating...' : submitSuccess ? 'Created!' : 'Create Course'}
             </button>

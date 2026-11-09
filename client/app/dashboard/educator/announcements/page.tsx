@@ -308,11 +308,11 @@ export default function AnnouncementsManagement() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-8">
+    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Announcements</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-[-.045em]">Announcements</h1>
             <p className="mt-1 text-sm text-gray-500">
               Create and manage announcements for your courses
             </p>
@@ -320,7 +320,7 @@ export default function AnnouncementsManagement() {
           <div className="mt-4 sm:mt-0">
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
               Create Announcement
@@ -343,7 +343,7 @@ export default function AnnouncementsManagement() {
                 </div>
                 <input
                   type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
                   placeholder="Search announcements..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -354,7 +354,7 @@ export default function AnnouncementsManagement() {
                   <select
                     value={courseFilter}
                     onChange={(e) => setCourseFilter(e.target.value)}
-                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-md shadow-sm text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
                     aria-label="Filter announcements by course"
                   >
                     <option value="all">All Announcements</option>
@@ -389,7 +389,7 @@ export default function AnnouncementsManagement() {
                 <div className="mt-6">
                   <button
                     onClick={openCreateModal}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                   >
                     Create Your First Announcement
                   </button>
@@ -400,7 +400,7 @@ export default function AnnouncementsManagement() {
             <div className="overflow-hidden">
               <ul className="divide-y divide-gray-200">
                 {filteredAnnouncements.map((announcement) => (
-                  <li key={announcement._id} className={`p-6 hover:bg-gray-50 ${!announcement.published ? 'bg-gray-50' : ''}`}>
+                  <li key={announcement._id} className={`p-6 hover:bg-[#f5f7f2] ${!announcement.published ? 'bg-[#f5f7f2]' : ''}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center">
@@ -430,7 +430,7 @@ export default function AnnouncementsManagement() {
                       <div className="ml-4 flex-shrink-0 flex space-x-2">
                         <button
                           onClick={() => togglePublish(announcement)}
-                          className={`p-2 ${announcement.published ? 'text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100' : 'text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100'} rounded-md inline-flex items-center`}
+                          className={`p-2 ${announcement.published ? 'text-primary hover:text-blue-900 bg-[#edf6ed] hover:bg-[#e3f0e5]' : 'text-gray-600 hover:text-gray-900 bg-[#f5f7f2] hover:bg-gray-100'} rounded-xl inline-flex items-center`}
                           title={announcement.published ? 'Unpublish' : 'Publish'}
                         >
                           {announcement.published ? (
@@ -442,7 +442,7 @@ export default function AnnouncementsManagement() {
                         
                         <button
                           onClick={() => openEditModal(announcement)}
-                          className="p-2 text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 rounded-md inline-flex items-center"
+                          className="p-2 text-primary hover:text-blue-900 bg-[#edf6ed] hover:bg-[#e3f0e5] rounded-xl inline-flex items-center"
                           title="Edit"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
@@ -450,7 +450,7 @@ export default function AnnouncementsManagement() {
                         
                         <button
                           onClick={() => handleDelete(announcement._id)}
-                          className={`p-2 ${confirmDelete === announcement._id ? 'bg-red-100' : 'bg-red-50 hover:bg-red-100'} text-red-600 hover:text-red-900 rounded-md inline-flex items-center`}
+                          className={`p-2 ${confirmDelete === announcement._id ? 'bg-red-100' : 'bg-red-50 hover:bg-red-100'} text-red-600 hover:text-red-900 rounded-xl inline-flex items-center`}
                           title={confirmDelete === announcement._id ? 'Click again to confirm delete' : 'Delete'}
                         >
                           <TrashIcon className="h-5 w-5" />
@@ -470,7 +470,7 @@ export default function AnnouncementsManagement() {
         <div className="fixed inset-0 overflow-y-auto z-50">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              <div className="absolute inset-0 bg-[#f5f7f2]0 opacity-75"></div>
             </div>
 
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -497,7 +497,7 @@ export default function AnnouncementsManagement() {
                               value={formData.title}
                               onChange={handleFormChange}
                               required
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                              className="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                               placeholder="Announcement title"
                             />
                           </div>
@@ -513,7 +513,7 @@ export default function AnnouncementsManagement() {
                               value={formData.content}
                               onChange={handleFormChange}
                               required
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                              className="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                               placeholder="Announcement content"
                             />
                           </div>
@@ -527,7 +527,7 @@ export default function AnnouncementsManagement() {
                               id="courseId"
                               value={formData.courseId}
                               onChange={handleFormChange}
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                              className="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                               aria-label="Select course for announcement"
                             >
                               <option value="">General Announcement (All Courses)</option>
@@ -544,7 +544,7 @@ export default function AnnouncementsManagement() {
                               id="published"
                               checked={formData.published}
                               onChange={(e) => setFormData({...formData, published: e.target.checked})}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                             />
                             <label htmlFor="published" className="ml-2 block text-sm text-gray-900">
                               Publish immediately
@@ -557,18 +557,18 @@ export default function AnnouncementsManagement() {
                 </div>
               </div>
               
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <div className="bg-[#f5f7f2] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button
                   type="submit"
                   form="announcementForm"
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm"
                 >
                   {currentAnnouncement ? 'Save Changes' : 'Create'}
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-[#f5f7f2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                 >
                   Cancel
                 </button>

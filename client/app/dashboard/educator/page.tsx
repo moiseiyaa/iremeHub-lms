@@ -141,7 +141,7 @@ export default function EducatorDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
           <p className="mt-4 text-slate-600">Loading educator dashboard...</p>
@@ -152,10 +152,10 @@ export default function EducatorDashboard() {
 
   // Preserve existing dashboard markup as `content`
   const content = (
-    <div className="bg-slate-100 min-h-[calc(100vh-64px)] py-8">
+    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800">Educator Dashboard</h1>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-[-.045em]">Educator Dashboard</h1>
           <p className="mt-1 text-slate-500">
             Welcome back, {user?.name || 'Educator'}!
           </p>
@@ -185,8 +185,8 @@ export default function EducatorDashboard() {
                 </div>
               </div>
             </div>
-            <div className="bg-slate-100 px-5 py-3">
-              <Link href="/dashboard/educator/courses" className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
+            <div className="bg-[#f5f7f2] px-5 py-3">
+              <Link href="/dashboard/educator/courses" className="text-sm text-primary hover:text-[#246a4b] font-medium flex items-center">
                 View courses
                 <ChevronRightIcon className="ml-1 h-4 w-4" />
               </Link>
@@ -209,8 +209,8 @@ export default function EducatorDashboard() {
                 </div>
               </div>
             </div>
-            <div className="bg-slate-100 px-5 py-3">
-              <Link href="/dashboard/educator/students" className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
+            <div className="bg-[#f5f7f2] px-5 py-3">
+              <Link href="/dashboard/educator/students" className="text-sm text-primary hover:text-[#246a4b] font-medium flex items-center">
                 View students
                 <ChevronRightIcon className="ml-1 h-4 w-4" />
               </Link>
@@ -233,7 +233,7 @@ export default function EducatorDashboard() {
                 </div>
               </div>
             </div>
-            <div className="bg-slate-100 px-5 py-3">
+            <div className="bg-[#f5f7f2] px-5 py-3">
               <div className="text-sm text-slate-500 font-medium">
                 Across all courses
               </div>
@@ -256,8 +256,8 @@ export default function EducatorDashboard() {
                 </div>
               </div>
             </div>
-            <div className="bg-slate-100 px-5 py-3">
-              <Link href="/dashboard/educator/enrollments" className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
+            <div className="bg-[#f5f7f2] px-5 py-3">
+              <Link href="/dashboard/educator/enrollments" className="text-sm text-primary hover:text-[#246a4b] font-medium flex items-center">
                 Manage enrollments
                 <ChevronRightIcon className="ml-1 h-4 w-4" />
               </Link>
@@ -280,7 +280,7 @@ export default function EducatorDashboard() {
                 </div>
               </div>
             </div>
-            <div className="bg-slate-100 px-5 py-3">
+            <div className="bg-[#f5f7f2] px-5 py-3">
               <div className="text-sm text-slate-500 font-medium">
                 Average across courses
               </div>
@@ -293,7 +293,7 @@ export default function EducatorDashboard() {
           <div className="lg:col-span-2 bg-white shadow rounded-lg">
             <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
               <h2 className="text-lg font-medium text-slate-800">Your Recent Courses</h2>
-              <Link href="/dashboard/educator/courses/create" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <Link href="/dashboard/educator/courses/create" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                 <PencilSquareIcon className="h-4 w-4 mr-2" />
                 Create Course
               </Link>
@@ -309,7 +309,7 @@ export default function EducatorDashboard() {
                   <div className="mt-6">
                     <Link 
                       href="/dashboard/educator/courses/create" 
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                     >
                       Create Your First Course
                     </Link>
@@ -342,7 +342,7 @@ export default function EducatorDashboard() {
                           <div>
                             <Link
                               href={`/dashboard/educator/courses/${course._id}/edit`}
-                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-100"
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-xl text-slate-700 bg-white hover:bg-[#f5f7f2]"
                             >
                               Edit
                             </Link>
@@ -354,7 +354,7 @@ export default function EducatorDashboard() {
                   <div className="mt-6">
                     <Link 
                       href="/dashboard/educator/courses" 
-                      className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center justify-center"
+                      className="text-sm font-medium text-primary hover:text-blue-500 flex items-center justify-center"
                     >
                       View all courses
                       <ChevronRightIcon className="ml-1 h-4 w-4" />
@@ -380,21 +380,21 @@ export default function EducatorDashboard() {
                 <nav className="space-y-3">
                   <Link
                     href="/dashboard/educator/courses/create"
-                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 hover:text-blue-600"
+                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-xl hover:bg-[#f5f7f2] hover:text-primary"
                   >
                     <PencilSquareIcon className="mr-3 h-5 w-5 text-gray-400" />
                     Create a new course
                   </Link>
                   <Link
                     href="/dashboard/educator/announcements"
-                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 hover:text-blue-600"
+                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-xl hover:bg-[#f5f7f2] hover:text-primary"
                   >
                     <BellAlertIcon className="mr-3 h-5 w-5 text-gray-400" />
                     Manage announcements
                   </Link>
                   <Link
                     href="/dashboard/educator/students"
-                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 hover:text-blue-600"
+                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-xl hover:bg-[#f5f7f2] hover:text-primary"
                   >
                     <UserGroupIcon className="mr-3 h-5 w-5 text-gray-400" />
                     View student progress
@@ -412,7 +412,7 @@ export default function EducatorDashboard() {
                   <li>
                     <a 
                       href="#" 
-                      className="block text-sm text-blue-600 hover:text-blue-800"
+                      className="block text-sm text-primary hover:text-[#246a4b]"
                     >
                       Teaching Guidelines & Best Practices
                     </a>
@@ -420,7 +420,7 @@ export default function EducatorDashboard() {
                   <li>
                     <a 
                       href="#" 
-                      className="block text-sm text-blue-600 hover:text-blue-800"
+                      className="block text-sm text-primary hover:text-[#246a4b]"
                     >
                       Content Creation Tips
                     </a>
@@ -428,7 +428,7 @@ export default function EducatorDashboard() {
                   <li>
                     <a 
                       href="#" 
-                      className="block text-sm text-blue-600 hover:text-blue-800"
+                      className="block text-sm text-primary hover:text-[#246a4b]"
                     >
                       Engagement Strategies for Online Learning
                     </a>
@@ -436,7 +436,7 @@ export default function EducatorDashboard() {
                   <li>
                     <a 
                       href="#" 
-                      className="block text-sm text-blue-600 hover:text-blue-800"
+                      className="block text-sm text-primary hover:text-[#246a4b]"
                     >
                       Assessment Design Guide
                     </a>

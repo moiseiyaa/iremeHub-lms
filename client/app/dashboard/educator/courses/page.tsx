@@ -110,13 +110,13 @@ export default function EducatorCourses() {
       case 'archived':
         return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-[#e3f0e5] text-[#246a4b]';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading courses...</p>
@@ -126,11 +126,11 @@ export default function EducatorCourses() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-8">
+    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Your Courses</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-[-.045em]">Your Courses</h1>
             <p className="mt-1 text-sm text-gray-500">
               Manage, edit and monitor all your courses
             </p>
@@ -138,7 +138,7 @@ export default function EducatorCourses() {
           <div className="mt-4 sm:mt-0">
             <Link 
               href="/dashboard/educator/courses/create" 
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
               Create New Course
@@ -161,7 +161,7 @@ export default function EducatorCourses() {
                 </div>
                 <input
                   type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
                   placeholder="Search courses..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -170,7 +170,7 @@ export default function EducatorCourses() {
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <select
-                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-md shadow-sm text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     aria-label="Filter courses by status"
@@ -201,7 +201,7 @@ export default function EducatorCourses() {
                 <div className="mt-6">
                   <Link 
                     href="/dashboard/educator/courses/create" 
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                   >
                     Create Your First Course
                   </Link>
@@ -211,7 +211,7 @@ export default function EducatorCourses() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-[#f5f7f2]">
                   <tr>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Course
@@ -235,7 +235,7 @@ export default function EducatorCourses() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredCourses.map((course) => (
-                    <tr key={course._id} className="hover:bg-gray-50">
+                    <tr key={course._id} className="hover:bg-[#f5f7f2]">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 relative">
@@ -248,8 +248,8 @@ export default function EducatorCourses() {
                                 className="rounded object-cover"
                               />
                             ) : (
-                              <div className="bg-blue-100 rounded flex items-center justify-center h-10 w-10">
-                                <AcademicCapIcon className="h-6 w-6 text-blue-600" />
+                              <div className="bg-[#e3f0e5] rounded flex items-center justify-center h-10 w-10">
+                                <AcademicCapIcon className="h-6 w-6 text-primary" />
                               </div>
                             )}
                           </div>
@@ -278,21 +278,21 @@ export default function EducatorCourses() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                         <Link
                           href={`/dashboard/educator/courses/${course._id}/edit`}
-                          className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-1.5 rounded-md inline-flex items-center"
+                          className="text-primary hover:text-blue-900 bg-[#edf6ed] hover:bg-[#e3f0e5] p-1.5 rounded-xl inline-flex items-center"
                           title="Edit course"
                         >
                           <PencilSquareIcon className="h-4 w-4" />
                         </Link>
                         <Link
                           href={`/dashboard/educator/courses/${course._id}/analytics`}
-                          className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-1.5 rounded-md inline-flex items-center"
+                          className="text-primary hover:text-indigo-900 bg-[#edf6ed] hover:bg-[#e3f0e5] p-1.5 rounded-xl inline-flex items-center"
                           title="View analytics"
                         >
                           <ChartBarIcon className="h-4 w-4" />
                         </Link>
                         <button
                           onClick={() => handleDelete(course._id)}
-                          className={`text-red-600 hover:text-red-900 ${confirmDelete === course._id ? 'bg-red-100' : 'bg-red-50 hover:bg-red-100'} p-1.5 rounded-md inline-flex items-center ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`text-red-600 hover:text-red-900 ${confirmDelete === course._id ? 'bg-red-100' : 'bg-red-50 hover:bg-red-100'} p-1.5 rounded-xl inline-flex items-center ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
                           disabled={isDeleting}
                           title={confirmDelete === course._id ? "Click again to confirm delete" : "Delete course"}
                         >
