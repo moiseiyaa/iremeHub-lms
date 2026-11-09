@@ -133,6 +133,7 @@ export default function CourseLearnPage() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [submittingQuiz, setSubmittingQuiz] = useState(false);
   const [quizResults, setQuizResults] = useState<{ correct: boolean; score: number; total: number } | null>(null);
 
   // ref for progress bar to avoid inline style lint warning
@@ -402,33 +403,37 @@ export default function CourseLearnPage() {
     setQuizAnswers(newAnswers);
   };
 
-  // Handle quiz submission
+  // Quiz scoring and completion are authoritative on the server.
   const handleQuizSubmit = async () => {
-    if (!currentLesson || !currentLesson.content.quizQuestions) return;
-    
-    // Calculate score
-    let score = 0;
-    let total = 0;
-    
-    currentLesson.content.quizQuestions.forEach((question, index) => {
-      total += question.points;
-      if (quizAnswers[index] === question.correctAnswer) {
-        score += question.points;
+    if (!currentLesson?.content?.quizQuestions || submittingQuiz) return;
+    const count = currentLesson.content.quizQuestions.length;
+    if (count === 0 || quizAnswers.length !== count || quizAnswers.some(a => a === undefined)) return;
+    setSubmittingQuiz(true);
+    setError('');
+    try {
+      const response = await apiPost<{
+        score:number;totalPoints:number;isPassing:boolean;percentageScore:string|number
+      }>(`/lessons/${encodeURIComponent(currentLesson._id)}/quiz`, {answers: quizAnswers}, true);
+      if (!response.success || !response.data) {
+        setError(response.error || 'Unable to submit your quiz. Please try again.');
+        return;
       }
-    });
-    
-    // Set quiz results
-    setQuizResults({
-      correct: score === total,
-      score,
-      total
-    });
-    
-    setQuizSubmitted(true);
-    
-    // Mark as complete if score is acceptable (e.g., > 70%)
-    if (score / total >= 0.7) {
-      await markLessonComplete();
+      const {score,totalPoints,isPassing} = response.data;
+      setQuizResults({correct: Boolean(isPassing),score,total:totalPoints});
+      setQuizSubmitted(true);
+      if (isPassing && progress && !progress.completedLessons.includes(currentLesson._id)) {
+        const completedLessons=[...progress.completedLessons,currentLesson._id];
+        setProgress({
+          ...progress,
+          completedLessons,
+          progressPercentage: progress.totalLessons
+            ? Math.round(completedLessons.length / progress.totalLessons * 100) : 0
+        });
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Unable to submit your quiz.');
+    } finally {
+      setSubmittingQuiz(false);
     }
   };
 
@@ -789,7 +794,7 @@ export default function CourseLearnPage() {
                   {/* Text content */}
                   {currentLesson.contentType === 'text' && currentLesson.content?.textContent && (
                     <div className="prose prose-indigo max-w-none mb-6">
-                      <div dangerouslySetInnerHTML={{ __html: currentLesson.content.textContent }} />
+                      <div className="whitespace-pre-wrap leading-8 text-[#355440]">{currentLesson.content.textContent}</div>
                     </div>
                   )}
                   
@@ -864,7 +869,7 @@ export default function CourseLearnPage() {
                       
                       <div className="prose prose-indigo max-w-none mb-6">
                         {currentLesson.content?.assignmentInstructions && (
-                          <div dangerouslySetInnerHTML={{ __html: currentLesson.content.assignmentInstructions }} />
+                          <div className="whitespace-pre-wrap leading-8 text-[#355440]">{currentLesson.content.assignmentInstructions}</div>
                         )}
                       </div>
                       
