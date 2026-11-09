@@ -43,8 +43,9 @@ interface CourseWithProgress extends ICourse {
 // @route   GET /api/v1/courses
 // @access  Public
 export const getCourses = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const courses = await Course.find()
-    .populate('instructor', 'name email avatar')
+  const courses = await Course.find({ isPublished: true })
+    .select('-enrolledStudents')
+    .populate('instructor', 'name avatar')
     .populate('ratings.user', 'name avatar');
 
   res.status(200).json({
@@ -59,11 +60,11 @@ export const getCourses = asyncHandler(async (req: Request, res: Response, next:
 // @access  Public
 export const getCourse = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const course = await Course.findById(req.params.id)
-      .populate('instructor', 'name email avatar bio')
+    const course = await Course.findOne({ _id: req.params.id, isPublished: true })
+      .select('-enrolledStudents')
+      .populate('instructor', 'name avatar bio')
       .populate('sections')
-      .populate('ratings.user', 'name avatar')
-      .populate('enrolledStudents', 'name email avatar');
+      .populate('ratings.user', 'name avatar');
 
     if (!course) {
       return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
@@ -733,9 +734,8 @@ export const getEnrolledCourses = asyncHandler(async (req: UserRequest, res: Res
 // @access  Private
 export const getCourseWithProgress = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   const course = await Course.findById(req.params.id)
-    .populate('instructor', 'name email avatar bio')
-    .populate('ratings.user', 'name avatar')
-    .populate('enrolledStudents', 'name email avatar');
+    .populate('instructor', 'name avatar bio')
+    .populate('ratings.user', 'name avatar');
 
   if (!course) {
     return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
@@ -789,7 +789,7 @@ export const getCourseWithProgress = asyncHandler(async (req: UserRequest, res: 
   res.status(200).json({
     success: true,
     data: {
-      course,
+      course: { ...course.toObject(), enrolledStudents: undefined },
       isEnrolled,
       progress
     }

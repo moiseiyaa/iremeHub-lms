@@ -21,11 +21,8 @@ export const getBlogs = asyncHandler(async (req: Request, res: Response) => {
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
 
-  // Filter by status if not admin/editor
-  const filter: any = {};
-  if (!req.headers.authorization) {
-    filter.status = 'published';
-  }
+  // Public endpoints always return published posts, regardless of headers.
+  const filter = { status: 'published' };
 
   // Get total count
   const total = await Blog.countDocuments(filter);
