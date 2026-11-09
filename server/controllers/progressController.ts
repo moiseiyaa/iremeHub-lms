@@ -103,10 +103,17 @@ export const getProgress = asyncHandler(async (req: UserRequest, res: Response, 
     ? (progress.completedLessons.length / totalLessons * 100).toFixed(2) 
     : 0;
 
+  // Return grades and completion state without revealing per-question answer keys.
+  const result = progress.toObject();
+  const withoutAnswers = (rows: Array<Record<string, unknown>> = []) =>
+    rows.map(({ answers: _answers, ...safe }) => safe);
+  result.quizResults = withoutAnswers(result.quizResults);
+  result.examResults = withoutAnswers(result.examResults);
+
   res.status(200).json({
     success: true,
     data: {
-      ...progress.toObject(),
+      ...result,
       totalLessons,
       progressPercentage
     }
@@ -276,6 +283,11 @@ export const submitQuiz = asyncHandler(async (req: UserRequest, res: Response, n
       )
     : -1;
 
+  // Limit repeated guessing of the assessment key.
+  if (existingQuizIndex >= 0 && progress.quizResults[existingQuizIndex].attempts >= 5) {
+    return next(new ErrorResponse('Maximum quiz attempts reached. Contact your educator.', 429));
+  }
+
   const quizResult = {
     lesson: lesson._id,
     score,
@@ -315,11 +327,18 @@ export const submitQuiz = asyncHandler(async (req: UserRequest, res: Response, n
   res.status(200).json({
     success: true,
     data: {
-      quizResult,
+      // The complete grading detail is retained internally but is not sent to learners.
+      quizResult: {
+        lesson: quizResult.lesson,
+        score: quizResult.score,
+        totalQuestions: quizResult.totalQuestions,
+        attempts: quizResult.attempts,
+        completedAt: quizResult.completedAt
+      },
       score,
       totalPoints,
       percentageScore,
-      isPassing: parseFloat(percentageScore.toString()) >= 70 // Assuming 70% is passing
+      isPassing: passed
     }
   });
 });
