@@ -367,8 +367,12 @@ export default function CourseLearnPage() {
     
     try {
       setCompletingLesson(true);
-      await apiPost(`/courses/${courseId}/lessons/${currentLesson._id}/complete`, {}, true);
-      
+      const result = await apiPost(`/courses/${courseId}/lessons/${currentLesson._id}/complete`, {}, true);
+      if (!result.success) {
+        setError(result.error || 'Could not record lesson completion.');
+        return;
+      }
+
       // Update local progress state
       if (progress) {
         const updatedCompletedLessons = [...progress.completedLessons];
@@ -848,7 +852,7 @@ export default function CourseLearnPage() {
                           <div className="flex justify-end">
                             <button
                               onClick={handleQuizSubmit}
-                              disabled={quizAnswers.length !== currentLesson.content.quizQuestions.length || 
+                              disabled={submittingQuiz || quizAnswers.length !== currentLesson.content.quizQuestions.length || 
                                 quizAnswers.some(a => a === undefined)}
                               className={`btn-primary ${
                                 quizAnswers.length !== currentLesson.content.quizQuestions.length || 

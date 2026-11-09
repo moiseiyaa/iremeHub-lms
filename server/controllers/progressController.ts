@@ -133,6 +133,10 @@ export const completeLesson = asyncHandler(async (req: UserRequest, res: Respons
     return next(new ErrorResponse(`Lesson not found with id of ${lessonId}`, 404));
   }
 
+  if (['quiz', 'exam', 'assignment'].includes(lesson.contentType)) {
+    return next(new ErrorResponse('Complete this activity using its submission form', 403));
+  }
+
   const course = await Course.findById(lesson.course);
 
   if (!course) {
