@@ -1,0 +1,28 @@
+name: iremehub+ core policy checks
+
+on:
+  push:
+    branches: ["rebuild/iremehub-plus"]
+    paths: ["packages/core/**", ".github/workflows/iremehub-core.yml"]
+  pull_request:
+    paths: ["packages/core/**", ".github/workflows/iremehub-core.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  core-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Phase 1 prototype; replace with npm ci after committing lockfile.
+      - name: Install isolated policy package
+        working-directory: packages/core
+        run: npm install --no-audit --no-fund
+      - name: Compile and run authorization tests
+        working-directory: packages/core
+        run: npm test
