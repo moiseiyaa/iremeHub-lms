@@ -1,312 +1,59 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  AcademicCapIcon, 
-  PlusIcon, 
-  PencilSquareIcon,
-  ChartBarIcon,
-  TrashIcon,
-  MagnifyingGlassIcon,
-  AdjustmentsHorizontalIcon
-} from '@heroicons/react/24/outline';
-import { apiGet, apiDelete } from '../../../api/apiClient';
+import { AcademicCapIcon, PlusIcon, MagnifyingGlassIcon, PencilSquareIcon, TrashIcon, ArrowUpRightIcon, ArrowPathIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { apiDelete, apiGet } from '../../../api/apiClient';
 
 interface Course {
-  _id: string;
-  title: string;
-  description: string;
-  thumbnail: {
-    url: string;
-  };
-  level: string;
-  category: string;
-  status: string;
-  price: number;
-  enrollmentCount: number;
-  createdAt: string;
-  updatedAt: string;
+ _id:string;title:string;description?:string;category?:string;level?:string;price?:number;
+ isPublished?:boolean;thumbnail?:{url?:string};enrolledStudents?:string[];
+ studentsCount?:number;createdAt?:string
 }
+const validArt=(src?:string)=>Boolean(src&&/^https:\/\//.test(src)&&!src.includes('res.cloudinary.com/demo'));
 
-export default function EducatorCourses() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setLoading(true);
-        
-        // This endpoint will need to be implemented in your backend
-        const response = await apiGet<{ success: boolean; data: Course[] }>('/educator/courses', true);
-        
-        if (response.success && Array.isArray(response.data)) {
-          setCourses(response.data);
-        } else {
-          console.error('API returned unsuccessful response:', response);
-          setError('Failed to load courses. Server returned an unsuccessful response.');
-        }
-      } catch (err) {
-        console.error('Error fetching courses:', err);
-        setError('An error occurred while fetching your courses');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchCourses();
-  }, []);
-
-  const handleDelete = async (courseId: string) => {
-    if (confirmDelete !== courseId) {
-      setConfirmDelete(courseId);
-      return;
-    }
-    
-    try {
-      setIsDeleting(true);
-      
-      // This endpoint will need to be implemented in your backend
-      const response = await apiDelete(`/educator/courses/${courseId}`, true);
-      
-      if (response.success) {
-        setCourses(courses.filter(course => course._id !== courseId));
-      } else {
-        setError('Failed to delete course');
-      }
-    } catch (err) {
-      console.error('Error deleting course:', err);
-      setError('An error occurred while deleting the course');
-    } finally {
-      setIsDeleting(false);
-      setConfirmDelete(null);
-    }
-  };
-
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          course.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
-
-  const getStatusBadgeClasses = (status: string) => {
-    if (!status) return 'bg-gray-100 text-gray-800';
-    
-    switch(status) {
-      case 'published':
-        return 'bg-green-100 text-green-800';
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'archived':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-[#e3f0e5] text-[#246a4b]';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-[calc(100vh-76px)] flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading courses...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-[#f5f7f2] min-h-[calc(100vh-76px)] py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-[-.045em]">Your Courses</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage, edit and monitor all your courses
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0">
-            <Link 
-              href="/dashboard/educator/courses/create" 
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Create New Course
-            </Link>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-5 border-b border-gray-200">
-            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-              <div className="relative flex-1 max-w-lg">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
-                  placeholder="Search courses..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <select
-                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-xl shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    aria-label="Filter courses by status"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="published">Published</option>
-                    <option value="draft">Draft</option>
-                    <option value="archived">Archived</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <AdjustmentsHorizontalIcon className="h-4 w-4 text-gray-400" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {filteredCourses.length === 0 ? (
-            <div className="text-center py-12">
-              <AcademicCapIcon className="h-12 w-12 text-gray-400 mx-auto" />
-              <h3 className="mt-2 text-lg font-medium text-gray-900">No courses found</h3>
-              <p className="mt-1 text-gray-500">
-                {courses.length === 0 
-                  ? "You haven't created any courses yet." 
-                  : "No courses match your current filters."}
-              </p>
-              {courses.length === 0 && (
-                <div className="mt-6">
-                  <Link 
-                    href="/dashboard/educator/courses/create" 
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-[#104a39] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                  >
-                    Create Your First Course
-                  </Link>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-[#f5f7f2]">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Course
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Students
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredCourses.map((course) => (
-                    <tr key={course._id} className="hover:bg-[#f5f7f2]">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 relative">
-                            {course.thumbnail?.url ? (
-                              <Image 
-                                src={course.thumbnail.url} 
-                                alt={course.title}
-                                width={40}
-                                height={40}
-                                className="rounded object-cover"
-                              />
-                            ) : (
-                              <div className="bg-[#e3f0e5] rounded flex items-center justify-center h-10 w-10">
-                                <AcademicCapIcon className="h-6 w-6 text-primary" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{course.title}</div>
-                            <div className="text-sm text-gray-500">
-                              {course.level} • {course.category}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClasses(course.status)}`}>
-                          {course.status ? course.status.charAt(0).toUpperCase() + course.status.slice(1) : 'Unknown'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {course.enrollmentCount}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${course.price.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(course.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <Link
-                          href={`/dashboard/educator/courses/${course._id}/edit`}
-                          className="text-primary hover:text-blue-900 bg-[#edf6ed] hover:bg-[#e3f0e5] p-1.5 rounded-xl inline-flex items-center"
-                          title="Edit course"
-                        >
-                          <PencilSquareIcon className="h-4 w-4" />
-                        </Link>
-                        <Link
-                          href={`/dashboard/educator/courses/${course._id}/analytics`}
-                          className="text-primary hover:text-indigo-900 bg-[#edf6ed] hover:bg-[#e3f0e5] p-1.5 rounded-xl inline-flex items-center"
-                          title="View analytics"
-                        >
-                          <ChartBarIcon className="h-4 w-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(course._id)}
-                          className={`text-red-600 hover:text-red-900 ${confirmDelete === course._id ? 'bg-red-100' : 'bg-red-50 hover:bg-red-100'} p-1.5 rounded-xl inline-flex items-center ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          disabled={isDeleting}
-                          title={confirmDelete === course._id ? "Click again to confirm delete" : "Delete course"}
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
+export default function EducatorCourses(){
+ const [courses,setCourses]=useState<Course[]>([]);
+ const [loading,setLoading]=useState(true);const [error,setError]=useState('');
+ const [search,setSearch]=useState('');const [status,setStatus]=useState('all');
+ const [refresh,setRefresh]=useState(0);const [deleting,setDeleting]=useState<string|null>(null);
+ useEffect(()=>{
+   let mounted=true;
+   (async()=>{
+    setLoading(true);setError('');
+    const result=await apiGet<Course[]>('/educator/courses',true);
+    if(!mounted)return;
+    if(result.success&&Array.isArray(result.data))setCourses(result.data);
+    else setError(result.error||'Your courses could not be loaded.');
+    setLoading(false);
+   })();
+   return()=>{mounted=false;};
+ },[refresh]);
+ const filtered=useMemo(()=>courses.filter(c=>{
+   const title=(c.title+' '+(c.description||'')+' '+(c.category||'')).toLowerCase();
+   return title.includes(search.trim().toLowerCase()) &&
+   (status==='all'||(status==='published'?Boolean(c.isPublished):!c.isPublished));
+ }),[courses,search,status]);
+ const remove=async(course:Course)=>{
+   if(!window.confirm(`Delete "${course.title}" permanently? This action cannot be undone.`))return;
+   setDeleting(course._id);setError('');
+   const result=await apiDelete(`/courses/${encodeURIComponent(course._id)}`,true);
+   if(result.success)setCourses(list=>list.filter(c=>c._id!==course._id));
+   else setError(result.error||'Unable to delete this course.');
+   setDeleting(null);
+ };
+ return <div className="min-h-screen bg-[#f5f7f2] py-9 lg:py-12"><div className="ih-container">
+  <div className="flex flex-wrap items-end justify-between gap-6 mb-9"><div><span className="ih-eyebrow">Educator workspace</span><h1 className="mt-4 text-3xl sm:text-4xl font-bold tracking-[-.055em]">Your courses.</h1><p className="mt-3 text-sm ih-muted">Build, refine and publish thoughtful learning experiences.</p></div><Link href="/dashboard/educator/courses/create" className="ih-btn ih-btn-primary"><PlusIcon className="h-5 w-5"/> Create course</Link></div>
+  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">{[{label:'All courses',value:courses.length},{label:'Published',value:courses.filter(c=>c.isPublished).length},{label:'In draft',value:courses.filter(c=>!c.isPublished).length}].map(item=><div className="ih-card px-6 py-6" key={item.label}><p className="text-xs font-semibold ih-muted">{item.label}</p><p className="text-3xl font-extrabold tracking-tight mt-2">{item.value}</p></div>)}</div>
+  <section className="ih-card overflow-hidden">
+    <div className="px-6 py-6 flex flex-wrap gap-4 justify-between items-center border-b border-[#e5ece2]"><div><h2 className="font-bold text-lg">Course library</h2><p className="text-xs ih-muted mt-1">{filtered.length} matching courses</p></div>
+      <div className="flex flex-wrap gap-3"><div className="relative"><MagnifyingGlassIcon className="w-4 h-4 absolute top-1/2 left-3 -translate-y-1/2 text-[#829185]"/><input type="search" className="ih-input !min-h-[40px] !pl-9" aria-label="Search your courses" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search courses"/></div><select aria-label="Filter publication status" className="ih-input !min-h-[40px] !w-[145px]" value={status} onChange={e=>setStatus(e.target.value)}><option value="all">All courses</option><option value="published">Published</option><option value="draft">Drafts</option></select><button aria-label="Refresh courses" type="button" className="ih-btn ih-btn-neutral !min-h-10 !px-3" onClick={()=>setRefresh(x=>x+1)}><ArrowPathIcon className="h-4 w-4"/></button></div>
     </div>
-  );
-} 
+    {error&&<p role="alert" className="m-6 text-sm text-red-700 bg-red-50 border border-red-200 p-4 rounded-xl">{error}</p>}
+    {loading?<div className="p-7 space-y-4" aria-label="Loading course library">{[0,1,2,3].map(i=><div key={i} className="ih-skeleton h-20"/>)}</div>:
+    filtered.length===0?<div className="ih-empty !border-0"><AcademicCapIcon className="w-11 h-11 text-[#4c8c61]"/><h3 className="mt-5 text-xl font-bold">Your course library is ready</h3><p className="mt-2 text-sm ih-muted max-w-md">{courses.length?'Try a different search or publication status.':'Create your first course to start building a curriculum.'}</p><Link href="/dashboard/educator/courses/create" className="ih-btn ih-btn-primary mt-6">Create a course <ArrowUpRightIcon className="h-4 w-4"/></Link></div>:
+    <div className="overflow-x-auto"><table className="min-w-[750px] w-full text-left"><thead><tr>{['Course','Status','Students','Created','Actions'].map(h=><th key={h} className="px-6 py-4 text-xs font-bold tracking-[.08em] uppercase text-[#667c69]">{h}</th>)}</tr></thead><tbody className="divide-y divide-[#e9f0e8]">{filtered.map(c=><tr key={c._id} className="hover:bg-[#fbfdf9]"><td className="px-6 py-5"><div className="flex items-center gap-4"><div className="w-14 h-12 relative rounded-xl overflow-hidden bg-[#dcecdc] shrink-0">{validArt(c.thumbnail?.url)?<Image src={c.thumbnail!.url!} alt="" fill unoptimized sizes="56px" className="object-cover"/>:<AcademicCapIcon className="w-6 h-6 text-[#38865a] absolute inset-0 m-auto"/>}</div><div><p className="text-sm font-bold line-clamp-2">{c.title}</p><p className="text-xs ih-muted mt-1">{c.category||'Learning'} · {c.level||'Course'}</p></div></div></td><td className="px-6 py-5"><span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${c.isPublished?'bg-[#e3f2e5] text-[#2a7950]':'bg-[#f4efdf] text-[#806c47]'}`}>{c.isPublished?'Published':'Draft'}</span></td><td className="px-6 py-5 text-sm font-semibold"><span className="inline-flex gap-2 items-center"><UserGroupIcon className="w-4 h-4 text-[#699978]"/>{c.enrolledStudents?.length??c.studentsCount??0}</span></td><td className="px-6 py-5 text-xs ih-muted">{c.createdAt?new Date(c.createdAt).toLocaleDateString('en-GB'):'—'}</td><td className="px-6 py-5"><div className="flex gap-3"><Link href={`/dashboard/educator/courses/${encodeURIComponent(c._id)}/edit`} className="text-xs font-bold text-[#2b7950] inline-flex gap-1 items-center"><PencilSquareIcon className="w-4 h-4"/>Edit</Link>{c.isPublished&&<Link className="text-xs font-semibold text-[#52785f] hover:underline" href={`/courses/${c._id}`}>View</Link>}<button type="button" className="text-xs text-red-700 font-semibold inline-flex gap-1 items-center disabled:opacity-50" disabled={deleting===c._id} onClick={()=>void remove(c)}><TrashIcon className="w-4 h-4"/>{deleting===c._id?'Deleting...':'Delete'}</button></div></td></tr>)}</tbody></table></div>}
+  </section>
+ </div></div>;
+}
