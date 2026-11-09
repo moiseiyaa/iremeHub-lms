@@ -65,42 +65,28 @@ export const register = asyncHandler(async (req: UserRequest, res: Response, nex
 export const login = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
-  // Validate email & password
-  if (!email || !password) {
+  // Validate credentials without writing account identifiers to logs.
+  if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
     return next(new ErrorResponse('Please provide an email and password', 400));
   }
 
   try {
     // Regular authentication flow
-    console.log(`Attempting database login for email: ${email}`);
     
     // Check for user
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
-      console.log(`User not found for email: ${email}`);
       return next(new ErrorResponse('Invalid credentials', 401));
-    }
-
-    // Added detailed logging for admin user
-    if (email === 'admin@example.com') {
-      console.log(`Admin user found in DB: ${user.email}, Role: ${user.role}`);
-      console.log('Attempting to match password for admin@example.com');
     }
 
     // Check if password matches
     const isMatch = await user.matchPassword(password);
 
-    if (email === 'admin@example.com') {
-      console.log(`Password match result for admin@example.com: ${isMatch}`);
-    }
-
     if (!isMatch) {
-      console.log(`Password mismatch for email: ${email}`);
       return next(new ErrorResponse('Invalid credentials', 401));
     }
 
-    console.log(`Successful login for: ${email} (${user.name})`);
     sendTokenResponse(user, 200, res);
   } catch (error: any) {
     console.error(`Database error during login: ${error.message}`);
@@ -126,10 +112,12 @@ export const getMe = asyncHandler(async (req: UserRequest, res: Response, next: 
 // @route   GET /api/v1/auth/logout
 // @access  Private
 export const logout = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  res.status(200).json({
-    success: true,
-    message: 'User logged out successfully'
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
   });
+  res.status(200).json({ success: true, message: 'Signed out on this device' });
 });
 
 // @desc    Update user details
@@ -170,12 +158,15 @@ export const updatePassword = asyncHandler(async (req: UserRequest, res: Respons
     return next(new ErrorResponse('User not found', 404));
   }
 
-  // Check current password
-  if (!(await user.matchPassword(req.body.currentPassword))) {
+  const { currentPassword, newPassword } = req.body;
+  if (typeof currentPassword !== 'string' || typeof newPassword !== 'string' || newPassword.length < 8 || newPassword.length > 128) {
+    return next(new ErrorResponse('Provide a current password and a new password of 8–128 characters', 400));
+  }
+  if (!(await user.matchPassword(currentPassword))) {
     return next(new ErrorResponse('Password is incorrect', 401));
   }
 
-  user.password = req.body.newPassword;
+  user.password = newPassword;
   await user.save();
 
   sendTokenResponse(user, 200, res);
@@ -302,6 +293,9 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response, ne
     return next(new ErrorResponse('Invalid token', 400));
   }
 
+  if (typeof req.body.password !== 'string' || req.body.password.length < 8 || req.body.password.length > 128) {
+    return next(new ErrorResponse('Password must be 8–128 characters', 400));
+  }
   // Set new password
   user.password = req.body.password;
   user.resetPasswordToken = undefined;
@@ -444,7 +438,7 @@ const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void
 
   // Determine cookie security settings
   const isProd = process.env.NODE_ENV === 'production';
-  const sameSiteOption: boolean | 'lax' | 'strict' | 'none' = isProd ? 'strict' : 'none';
+  const sameSiteOption: 'lax' = 'lax';
 
   const options: CookieOptions = {
     expires: new Date(
@@ -458,6 +452,8 @@ const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void
   // Ensure password is not sent with the user object
   const userObj = user.toObject ? user.toObject() : { ...user };
   delete userObj.password;
+  delete userObj.resetPasswordToken;
+  delete userObj.resetPasswordExpire;
 
   res
     .status(statusCode)

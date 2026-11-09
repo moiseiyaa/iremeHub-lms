@@ -26,10 +26,12 @@ router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
 
 // Protected routes
+// Clear the cookie even when a previous token is expired.
+router.post('/logout', logout);
+router.get('/logout', logout);
 router.use(protect);
 router.post('/refresh-token', refreshToken);
 router.get('/me', getMe);
-router.get('/logout', logout);
 router.put('/updatedetails', updateDetails);
 router.post('/updatedetails', updateDetails);
 router.put('/updatepassword', updatePassword);
