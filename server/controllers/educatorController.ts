@@ -59,7 +59,14 @@ export const getStudentDetailsForEducator = asyncHandler(async (req: UserRequest
   }
 
   // Find courses taught by the current educator
-  const educatorCourses = await Course.find({ instructor: educatorId }).select('_id');
+  // Do not disclose student PII to educators without a course membership.
+  const educatorCourses = await Course.find({
+    instructor: educatorId,
+    enrolledStudents: studentId
+  }).select('_id');
+  if (educatorCourses.length === 0) {
+    return next(new ErrorResponse('Learner not found in your courses', 404));
+  }
   const educatorCourseIds = educatorCourses.map(course => course._id);
 
   // Find progress records for this student only in the educator's courses
@@ -109,20 +116,14 @@ export const getStudentsForEducator = asyncHandler(async (req: UserRequest, res:
     return next(new ErrorResponse('User not found, authorization denied', 401));
   }
 
-  // Find courses taught by the current educator
-  const educatorCourses = await Course.find({ instructor: educatorId }).select('_id');
+  // Course membership is authoritative: pending progress is not enrollment.
+  const educatorCourses = await Course.find({ instructor: educatorId }).select('_id enrolledStudents');
   if (!educatorCourses.length) {
-    return res.status(200).json({
-      success: true,
-      data: [], // No courses, so no students
-    });
+    return res.status(200).json({ success: true, count: 0, data: [] });
   }
-  const educatorCourseIds = educatorCourses.map(course => course._id);
-
-  // Find unique user IDs from progress records in the educator's courses
-  const studentIds = await Progress.distinct('user', {
-    course: { $in: educatorCourseIds },
-  });
+  const studentIds = [...new Set(
+    educatorCourses.flatMap(course => course.enrolledStudents.map(id => id.toString()))
+  )];
 
   if (!studentIds.length) {
     return res.status(200).json({
@@ -162,16 +163,24 @@ export const getEnrollmentsForEducator = asyncHandler(async (req: UserRequest, r
     return next(new ErrorResponse('User not found, authorization denied', 401));
   }
 
-  const educatorCourses = await Course.find({ instructor: educatorId }).select('_id');
+  const educatorCourses = await Course.find({ instructor: educatorId }).select('_id enrolledStudents');
   if (!educatorCourses.length) {
     return res.status(200).json({ success: true, count: 0, data: [] });
   }
   const educatorCourseIds = educatorCourses.map(course => course._id);
+  const membershipByCourse = new Map(
+    educatorCourses.map(course => [
+      course._id.toString(),
+      new Set(course.enrolledStudents.map(id => id.toString()))
+    ])
+  );
 
-  const enrollments = await Progress.find({ course: { $in: educatorCourseIds } })
-    .populate('user', 'name email avatar') // Populate user with specific fields
-    .populate('course', 'title') // Populate course with specific fields
-    .sort({ createdAt: -1 }) as PopulatedProgress[]; // Assert to the more specific type
+  const allProgress = await Progress.find({ course: { $in: educatorCourseIds } })
+    .populate('user', 'name email avatar')
+    .populate('course', 'title')
+    .sort({ createdAt: -1 }) as PopulatedProgress[];
+  const enrollments = allProgress.filter(record => record.user && record.course &&
+    membershipByCourse.get(record.course._id.toString())?.has(record.user._id.toString()));
 
   const formattedEnrollments = enrollments.map((enrollment: PopulatedProgress) => {
     return {
@@ -225,6 +234,18 @@ export const updateEnrollmentStatus = asyncHandler(async (req: UserRequest, res:
   const courseInstructorId = progress.course.instructor;
   if (courseInstructorId.toString() !== educatorId?.toString() && req.user?.role !== 'admin') {
     return next(new ErrorResponse('Not authorized to update this enrollment', 403));
+  }
+
+  // Status display is not the source of entitlement. Prevent this older
+  // endpoint from bypassing the free-course enrollment approval workflow.
+  const isMember = progress.course.enrolledStudents.some(id =>
+    id.toString() === progress.user.toString());
+  if (newStatusFromFrontend === 'approved' &&
+      (!progress.course.isPublished || progress.course.price > 0 || !isMember)) {
+    return next(new ErrorResponse('Activation requires verified membership in a published free course', 409));
+  }
+  if (newStatusFromFrontend !== 'approved' && isMember) {
+    return next(new ErrorResponse('Use a separate revocation workflow for active course access', 409));
   }
 
   // Map frontend status to backend Progress model status
