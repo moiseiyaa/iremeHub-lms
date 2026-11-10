@@ -27,8 +27,9 @@ router.put('/resetpassword/:resettoken', resetPassword);
 
 // Protected routes
 // Clear the cookie even when a previous token is expired.
-router.post('/logout', logout);
-router.get('/logout', logout);
+// Logout is a POST with an authenticated token; GET logout is removed
+// to avoid sign-out via untrusted links.
+router.post('/logout', protect, logout);
 router.use(protect);
 router.post('/refresh-token', refreshToken);
 router.get('/me', getMe);

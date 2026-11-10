@@ -42,11 +42,12 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
 
-    // Set user to req.user
-    req.user = await User.findById(decoded.id);
-
-    if (!req.user) {
-      return next(new ErrorResponse('User not found', 404));
+    // A stored per-account version revokes every previously issued JWT.
+    // JWTs issued before this migration lack 'sv' and must reauthenticate.
+    req.user = await User.findById(decoded.id).select('+sessionVersion');
+    if (!req.user || !Number.isInteger(decoded.sv) ||
+        decoded.sv !== (req.user.sessionVersion ?? 0)) {
+      return next(new ErrorResponse('Session expired. Please sign in again.', 401));
     }
 
     next();

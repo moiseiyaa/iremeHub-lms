@@ -75,9 +75,14 @@ export function AuthProvider({children}:{children:ReactNode}){
     if(typeof window!=='undefined'){
       // Clear the legacy HttpOnly cookie as well as the browser token.
       // Full bearer-token revocation requires the upcoming session store.
+      const token = window.localStorage.getItem('token');
+      // The request carries the still-valid bearer token, and keepalive
+      // allows it to finish if navigation starts immediately afterward.
       void fetch('/api/v1/auth/logout', {
         method: 'POST',
-        credentials: 'same-origin'
+        credentials: 'same-origin',
+        keepalive: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
       }).catch(() => undefined);
       window.localStorage.removeItem('token');
     }

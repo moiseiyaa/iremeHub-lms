@@ -12,6 +12,7 @@ export interface IUser extends Document {
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
   createdAt: Date;
+  sessionVersion: number;
   avatar?: {
     public_id?: string;
     url: string;
@@ -52,6 +53,8 @@ const UserSchema: Schema = new mongoose.Schema({
   },
   resetPasswordToken: { type: String, select: false },
   resetPasswordExpire: { type: Date, select: false },
+  // Incremented on logout and credential changes to revoke prior tokens.
+  sessionVersion: { type: Number, default: 0, min: 0, select: false },
   createdAt: {
     type: Date,
     default: Date.now
@@ -99,9 +102,9 @@ UserSchema.methods.getSignedJwtToken = function(this: IUser): string {
     }
     // @ts-ignore - Ignoring TypeScript error for jwt.sign
     const token = jwt.sign(
-      { id: this._id },
+      { id: this._id, sv: this.sessionVersion ?? 0 },
       secret,
-      { expiresIn: process.env.JWT_EXPIRE || '30d' }
+      { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
     if (!token) {
       console.error('jwt.sign returned undefined or null');
@@ -110,10 +113,9 @@ UserSchema.methods.getSignedJwtToken = function(this: IUser): string {
     return token;
   } catch (error: any) {
     console.error('Error in getSignedJwtToken:', error.message);
-    console.error('User ID causing error:', this._id);
     // Re-throw the error to be caught by the controller or global error handler
     // Or, to prevent HTML error page, return a specific error that can be handled
-    throw new Error(`Token generation failed for user ${this._id}: ${error.message}`);
+    throw new Error('Token generation failed');
   }
 };
 

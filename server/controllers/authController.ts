@@ -112,12 +112,14 @@ export const getMe = asyncHandler(async (req: UserRequest, res: Response, next: 
 // @route   GET /api/v1/auth/logout
 // @access  Private
 export const logout = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
+  // Invalidate all JWTs issued under the previous account version.
+  await User.updateOne({ _id: req.user!._id }, { $inc: { sessionVersion: 1 } });
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax'
   });
-  res.status(200).json({ success: true, message: 'Signed out on this device' });
+  res.status(200).json({ success: true, message: 'All existing sessions have been signed out' });
 });
 
 // @desc    Update user details
@@ -167,6 +169,7 @@ export const updatePassword = asyncHandler(async (req: UserRequest, res: Respons
   }
 
   user.password = newPassword;
+  user.sessionVersion = (user.sessionVersion ?? 0) + 1;
   await user.save();
 
   sendTokenResponse(user, 200, res);
@@ -226,7 +229,7 @@ export const updateUserRole = asyncHandler(async (req: UserRequest, res: Respons
   }
   const user = await User.findByIdAndUpdate(
     req.params.id,
-    { role: req.body.role },
+    { $set: { role: req.body.role }, $inc: { sessionVersion: 1 } },
     { new: true, runValidators: true }
   ).select('-password');
   if (!user) return next(new ErrorResponse('User not found', 404));
@@ -298,6 +301,7 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response, ne
   }
   // Set new password
   user.password = req.body.password;
+  user.sessionVersion = (user.sessionVersion ?? 0) + 1;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
   await user.save();
@@ -451,6 +455,7 @@ const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void
 
   // Ensure password is not sent with the user object
   const userObj = user.toObject ? user.toObject() : { ...user };
+  delete userObj.sessionVersion;
   delete userObj.password;
   delete userObj.resetPasswordToken;
   delete userObj.resetPasswordExpire;
