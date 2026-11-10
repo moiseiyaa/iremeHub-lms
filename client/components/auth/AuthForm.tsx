@@ -26,11 +26,15 @@ export default function AuthForm({ initialMode='login', onSuccess }: Props) {
     event.preventDefault(); setError('');
     if(mode==='register' && password!==confirm){setError('Passwords do not match.');return;}
     if(mode==='register' && password.length<8){setError('Use a password with at least eight characters.');return;}
+    if(mode==='register' && new TextEncoder().encode(password).length>72){
+      setError('Use a password of no more than 72 bytes, including accented or emoji characters.');return;
+    }
     setLoading(true);
     try {
       const res=await fetch(mode==='login'?'/api/v1/auth/login':'/api/v1/auth/register',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(mode==='login'?{email,password}:{name,email,password})
+        credentials:'same-origin',
+        body:JSON.stringify(mode==='login'?{email:email.trim().toLowerCase(),password}:{name,email:email.trim().toLowerCase(),password})
       });
       const payload=await res.json().catch(()=>null);
       if(!res.ok||!payload?.token)throw new Error(payload?.error||'Unable to authenticate. Please check your details.');

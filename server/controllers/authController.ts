@@ -77,7 +77,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
     // Regular authentication flow
     
     // Check for user
-    const user = await User.findOne({ email }).select('+password +sessionVersion');
+    const user = await User.findOne({ email: email.trim().toLowerCase() }).select('+password +sessionVersion');
 
     if (!user) {
       return next(new ErrorResponse('Invalid credentials', 401));
