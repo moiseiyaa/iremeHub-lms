@@ -1,4 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
+import helmet from 'helmet';
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -27,8 +29,11 @@ dotenv.config();
 // Initialize Express
 const app: Express = express();
 
-// Middleware
-app.use(express.json());
+// Provider-neutral API security defaults.
+app.disable('x-powered-by');
+app.use(helmet());
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(cookieParser());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -39,7 +44,10 @@ app.use(cors({
 app.use(fileUpload({
   useTempFiles: true,
   tempFileDir: '/tmp/',
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB per uploaded file
+  abortOnLimit: true,
+  safeFileNames: true,
+  preserveExtension: true
 }));
 
 // Dev logging middleware
@@ -49,6 +57,19 @@ if (process.env.NODE_ENV === 'development') {
 
 // Set static folder
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Health endpoints are independent of any deployment provider.
+// Liveness answers whether this Node process is serving HTTP; readiness
+// requires a usable MongoDB connection before accepting normal traffic.
+app.get('/api/v1/health/live', (_req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(200).json({ status: 'ok', service: 'iremehub-api' });
+});
+app.get('/api/v1/health/ready', (_req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const ready = mongoose.connection.readyState === 1;
+  res.status(ready ? 200 : 503).json({ status: ready ? 'ready' : 'unavailable' });
+});
 
 // Mount routes
 app.use('/api/v1/auth', authRoutes);
