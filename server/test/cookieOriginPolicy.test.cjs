@@ -1,0 +1,11 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');
+const {allowCookieRequest}=require('../.policy-test-build/cookieOriginPolicy.js');
+const base='https://app.example.org';
+test('allows same-origin POST',()=>assert.equal(allowCookieRequest('POST',base,base),true));
+test('rejects foreign origin for cookie mutations',()=>assert.equal(allowCookieRequest('PATCH','https://evil.example.com',base),false));
+test('rejects missing origin for cookie POST',()=>assert.equal(allowCookieRequest('POST',undefined,base),false));
+test('GET and HEAD permit no origin',()=>{assert.equal(allowCookieRequest('GET',undefined,base),true);assert.equal(allowCookieRequest('HEAD',undefined,base),true);});
+test('origin with path is rejected',()=>assert.equal(allowCookieRequest('DELETE',base+'/evil',base),false));
+test('scheme and port must match',()=>{assert.equal(allowCookieRequest('POST','http://app.example.org',base),false);assert.equal(allowCookieRequest('POST','https://app.example.org:443',base),false);});
+test('invalid expected frontend URL is rejected',()=>assert.equal(allowCookieRequest('POST',base,'not url'),false));
+test('rejects null origins',()=>assert.equal(allowCookieRequest('POST','null',base),false));
