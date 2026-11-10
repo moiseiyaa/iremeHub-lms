@@ -1,0 +1,12 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {WindowRateCounter}=require('../.policy-test-build/ratePolicy.js');
+test('first request tracks capacity',()=>assert.deepEqual(new WindowRateCounter(3,1000).take('ip',0),{allowed:true,remaining:2,retryAfterSeconds:0}));
+test('exceeding limit returns retry-after',()=>{const c=new WindowRateCounter(2,60000);c.take('ip',100);c.take('ip',120);assert.deepEqual(c.take('ip',130),{allowed:false,remaining:0,retryAfterSeconds:60});});
+test('reset on boundary',()=>{const c=new WindowRateCounter(1,1000);assert.equal(c.take('ip',0).allowed,true);assert.equal(c.take('ip',999).allowed,false);assert.equal(c.take('ip',1000).allowed,true);});
+test('independent keys',()=>{const c=new WindowRateCounter(1,1000);c.take('a',0);assert.equal(c.take('b',1).allowed,true);assert.equal(c.take('a',2).allowed,false);});
+test('rounding retry seconds',()=>{const c=new WindowRateCounter(1,2000);c.take('a',0);assert.equal(c.take('a',1100).retryAfterSeconds,1);});
+test('bad keys and time fail closed',()=>{const c=new WindowRateCounter(2,1000);assert.equal(c.take('',0).allowed,false);assert.equal(c.take('x'.repeat(257),0).allowed,false);assert.equal(c.take('x',Infinity).allowed,false);});
+test('max key capacity bounded',()=>{const c=new WindowRateCounter(1,3000,2);c.take('a',0);c.take('b',0);assert.equal(c.take('c',1).allowed,false);assert.equal(c.take('c',3000).allowed,true);});
+test('old entries pruned without timers',()=>{const c=new WindowRateCounter(1,1000,1);c.take('a',0);assert.equal(c.take('b',1000).allowed,true);});
+test('invalid configuration rejected',()=>{assert.throws(()=>new WindowRateCounter(0,1000));assert.throws(()=>new WindowRateCounter(1,0));assert.throws(()=>new WindowRateCounter(1,1000,0));});
