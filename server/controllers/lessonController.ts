@@ -24,8 +24,9 @@ export const getLessons = asyncHandler(async (req: UserRequest, res: Response, n
   const userId = req.user?.id;
   const canManage = req.user?.role === 'admin' || course.instructor.toString() === userId;
   const enrolled = course.enrolledStudents.some(id => id.toString() === userId);
-  if (!canManage && !enrolled) {
-    return next(new ErrorResponse('Enrollment required to view course lessons', 403));
+  // Unpublished course materials remain private even to former enrollees.
+  if (!canManage && (!course.isPublished || !enrolled)) {
+    return next(new ErrorResponse('Course lessons are not available', 403));
   }
   const query = Lesson.find({ course: req.params.courseId }).sort('order').populate('section');
   if (!canManage) {
@@ -61,15 +62,17 @@ export const getLesson = asyncHandler(async (req: UserRequest, res: Response, ne
   const isEnrolled = enrolledStudents.some(student => student.toString() === req.user?.id);
   const isInstructor = course.instructor.toString() === req.user?.id;
   
-  if (!lesson.isPreview && 
-      !isEnrolled &&
-      !isInstructor &&
-      req.user?.role !== 'admin') {
-    return next(new ErrorResponse('Not authorized to access this lesson', 401));
+  const canManage = isInstructor || req.user?.role === 'admin';
+  // Preview permission is valid only on a published course. Draft lessons
+  // must never become accessible by guessing their IDs.
+  const canPreview = course.isPublished && lesson.isPreview;
+  const canLearn = course.isPublished && isEnrolled;
+  if (!canManage && !canPreview && !canLearn) {
+    return next(new ErrorResponse('Not authorized to access this lesson', 403));
   }
 
-  // If the user is enrolled, mark the lesson as accessed
-  if (isEnrolled && req.user) {
+  // Only enrolled learners can update progress; preview viewers cannot.
+  if (canLearn && req.user) {
     // Update lastAccessed in progress
     await Progress.findOneAndUpdate(
       { user: req.user.id, course: lesson.course },
@@ -78,7 +81,6 @@ export const getLesson = asyncHandler(async (req: UserRequest, res: Response, ne
     );
   }
 
-  const canManage = isInstructor || req.user?.role === 'admin';
   const safeLesson = canManage ? lesson : await Lesson.findById(lesson._id)
     .select('-content.quizQuestions.correctAnswer -content.examQuestions.correctAnswer')
     .populate('section');
