@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import { ICourse } from '../models/Course';
 import { ILesson } from '../models/Lesson';
 import { IUser } from '../models/User';
+import { canReadLesson, canListLessons } from '../utils/courseAccessPolicy';
 
 // Define custom request interface with user property
 interface UserRequest extends Request {
@@ -25,7 +26,7 @@ export const getLessons = asyncHandler(async (req: UserRequest, res: Response, n
   const canManage = req.user?.role === 'admin' || course.instructor.toString() === userId;
   const enrolled = course.enrolledStudents.some(id => id.toString() === userId);
   // Unpublished course materials remain private even to former enrollees.
-  if (!canManage && (!course.isPublished || !enrolled)) {
+  if (!canListLessons({published: course.isPublished, enrolled, instructor: course.instructor.toString() === userId, admin: req.user?.role === 'admin'})) {
     return next(new ErrorResponse('Course lessons are not available', 403));
   }
   const query = Lesson.find({ course: req.params.courseId }).sort('order').populate('section');
@@ -65,9 +66,8 @@ export const getLesson = asyncHandler(async (req: UserRequest, res: Response, ne
   const canManage = isInstructor || req.user?.role === 'admin';
   // Preview permission is valid only on a published course. Draft lessons
   // must never become accessible by guessing their IDs.
-  const canPreview = course.isPublished && lesson.isPreview;
   const canLearn = course.isPublished && isEnrolled;
-  if (!canManage && !canPreview && !canLearn) {
+  if (!canReadLesson({published: course.isPublished, enrolled: isEnrolled, instructor: isInstructor, admin: req.user?.role === 'admin', preview: lesson.isPreview})) {
     return next(new ErrorResponse('Not authorized to access this lesson', 403));
   }
 

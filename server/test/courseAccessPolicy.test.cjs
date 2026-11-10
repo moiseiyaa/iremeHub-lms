@@ -1,0 +1,23 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const {canReadLesson, canListLessons, canApproveFreeEnrollment}=require('../.policy-test-build/courseAccessPolicy.js');
+const base={published:true,enrolled:false,instructor:false,admin:false,preview:false};
+test('guest cannot see learner lesson',()=>assert.equal(canReadLesson(base),false));
+test('published lesson preview is readable',()=>assert.equal(canReadLesson({...base,preview:true}),true));
+test('unpublished lesson preview is private',()=>assert.equal(canReadLesson({...base,preview:true,published:false}),false));
+test('enrolled learner can access published lesson',()=>assert.equal(canReadLesson({...base,enrolled:true}),true));
+test('enrolled learner cannot access unpublished lesson',()=>assert.equal(canReadLesson({...base,enrolled:true,published:false}),false));
+test('instructor can manage unpublished lessons',()=>assert.equal(canListLessons({...base,published:false,instructor:true}),true));
+test('list does not allow previews for unenrolled users',()=>assert.equal(canListLessons({...base,preview:true}),false));
+test('admin can access draft lesson',()=>assert.equal(canReadLesson({...base,published:false,admin:true}),true));
+const enrollment={published:true,price:0,requesterIsStudent:true,ownedByApprover:true,pending:true};
+test('pending free approval is allowed',()=>assert.equal(canApproveFreeEnrollment(enrollment),true));
+test('paid approval is rejected',()=>assert.equal(canApproveFreeEnrollment({...enrollment,price:10}),false));
+test('draft approval is rejected',()=>assert.equal(canApproveFreeEnrollment({...enrollment,published:false}),false));
+test('already-decided request rejected',()=>assert.equal(canApproveFreeEnrollment({...enrollment,pending:false}),false));
+test('other instructor cannot approve',()=>assert.equal(canApproveFreeEnrollment({...enrollment,ownedByApprover:false}),false));
+test('non-student account cannot receive enrollment',()=>assert.equal(canApproveFreeEnrollment({...enrollment,requesterIsStudent:false}),false));
+test('NaN or infinite price is rejected',()=>{
+ assert.equal(canApproveFreeEnrollment({...enrollment,price:Number.NaN}),false);
+ assert.equal(canApproveFreeEnrollment({...enrollment,price:Number.POSITIVE_INFINITY}),false);
+});

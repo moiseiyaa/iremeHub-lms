@@ -6,6 +6,7 @@ import User from '../models/User';
 import Progress from '../models/Progress';
 import { Notification } from '../models/Notification';
 import ErrorResponse from '../utils/errorResponse';
+import { canApproveFreeEnrollment } from '../utils/courseAccessPolicy';
 
 const router = express.Router();
 
@@ -88,12 +89,15 @@ router.patch('/educator/requests/:reqId', protect, authorize('educator', 'admin'
     if (request.status !== 'pending') return next(new ErrorResponse('Enrollment request has already been decided', 409));
 
     if (status === 'approved') {
-      if (!course.isPublished || course.price > 0) {
-        return next(new ErrorResponse('Approval requires a published, free course. Paid access must be verified through billing.', 409));
-      }
       const student = await User.findById(request.studentId).select('role');
-      if (!student || student.role !== 'student') {
-        return next(new ErrorResponse('Valid student account required', 409));
+      if (!canApproveFreeEnrollment({
+        published: course.isPublished,
+        price: course.price,
+        pending: request.status === 'pending',
+        ownedByApprover: course.instructor.toString() === req.user._id.toString(),
+        requesterIsStudent: student?.role === 'student'
+      })) {
+        return next(new ErrorResponse('Approval requires a pending student request for a published free course.', 409));
       }
       // Idempotent writes; a cross-document transaction is a Phase 4 requirement.
       await Course.findByIdAndUpdate(course._id, { $addToSet: { enrolledStudents: request.studentId } });
