@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import asyncHandler from './asyncHandler';
 import ErrorResponse from '../utils/errorResponse';
+import { isSessionVersionValid } from '../utils/sessionPolicy';
 
 
 
@@ -45,8 +46,8 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
     // A stored per-account version revokes every previously issued JWT.
     // JWTs issued before this migration lack 'sv' and must reauthenticate.
     req.user = await User.findById(decoded.id).select('+sessionVersion');
-    if (!req.user || !Number.isInteger(decoded.sv) ||
-        decoded.sv !== (req.user.sessionVersion ?? 0)) {
+    if (!req.user ||
+        !isSessionVersionValid(decoded.sv, req.user.sessionVersion ?? 0)) {
       return next(new ErrorResponse('Session expired. Please sign in again.', 401));
     }
 
