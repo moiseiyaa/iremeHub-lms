@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import cloudinary from 'cloudinary';
 import crypto from 'crypto';
+import { validateSignup, validNewPassword } from '../utils/registrationPolicy';
 
 // Define interfaces
 interface MulterFile {
@@ -44,7 +45,9 @@ interface UpdateFields {
 // @route   POST /api/v1/auth/register
 // @access  Public
 export const register = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  const { name, email, password } = req.body;
+  const input = validateSignup(req.body);
+  if (!input.ok) return next(new ErrorResponse(input.error, 400));
+  const { name, email, password } = input.value;
 
   // Public registration cannot assign privileged roles.
 
@@ -161,7 +164,7 @@ export const updatePassword = asyncHandler(async (req: UserRequest, res: Respons
   }
 
   const { currentPassword, newPassword } = req.body;
-  if (typeof currentPassword !== 'string' || typeof newPassword !== 'string' || newPassword.length < 8 || newPassword.length > 128) {
+  if (typeof currentPassword !== 'string' || !validNewPassword(newPassword)) {
     return next(new ErrorResponse('Provide a current password and a new password of 8–128 characters', 400));
   }
   if (!(await user.matchPassword(currentPassword))) {
@@ -296,7 +299,7 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response, ne
     return next(new ErrorResponse('Invalid token', 400));
   }
 
-  if (typeof req.body.password !== 'string' || req.body.password.length < 8 || req.body.password.length > 128) {
+  if (!validNewPassword(req.body.password)) {
     return next(new ErrorResponse('Password must be 8–128 characters', 400));
   }
   // Set new password
