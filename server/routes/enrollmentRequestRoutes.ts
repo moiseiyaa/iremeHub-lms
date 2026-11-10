@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import { protect, authorize } from '../middleware/auth';
 import EnrollmentRequest from '../models/EnrollmentRequest';
 import Course from '../models/Course';
@@ -14,6 +15,7 @@ const router = express.Router();
 router.post('/courses/:id/request-enroll', protect, authorize('student'), async (req, res, next) => {
   try {
     const courseId = req.params.id;
+    if (!mongoose.isValidObjectId(courseId)) return next(new ErrorResponse('Invalid course ID', 400));
     const course = await Course.findOne({ _id: courseId, isPublished: true }).select('instructor title price isPublished enrolledStudents');
     if (!course) {
       return next(new ErrorResponse('Course not found', 404));
@@ -35,12 +37,17 @@ router.post('/courses/:id/request-enroll', protect, authorize('student'), async 
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // Notify the instructor that a new request has arrived
-    await Notification.create({
-      user: course.instructor,
-      message: `${req.user.name || 'A student'} requested to enroll in ${course.title}.`,
-      link: `/dashboard/educator/requests`
-    });
+    // Do not turn a recorded enrollment request into a false failure if
+    // notification delivery is temporarily unavailable.
+    try {
+      await Notification.create({
+        user: course.instructor,
+        message: `${req.user.name || 'A student'} requested to enroll in ${course.title}.`,
+        link: '/dashboard/educator/requests'
+      });
+    } catch {
+      console.warn('Enrollment notification was not delivered');
+    }
 
     res.status(201).json({ success: true, data: doc });
   } catch (err) {
@@ -51,13 +58,9 @@ router.post('/courses/:id/request-enroll', protect, authorize('student'), async 
 // Educator: get pending requests for their courses
 router.get('/educator/requests', protect, authorize('educator', 'admin'), async (req, res, next) => {
   try {
-    // find courses owned by educator
-    let courses = await Course.find({ instructor: req.user._id }).select('_id');
-    if (courses.length === 0 && req.user.createdCourses && req.user.createdCourses.length > 0) {
-      courses = await Course.find({ _id: { $in: req.user.createdCourses } }).select('_id');
-    }
-    console.log(`[EnrollReq] educator ${req.user._id} owns ${courses.length} courses`);
-    const courseIds = courses.map((c) => c._id);
+    // Instructor ownership must come from the course, not a stale user-side list.
+    const courses = await Course.find({ instructor: req.user._id }).select('_id');
+    const courseIds = courses.map(course => course._id);
 
     const requests = await EnrollmentRequest.find({ courseId: { $in: courseIds }, status: 'pending' })
       .populate('studentId', 'name email avatar')
@@ -70,73 +73,142 @@ router.get('/educator/requests', protect, authorize('educator', 'admin'), async 
 });
 
 // Educator: approve or reject
+// All membership changes are committed atomically. A replica-set-capable
+// MongoDB deployment is required (single-node replica sets work for local dev).
 router.patch('/educator/requests/:reqId', protect, authorize('educator', 'admin'), async (req, res, next) => {
-  try {
-    const { reqId } = req.params;
-    const { status } = req.body; // approved or rejected
-    if (!['approved', 'rejected'].includes(status)) {
-      return next(new ErrorResponse('Invalid status', 400));
-    }
-
-    const request = await EnrollmentRequest.findById(reqId);
-    if (!request) return next(new ErrorResponse('Request not found', 404));
-
-    const course = await Course.findById(request.courseId);
-    if (!course) return next(new ErrorResponse('Course not found', 404));
-    if (course.instructor.toString() !== req.user._id.toString()) {
-      return next(new ErrorResponse('Not authorized to approve enrollments for this course', 403));
-    }
-    if (request.status !== 'pending') return next(new ErrorResponse('Enrollment request has already been decided', 409));
-
-    if (status === 'approved') {
-      const student = await User.findById(request.studentId).select('role');
-      if (!canApproveFreeEnrollment({
-        published: course.isPublished,
-        price: course.price,
-        pending: request.status === 'pending',
-        ownedByApprover: course.instructor.toString() === req.user._id.toString(),
-        requesterIsStudent: student?.role === 'student'
-      })) {
-        return next(new ErrorResponse('Approval requires a pending student request for a published free course.', 409));
-      }
-      // Idempotent writes; a cross-document transaction is a Phase 4 requirement.
-      await Course.findByIdAndUpdate(course._id, { $addToSet: { enrolledStudents: request.studentId } });
-      await User.findByIdAndUpdate(request.studentId, { $addToSet: { enrolledCourses: course._id } });
-      await Progress.findOneAndUpdate(
-        { user: request.studentId, course: course._id },
-        { $setOnInsert: { status: 'active', completedLessons: [], completed: false } },
-        { upsert: true, setDefaultsOnInsert: true }
-      );
-    }
-
-    const updated = await EnrollmentRequest.findOneAndUpdate(
-      { _id: request._id, status: 'pending' },
-      { $set: { status } },
-      { new: true }
-    );
-    if (!updated) return next(new ErrorResponse('Request was already decided by another action', 409));
-
-    // A notification outage must not turn a successful enrollment into a false failure.
-    try {
-      await Notification.create({
-        user: request.studentId,
-        message: `Your enrollment request for ${course.title} was ${status}.`,
-        link: `/courses/${course._id}/learn`
-      });
-    } catch (notificationError) {
-      console.error('Enrollment notification could not be delivered');
-    }
-
-    res.json({ success: true, data: updated });
-  } catch (err) {
-    next(err);
+  const { reqId } = req.params;
+  const { status } = req.body;
+  if (!mongoose.isValidObjectId(reqId)) return next(new ErrorResponse('Invalid request ID', 400));
+  if (status !== 'approved' && status !== 'rejected') {
+    return next(new ErrorResponse('Decision must be approved or rejected', 400));
   }
+
+  let decided: { _id: mongoose.Types.ObjectId; status: string } | null = null;
+  let studentId: mongoose.Types.ObjectId | null = null;
+  let courseId: mongoose.Types.ObjectId | null = null;
+  let courseTitle = '';
+  const session = await mongoose.startSession().catch(error => {
+    next(error);
+    return null;
+  });
+  if (!session) return;
+
+  try {
+    await session.withTransaction(async () => {
+      // Load the decision facts within the transaction; never trust role or
+      // payment eligibility provided in the browser's request body.
+      const request = await EnrollmentRequest.findById(reqId).session(session);
+      if (!request) throw new ErrorResponse('Enrollment request not found', 404);
+      const course = await Course.findById(request.courseId).session(session);
+      if (!course) throw new ErrorResponse('Course not found', 404);
+      if (course.instructor.toString() !== req.user._id.toString()) {
+        throw new ErrorResponse('Not authorized to manage this enrollment', 403);
+      }
+      if (request.status !== 'pending') {
+        throw new ErrorResponse('Enrollment request has already been decided', 409);
+      }
+
+      if (status === 'approved') {
+        const student = await User.findById(request.studentId).select('role').session(session);
+        if (!canApproveFreeEnrollment({
+          published: course.isPublished,
+          price: course.price,
+          pending: request.status === 'pending',
+          ownedByApprover: course.instructor.toString() === req.user._id.toString(),
+          requesterIsStudent: student?.role === 'student'
+        })) {
+          throw new ErrorResponse('Only published free courses may be approved; paid access requires verified billing', 409);
+        }
+
+        // Claim the pending request first. Concurrent decisions cannot both
+        // win, and the claim rolls back if a membership write fails.
+        const claimed = await EnrollmentRequest.findOneAndUpdate(
+          { _id: request._id, status: 'pending' },
+          { $set: { status: 'approved' } },
+          { new: true, session }
+        );
+        if (!claimed) throw new ErrorResponse('Request was decided concurrently', 409);
+
+        const updatedCourse = await Course.updateOne(
+          { _id: course._id, isPublished: true, price: { $lte: 0 } },
+          { $addToSet: { enrolledStudents: request.studentId } },
+          { session }
+        );
+        if (updatedCourse.matchedCount !== 1) {
+          throw new ErrorResponse('Course is no longer eligible for enrollment', 409);
+        }
+
+        const updatedUser = await User.updateOne(
+          { _id: request.studentId, role: 'student' },
+          { $addToSet: { enrolledCourses: course._id } },
+          { session }
+        );
+        if (updatedUser.matchedCount !== 1) {
+          throw new ErrorResponse('Student account is no longer eligible', 409);
+        }
+
+        await Progress.findOneAndUpdate(
+          { user: request.studentId, course: course._id },
+          {
+            $set: { status: 'active' },
+            $setOnInsert: { completedLessons: [], completed: false }
+          },
+          { upsert: true, setDefaultsOnInsert: true, runValidators: true, session }
+        );
+        decided = { _id: claimed._id, status: claimed.status };
+      } else {
+        const claimed = await EnrollmentRequest.findOneAndUpdate(
+          { _id: request._id, status: 'pending' },
+          { $set: { status: 'rejected' } },
+          { new: true, session }
+        );
+        if (!claimed) throw new ErrorResponse('Request was decided concurrently', 409);
+        decided = { _id: claimed._id, status: claimed.status };
+      }
+      studentId = request.studentId;
+      courseId = course._id;
+      courseTitle = course.title;
+    }, {
+      readConcern: { level: 'snapshot' },
+      writeConcern: { w: 'majority' }
+    });
+  } catch (error) {
+    if (error instanceof ErrorResponse) return next(error);
+    // Standalone MongoDB cannot run multi-document transactions. Fail closed
+    // rather than reverting to unsafe partial writes.
+    if (error instanceof Error &&
+        /transaction numbers are only allowed|replica set|not supported in a transaction/i.test(error.message)) {
+      return next(new ErrorResponse('Enrollment approvals require a transaction-enabled MongoDB replica set', 503));
+    }
+    return next(error);
+  } finally {
+    await session.endSession();
+  }
+
+  if (!decided || !studentId || !courseId) {
+    return next(new ErrorResponse('Enrollment decision was not committed', 503));
+  }
+
+  // Notification is deliberately outside the transaction: it cannot change
+  // course access or cause a transaction to repeat.
+  try {
+    await Notification.create({
+      user: studentId,
+      message: `Your enrollment request for ${courseTitle} was ${status}.`,
+      link: status === 'approved' ? `/courses/${courseId}/learn` : `/courses/${courseId}`
+    });
+  } catch {
+    console.warn('Enrollment decision notification was not delivered');
+  }
+
+  return res.json({ success: true, data: decided });
 });
 
 // Student: check if they have a pending enrollment
 router.get('/courses/:id/enrollment-request-status', protect, authorize('student'), async (req, res, next) => {
   try {
     const courseId = req.params.id;
+    if (!mongoose.isValidObjectId(courseId)) return next(new ErrorResponse('Invalid course ID', 400));
     const existing = await EnrollmentRequest.findOne({ courseId, studentId: req.user._id });
     res.json({ success: true, data: existing?.status || null }); // null, 'pending', 'approved', 'rejected'
   } catch (err) {
