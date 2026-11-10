@@ -83,10 +83,13 @@ router.patch('/educator/requests/:reqId', protect, authorize('educator', 'admin'
     return next(new ErrorResponse('Decision must be approved or rejected', 400));
   }
 
-  let decided: { _id: mongoose.Types.ObjectId; status: string } | null = null;
-  let studentId: mongoose.Types.ObjectId | null = null;
-  let courseId: mongoose.Types.ObjectId | null = null;
-  let courseTitle = '';
+  type Decision = {
+    decided: { _id: mongoose.Types.ObjectId; status: string };
+    studentId: mongoose.Types.ObjectId;
+    courseId: mongoose.Types.ObjectId;
+    courseTitle: string;
+  };
+  let outcome: Decision | undefined;
   const session = await mongoose.startSession().catch(error => {
     next(error);
     return null;
@@ -94,7 +97,8 @@ router.patch('/educator/requests/:reqId', protect, authorize('educator', 'admin'
   if (!session) return;
 
   try {
-    await session.withTransaction(async () => {
+    outcome = await session.withTransaction(async (): Promise<Decision> => {
+      let decided: Decision['decided'] | null = null;
       // Load the decision facts within the transaction; never trust role or
       // payment eligibility provided in the browser's request body.
       const request = await EnrollmentRequest.findById(reqId).session(session);
@@ -165,9 +169,13 @@ router.patch('/educator/requests/:reqId', protect, authorize('educator', 'admin'
         if (!claimed) throw new ErrorResponse('Request was decided concurrently', 409);
         decided = { _id: claimed._id, status: claimed.status };
       }
-      studentId = request.studentId;
-      courseId = course._id;
-      courseTitle = course.title;
+      if (!decided) throw new ErrorResponse('Enrollment decision was not committed', 503);
+      return {
+        decided,
+        studentId: request.studentId,
+        courseId: course._id,
+        courseTitle: course.title
+      };
     }, {
       readConcern: { level: 'snapshot' },
       writeConcern: { w: 'majority' }
@@ -185,9 +193,10 @@ router.patch('/educator/requests/:reqId', protect, authorize('educator', 'admin'
     await session.endSession();
   }
 
-  if (!decided || !studentId || !courseId) {
+  if (!outcome) {
     return next(new ErrorResponse('Enrollment decision was not committed', 503));
   }
+  const { decided, studentId, courseId, courseTitle } = outcome;
 
   // Notification is deliberately outside the transaction: it cannot change
   // course access or cause a transaction to repeat.
