@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { Course, Section, Lesson, Progress, Payment, User as UserModel } from '../models';
+import { Course, Section, Lesson, Progress, User as UserModel } from '../models';
 import asyncHandler from '../middleware/asyncHandler';
 import ErrorResponse from '../utils/errorResponse';
 import cloudinary from '../utils/cloudinary';
@@ -496,75 +496,14 @@ export const getCourseRatings = asyncHandler(async (req: Request, res: Response,
 // @desc    Enroll in course
 // @route   POST /api/v1/courses/:id/enroll
 // @access  Private (Students)
-export const enrollInCourse = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  const course = await Course.findOne({ _id: req.params.id, isPublished: true });
-
-  if (!course) {
-    return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
-  }
-
-  // Check if user is already enrolled
-  if (course.enrolledStudents.includes(req.user.id)) {
-    return next(new ErrorResponse('You are already enrolled in this course', 400));
-  }
-
-  // For free courses, enroll directly
-  if (course.price <= 0) {
-    // Add user to enrolledStudents
-    course.enrolledStudents.push(req.user.id);
-    await course.save();
-
-    // Add course to user's enrolledCourses
-    await UserModel.findByIdAndUpdate(req.user.id, {
-      $push: { enrolledCourses: course._id }
-    });
-
-    // Create initial progress record
-    await Progress.create({
-      user: req.user.id,
-      course: course._id,
-      completedLessons: [],
-      completed: false
-    });
-
-    return res.status(200).json({
-      success: true,
-      data: course
-    });
-  }
-  
-  // For paid courses, check if payment exists
-  const payment = await Payment.findOne({
-    user: req.user.id,
-    course: course._id,
-    status: 'successful'
-  });
-
-  if (!payment) {
-    return next(new ErrorResponse('You need to purchase this course before enrolling', 402));
-  }
-
-  // Add user to enrolledStudents
-  course.enrolledStudents.push(req.user.id);
-  await course.save();
-
-  // Add course to user's enrolledCourses
-  await UserModel.findByIdAndUpdate(req.user.id, {
-    $push: { enrolledCourses: course._id }
-  });
-
-  // Create initial progress record
-  await Progress.create({
-    user: req.user.id,
-    course: course._id,
-    completedLessons: [],
-    completed: false
-  });
-
-  res.status(200).json({
-    success: true,
-    data: course
-  });
+export const enrollInCourse = asyncHandler(async (_req: UserRequest, _res: Response, next: NextFunction) => {
+  // The previous endpoint granted access without educator approval and
+  // trusted incomplete payment data. Current UI uses /request-enroll.
+  // Fail closed until enrollment transactions and paid entitlements exist.
+  return next(new ErrorResponse(
+    'Direct enrollment is unavailable. Request access from the course page; paid enrollments are not yet supported.',
+    409
+  ));
 });
 
 // @desc    Unenroll from course
