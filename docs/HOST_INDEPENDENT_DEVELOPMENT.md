@@ -29,6 +29,29 @@ npm run dev
 
 Visit `http://localhost:3000`. Never commit `.env` or `.env.local`. Do not use production data or paid users during this pre-release development stage.
 
+## MongoDB transaction requirement for enrollment approvals
+
+Enrollment approvals now commit the request decision, course membership, student membership and progress inside **one MongoDB transaction**. This requires a MongoDB replica set (a single-node replica set is sufficient for development). **A standalone `mongod` will not support these approval writes.**
+
+For a local installation of MongoDB Community Server, start an isolated, development-only single-node replica set and initialize it once:
+
+```bash
+mkdir -p ./data/iremehub-mongo
+mongod --dbpath ./data/iremehub-mongo --bind_ip 127.0.0.1 --replSet rs0 --port 27017
+# In a second terminal, initialize the replica set if not already initialized:
+mongosh --host 127.0.0.1:27017 --eval 'rs.initiate()'
+```
+
+The matching example URI is `mongodb://127.0.0.1:27017/iremehub_dev?replicaSet=rs0`. If your database is already a replica set, use its own connection URI and do not run `rs.initiate()` against it. Never run these development commands against a production database.
+
+An isolated integration test should verify that a failed approval leaves all four records unchanged and that concurrent approvals cannot both succeed. These tests have **not** run against a live MongoDB in this work session.
+
+## JWT revocation behavior
+
+As an interim security measure, JWTs now include a **session version** checked against the user's current account record. Logout, password updates, password resets and role changes increment that version, invalidating **all previously issued JWTs for that account**. Older versionless tokens must sign in again.
+
+This does **not** implement independent per-device sessions, a full refresh-token lifecycle, CSRF protection or the planned migration away from browser `localStorage`. If the logout network request fails, the client clears its token but cannot guarantee server-side revocation. Complete server-managed sessions before production.
+
 ## Build / test without choosing a host
 ```bash
 cd client && npm ci && npm run typecheck && npm run lint && npm run build

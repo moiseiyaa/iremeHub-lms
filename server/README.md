@@ -6,7 +6,7 @@ Express 4, TypeScript and MongoDB/Mongoose backend for the ongoing iremehub+ lea
 
 ## Start locally
 
-Requires Node.js 22+ and a local or development-only MongoDB instance.
+Requires Node.js 22+ and a local or development-only MongoDB **replica set** for transactional enrollment approvals. See [MongoDB setup](../docs/HOST_INDEPENDENT_DEVELOPMENT.md#mongodb-transaction-requirement-for-enrollment-approvals).
 
 ```bash
 cp .env.example .env
@@ -32,6 +32,6 @@ Legacy credential-bearing scripts and demo account-reset tools were removed. See
 
 ## Status and next work
 
-The code includes authentication, courses, lessons, assessments, educator workflows, enrollment approvals and certificates; they are **not all integration-tested**. Production readiness additionally requires tenant isolation, secure sessions, transaction-safe enrollment, rate limiting, observability, backup recovery and verified payment/entitlement processing.
+The code includes authentication, courses, lessons, assessments, educator workflows, enrollment approvals and certificates; they are **not all integration-tested**. Production readiness additionally requires tenant isolation, per-device secure sessions, **integration tests for transactional enrollment**, rate limiting, observability, backup recovery and verified payment/entitlement processing.
 
 See [release gate](../docs/PHASE_3_RELEASE_GATE.md) and [development instructions](../docs/HOST_INDEPENDENT_DEVELOPMENT.md).

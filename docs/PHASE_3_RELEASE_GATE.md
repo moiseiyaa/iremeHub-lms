@@ -1,6 +1,6 @@
 # Phase 3 — CI and security release gate
 
-Status: **IN PROGRESS; NOT APPROVED FOR PRODUCTION**
+Status: **IMPLEMENTATION CONTINUES ON MAIN; NOT APPROVED FOR PRODUCTION**
 
 ## Implemented on this branch
 - Updated frontend and core-policy GitHub Actions to run on main, rebuild branch and Phase 3 branch. Added backend TypeScript workflow.
@@ -9,13 +9,22 @@ Status: **IN PROGRESS; NOT APPROVED FOR PRODUCTION**
 - Restricted reading private curriculum sections to enrolled students, instructors and admins.
 - Prevented clients from reassigning lessons and sections across courses.
 - Required complete, valid quiz-answer arrays before grading.
-- Blocked unpublished and unverified paid enrollment requests and approvals; membership writes use idempotent updates. **Multi-document transactions remain outstanding.**
+- Blocked unpublished and unverified paid enrollment requests and approvals; membership writes use idempotent updates. **Multi-document enrollment approvals now use MongoDB transactions; replica-set integration and concurrency tests remain outstanding.**
 - Blocked enrollment into drafts through direct course enrollment; hid draft listings and rosters on public instructor routes.
 - Removed legacy login debug statements; hid reset-token metadata; strengthened password input checks and cleared the session cookie on sign-out.
 - Limited quiz attempts and removed internal per-question grading details from student progress and quiz responses.
 - Introduced persistent server-issued exam sessions, immutable deadlines, complete-answer validation and limited exam attempts. Browser-submitted timestamps are no longer authoritative.
 - Updated classroom countdown and completion flows to use assessment-specific server responses.
 - Added a pure assessment policy module with nine locally verified unit tests, now invoked by quiz/exam endpoints. The backend CI workflow includes those tests.
+
+## Follow-up: transactional enrollment and JWT revocation (November 10, 2026)
+
+- Enrollment approvals now use a MongoDB transaction to atomically update the approval request, course, user and progress; notification is sent only after commit.
+- An isolated single-node MongoDB replica set is required for local approval testing. Standalone servers fail closed.
+- JWTs carry a per-account session version; logout, password/role changes and password resets invalidate previous tokens for that account.
+- Existing JWTs issued before the session-version change must sign in again.
+- Eight isolated session-version unit tests passed locally with Node.js 22 and TypeScript 5.8.3, and are included in `server/npm run test:policy`.
+- **Not yet verified:** MongoDB transaction integration/concurrency, complete backend/frontend builds, cross-device logout, CSRF mitigations, individual device revocation or browser E2E coverage.
 
 ## Hosting decision and local development
 
@@ -42,13 +51,13 @@ At the 2026-11-09 checkpoint, new workflow runs fail with no recorded job steps.
 8. Audit deployment artifact for secret files and restore procedures.
 
 ## Remaining release blockers
-- Browser localStorage tokens need replacement with revocable secure sessions.
+- Temporary account-level JWT revocation is implemented; browser localStorage tokens still need replacement with per-device, revocable HttpOnly sessions.
 - Password recovery is on security hold pending safe outbound email support.
 - Subscription billing, tenant isolation and audit logging are incomplete.
-- Request schema validation, anti-abuse controls and transaction consistency need full review.
+- Request schema validation and anti-abuse controls need full review. Transactional enrollment has been implemented but requires live database rollback/concurrency validation.
 - Exam sessions are persisted in MongoDB, but concurrent submission races require integration testing and an atomic attempt-claim operation.
 - Draft-to-published course transitions and enrollment reconciliation must be exercised against an isolated test database.
 - The nine isolated assessment-policy unit tests passed locally using Node.js 22 and TypeScript 5.8.3; this does **not** mean server, frontend, GitHub Actions or browser tests passed.
 - No browser-verified staged application or passing CI exists yet.
 
-Do not merge this branch into main or deploy it until validation and review have passed.
+Do not deploy or release the current main branch until full builds, integration tests and a security review have passed.
