@@ -74,7 +74,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
     // Regular authentication flow
     
     // Check for user
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password +sessionVersion');
 
     if (!user) {
       return next(new ErrorResponse('Invalid credentials', 401));
@@ -154,7 +154,7 @@ export const updateDetails = asyncHandler(async (req: UserRequest, res: Response
 // @route   PUT /api/v1/auth/updatepassword
 // @access  Private
 export const updatePassword = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
-  const user = await User.findById(req.user!.id).select('+password');
+  const user = await User.findById(req.user!.id).select('+password +sessionVersion');
 
   if (!user) {
     return next(new ErrorResponse('User not found', 404));
@@ -290,7 +290,7 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response, ne
   const user = await User.findOne({
     resetPasswordToken,
     resetPasswordExpire: { $gt: Date.now() }
-  });
+  }).select('+resetPasswordToken +resetPasswordExpire +sessionVersion');
 
   if (!user) {
     return next(new ErrorResponse('Invalid token', 400));
@@ -327,7 +327,7 @@ export const refreshToken = asyncHandler(async (req: UserRequest, res: Response,
     const decoded = jwt.verify(token, secret) as TokenPayload;
     
     // Get user from the token
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).select('+sessionVersion');
     
     if (!user) {
       return next(new ErrorResponse('User not found', 404));
