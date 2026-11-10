@@ -1,132 +1,37 @@
-# IremehHub LMS - Client
+# iremehub+ — Web application
 
-This is the frontend client for the IremehHub Learning Management System, built with Next.js and TypeScript.
+Responsive Next.js 15 / React 19 / TypeScript frontend for the iremehub+ LMS.
 
-## TypeScript Configuration
+**Hosting provider: not selected.** The frontend can be developed and built locally without Vercel or any other hosted account. `API_PROXY_TARGET` is a server-side URL for the Express API.
 
-The client side is already configured for TypeScript with:
+## Local development
 
-1. TypeScript configuration:
-   - `tsconfig.json` - Next.js TypeScript configuration
-   - Type definitions for components and API responses
-
-2. TypeScript best practices:
-   - Use interfaces for component props
-   - Type API responses and requests
-   - Use proper type annotations for state and functions
-
-## Development
-
-- `npm run dev` - Start development server
-- `npm run build` - Build the application
-- `npm start` - Start the production server
-
-## Converting JavaScript to TypeScript
-
-For any remaining JavaScript files:
-
-1. Rename the file from `.js` or `.jsx` to `.ts` or `.tsx`
-2. Add type annotations to functions, variables, and component props
-3. Create interfaces for component props and API data
-4. Fix any type errors that arise
-
-Example component conversion:
-
-```tsx
-// Before (JavaScript)
-import React, { useState } from 'react';
-
-const ExampleComponent = ({ title, items }) => {
-  const [count, setCount] = useState(0);
-  
-  const handleClick = () => {
-    setCount(count + 1);
-  };
-  
-  return (
-    <div>
-      <h1>{title}</h1>
-      <p>Count: {count}</p>
-      <button onClick={handleClick}>Increment</button>
-      <ul>
-        {items.map(item => (
-          <li key={item.id}>{item.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-export default ExampleComponent;
-
-// After (TypeScript)
-import React, { useState } from 'react';
-
-interface Item {
-  id: string;
-  name: string;
-}
-
-interface ExampleComponentProps {
-  title: string;
-  items: Item[];
-}
-
-const ExampleComponent: React.FC<ExampleComponentProps> = ({ title, items }) => {
-  const [count, setCount] = useState<number>(0);
-  
-  const handleClick = (): void => {
-    setCount(count + 1);
-  };
-  
-  return (
-    <div>
-      <h1>{title}</h1>
-      <p>Count: {count}</p>
-      <button onClick={handleClick}>Increment</button>
-      <ul>
-        {items.map(item => (
-          <li key={item.id}>{item.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-export default ExampleComponent;
-```
-
-## Getting Started
-
-First, run the development server:
+Node.js 22+ is recommended.
 
 ```bash
+cp .env.example .env.local
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. Start the API in a second terminal using the [backend guide](../server/README.md). The default API target is http://localhost:5000, and the browser always calls the same-origin `/api/v1/*` path.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Quality gates
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
 
-## Learn More
+Current CI failures are not yet diagnosed. A working local page does **not** imply that API integration, mobile accessibility or production security is complete.
 
-To learn more about Next.js, take a look at the following resources:
+## Source layout
+- `app/`: public pages, account flows, role-based workspaces and classrooms
+- `components/`: iremehub+ shared UI and editor components
+- `app/api/apiClient.ts`: canonical same-origin backend transport
+- `app/styles/`: brand design tokens and workspace styling
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The current backend still uses legacy browser bearer tokens. Secure, revocable sessions are part of the release gate, not a completed feature.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [platform-independent development](../docs/HOST_INDEPENDENT_DEVELOPMENT.md) and [frontend renovation status](../docs/FRONTEND_RENOVATION.md).

@@ -1,19 +1,37 @@
-# IremeHub LMS - Server
+# iremehub+ — API
 
-This is the backend server for the IremeHub Learning Management System, now fully converted to TypeScript.
+Express 4, TypeScript and MongoDB/Mongoose backend for the ongoing iremehub+ learning platform.
 
-## TypeScript Conversion Complete!
+**No hosting provider is required for development.** Run locally with an isolated development database. Never copy production credentials into this public repository.
 
-The entire server codebase has been successfully migrated to TypeScript. This provides enhanced type safety, better developer experience, and more robust code.
+## Start locally
 
-### Key Improvements:
-- All models, controllers, routes, and middleware are now in TypeScript.
-- Mongoose models have corresponding TypeScript interfaces.
-- Express request/response objects are strongly typed.
-- Consistent use of ES6+ modules (`import`/`export`).
+Requires Node.js 22+ and a local or development-only MongoDB instance.
 
-## Development Scripts
+```bash
+cp .env.example .env
+npm ci
+npm run doctor
+npm run dev
+```
 
-- `npm run dev`: Start the development server using `ts-node` with auto-reloading.
-- `npm run build`: Compile the TypeScript source code into JavaScript in the `dist` folder.
-- `npm start`: Run the compiled JavaScript application. 
+The `doctor` command checks configuration shape without opening a database connection or printing secrets. The server itself refuses to listen if its JWT signing key or database connection is unavailable.
+
+Default API base: http://localhost:5000/api/v1
+
+## Development checks
+
+```bash
+npm run test:policy
+npx tsc --noEmit
+npm test -- --passWithNoTests
+npm run build
+```
+
+Legacy credential-bearing scripts and demo account-reset tools were removed. See [the security cleanup record](../docs/LEGACY_DEMO_SCRIPTS_REMOVED.md). Rotate any real credentials exposed in previous Git commits.
+
+## Status and next work
+
+The code includes authentication, courses, lessons, assessments, educator workflows, enrollment approvals and certificates; they are **not all integration-tested**. Production readiness additionally requires tenant isolation, secure sessions, transaction-safe enrollment, rate limiting, observability, backup recovery and verified payment/entitlement processing.
+
+See [release gate](../docs/PHASE_3_RELEASE_GATE.md) and [development instructions](../docs/HOST_INDEPENDENT_DEVELOPMENT.md).

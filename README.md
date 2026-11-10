@@ -31,7 +31,7 @@ Pricing, market demand, gross margin and customer acquisition costs are **hypoth
 
 ## Technical direction
 
-- **Web:** Supported, patched Next.js and TypeScript; accessible design system and internationalization.
+- **Web:** Next.js and TypeScript, using the committed iremehub+ responsive design system; remaining browser/accessibility checks are not complete.
 - **Services:** Modular NestJS or equivalent typed service boundary; versioned REST/OpenAPI, strict validation and server-side authorization.
 - **Data:** PostgreSQL, migrations, organization-scoped relationships, row-level security evaluation and auditable billing transactions.
 - **Operations:** Background jobs, object storage, secure secrets management, structured logs, error tracking, performance budgets, backups and recovery drills.
@@ -62,9 +62,9 @@ npm test
 
 This compiles the pure TypeScript authorization module and runs nine Node.js tests. A successful unit test does not demonstrate that the original Express backend enforces organization boundaries.
 
-### Legacy application (reference only)
+### Current pre-release application
 
-The original application has separate install/run instructions under `client/` and `server/`, with MongoDB and application secrets configured through environment variables. Do not use the documented demo credentials; they may be exposed in repository history. All real exposed credentials must be rotated.
+The pre-release application has separate install/run instructions under `client/` and `server/`, with MongoDB and application secrets configured through environment variables. A hosting provider has **not been selected**. See [host-independent local development](docs/HOST_INDEPENDENT_DEVELOPMENT.md). Do not use the documented demo credentials; they may be exposed in repository history. All real exposed credentials must be rotated.
 
 ### Database proposal
 
@@ -87,9 +87,9 @@ Read [the migration safety guide](apps/api/db/README.md) before provisioning a d
 
 ## Version control and recovery
 
-- `main`: original legacy reference; avoid direct edits.
-- `rebuild/iremehub-plus`: ordered pre-release work, one coherent change per commit.
-- Each milestone must be tested and reviewed before merging. Use pull requests and release tags for auditability.
+- `main`: baseline containing the 53 ordered iremehub+ renovation commits.
+- `fix/phase-3-ci-and-security`: additional reviewed pre-release hardening commits, staged in draft PR #2.
+- Commit each coherent milestone and review it before merging. Use release tags, backups and rollback plans before a future production release.
 - Removing generated dependencies from the latest tree does not remove old Git history or credentials.
 
 ## Buyer and investor diligence
