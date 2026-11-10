@@ -17,6 +17,17 @@ Status: **IN PROGRESS; NOT APPROVED FOR PRODUCTION**
 - Updated classroom countdown and completion flows to use assessment-specific server responses.
 - Added a pure assessment policy module with nine locally verified unit tests, now invoked by quiz/exam endpoints. The backend CI workflow includes those tests.
 
+## Hosting decision and local development
+
+- **Vercel has been discontinued by the project owner.** No replacement host has been selected, and choosing one is explicitly deferred.
+- The current application remains a Next.js frontend, Express API and MongoDB development stack. Local URLs and secrets are configured through `client/.env.example` and `server/.env.example`.
+- Old Vercel metadata, deployment config and environment exporter were removed from the active branch.
+- Legacy seed, database troubleshooting and bulk password-reset scripts containing credentials or unsafe defaults were retired. Use `npm run doctor` to validate local API configuration without displaying secrets.
+- **Urgent:** old public Git history contains database credentials. Rotate/revoke database access outside GitHub; deleting tracked files does not invalidate those credentials.
+- Express now exposes host-independent liveness (`GET /api/v1/health/live`) and MongoDB readiness (`GET /api/v1/health/ready`), with limited JSON request size and secure HTTP headers.
+- Educator/student detail and enrollment listings now check actual course membership before returning learner PII.
+- GitHub Actions checks are a separate engineering concern from Vercel hosting. Their failing runs still require investigation; a discontinued Vercel deployment alone does not prove the cause.
+
 ## CI blocker
 At the 2026-11-09 checkpoint, new workflow runs fail with no recorded job steps. GitHub returns 404 BlobNotFound for job logs. These reports do not show a completed lint, TypeScript, frontend build or backend test. Inspect GitHub repository Settings → Actions, runner availability, quotas/billing and workflow configuration first.
 
