@@ -16,14 +16,15 @@ import {
   resetPassword
 } from '../controllers/authController';
 import { protect, authorize } from '../middleware/auth';
+import { limitLogin, limitRegistration, limitRecovery, limitRefresh } from '../middleware/authRateLimit';
 
 const router: Router = express.Router();
 
 // Public routes
-router.post('/register', register);
-router.post('/login', login);
-router.post('/forgotpassword', forgotPassword);
-router.put('/resetpassword/:resettoken', resetPassword);
+router.post('/register', limitRegistration, register);
+router.post('/login', limitLogin, login);
+router.post('/forgotpassword', limitRecovery, forgotPassword);
+router.put('/resetpassword/:resettoken', limitRecovery, resetPassword);
 
 // Protected routes
 // Clear the cookie even when a previous token is expired.
@@ -31,7 +32,7 @@ router.put('/resetpassword/:resettoken', resetPassword);
 // to avoid sign-out via untrusted links.
 router.post('/logout', protect, logout);
 router.use(protect);
-router.post('/refresh-token', refreshToken);
+router.post('/refresh-token', limitRefresh, refreshToken);
 router.get('/me', getMe);
 router.put('/updatedetails', updateDetails);
 router.post('/updatedetails', updateDetails);
