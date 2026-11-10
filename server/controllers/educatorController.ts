@@ -168,11 +168,11 @@ export const getEnrollmentsForEducator = asyncHandler(async (req: UserRequest, r
     return res.status(200).json({ success: true, count: 0, data: [] });
   }
   const educatorCourseIds = educatorCourses.map(course => course._id);
-  const membershipByCourse = new Map(
+  const membershipByCourse = new Map<string, Set<string>>(
     educatorCourses.map(course => [
       course._id.toString(),
-      new Set(course.enrolledStudents.map(id => id.toString()))
-    ])
+      new Set<string>(course.enrolledStudents.map(id => id.toString()))
+    ] as const)
   );
 
   const allProgress = await Progress.find({ course: { $in: educatorCourseIds } })
