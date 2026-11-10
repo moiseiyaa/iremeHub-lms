@@ -1,0 +1,10 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {validateSignup,validNewPassword}=require('../.policy-test-build/registrationPolicy.js');
+test('valid signup normalized without altering password',()=>assert.deepEqual(validateSignup({name:' A B ',email:' Person+test@EXAMPLE.com ',password:'SecuRe!2026'}),{ok:true,value:{name:'A B',email:'person+test@example.com',password:'SecuRe!2026'}}));
+test('rejects empty/nonobject input',()=>{assert.equal(validateSignup(null).ok,false);assert.equal(validateSignup([]).ok,false);});
+test('rejects missing name or name outside size limits',()=>{assert.equal(validateSignup({name:'x',email:'x@y.com',password:'Valid!123'}).ok,false);assert.equal(validateSignup({name:'x'.repeat(101),email:'x@y.com',password:'Valid!123'}).ok,false);});
+test('rejects malformed emails and untyped inputs',()=>{assert.equal(validateSignup({name:'AB',email:'not-email',password:'Valid!123'}).ok,false);assert.equal(validateSignup({name:'AB',email:42,password:'Valid!123'}).ok,false);});
+test('rejects short password',()=>assert.equal(validNewPassword('Abcd1'),false));
+test('rejects over 72 UTF-8 bytes to avoid bcrypt truncation',()=>{assert.equal(validNewPassword('ü'.repeat(37)),false);assert.equal(validNewPassword('a'.repeat(72)),true);assert.equal(validNewPassword('a'.repeat(73)),false);});
+test('rejects non-string passwords',()=>assert.equal(validNewPassword({password:'secret'}),false));
